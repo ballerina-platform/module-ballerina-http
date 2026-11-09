@@ -91,7 +91,7 @@ service /passthroughservice on backendEp {
 }
 
 @test:Config {}
-public function testHttp2SmallPayloadResponseTrailers() returns error? {
+function testHttp2SmallPayloadResponseTrailers() returns error? {
     http:Client clientEP = check new ("http://localhost:9118");
     http:Response resp = check clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", "Small payload");
     var payload = resp.getTextPayload();
@@ -103,7 +103,7 @@ public function testHttp2SmallPayloadResponseTrailers() returns error? {
 }
 
 @test:Config {}
-public function testHttp2LargePayloadResponseTrailers() returns error? {
+function testHttp2LargePayloadResponseTrailers() returns error? {
     http:Client clientEP = check new ("http://localhost:9118");
     http:Response resp = check clientEP->post("/trailerInitiator/backend/echoResponseWithTrailer", common:LARGE_ENTITY);
     var payload = resp.getTextPayload();
@@ -115,7 +115,7 @@ public function testHttp2LargePayloadResponseTrailers() returns error? {
 }
 
 @test:Config {}
-public function testHttp2EmptyPayloadResponseTrailers() returns error? {
+function testHttp2EmptyPayloadResponseTrailers() returns error? {
     http:Client clientEP = check new ("http://localhost:9118");
     http:Response resp = check clientEP->get("/trailerInitiator/backend/responseEmptyPayloadWithTrailer");
     var payload = resp.getTextPayload();
@@ -127,7 +127,7 @@ public function testHttp2EmptyPayloadResponseTrailers() returns error? {
 }
 
 @test:Config {}
-public function testHttp2ProxiedTrailers() returns error? {
+function testHttp2ProxiedTrailers() returns error? {
     http:Client clientEP = check new ("http://localhost:9118");
     http:Response resp = check clientEP->post("/trailerInitiator/passthroughservice/forward", "Small payload");
     var payload = resp.getTextPayload();
@@ -139,7 +139,7 @@ public function testHttp2ProxiedTrailers() returns error? {
 }
 
 @test:Config {}
-public function testHttp2PassThroughButBuildPayload() returns error? {
+function testHttp2PassThroughButBuildPayload() returns error? {
     http:Client clientEP = check new ("http://localhost:9118");
     http:Response resp = check clientEP->post("/trailerInitiator/passthroughservice/buildPayload", "Small payload");
     var payload = resp.getTextPayload();

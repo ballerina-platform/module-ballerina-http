@@ -19,6 +19,7 @@
 
 package io.ballerina.stdlib.http.transport.util.server.websocket;
 
+import io.ballerina.stdlib.http.transport.util.TestUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -63,8 +64,7 @@ public final class WebSocketRemoteServer {
     }
 
     public void stop() {
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
+        TestUtil.shutdownEventLoopGroups(bossGroup, workerGroup);
         LOG.info("WebSocket remote server stopped listening  on port " + port);
     }
 }

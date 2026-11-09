@@ -28,8 +28,6 @@ public class OSConstants {
 
     static final String PROCESS_FIELD = "ProcessField";
 
-    public static final String PROCESS_EXEC_ERROR = "ProcessExecError";
-
     private OSConstants() {
     }
 }

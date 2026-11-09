@@ -44,7 +44,9 @@ jobs:
         with:
             lang_tag: ${{ inputs.lang_tag }}
             lang_version: ${{ inputs.lang_version }}
-            native_image_options: ${{ inputs.native_image_options }}
+            # Quick build mode on PRs: the check is about native-image compatibility, not optimised code, and -Ob
+            # shortens each image build. Scheduled and manual runs keep the default optimisation level.
+            native_image_options: ${{ github.event_name == 'pull_request' && '-Ob' || inputs.native_image_options }}
             additional_ubuntu_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test ${{ inputs.build_properties }}'
             additional_windows_build_flags: '-x :http-native:test -x :http-compiler-plugin-tests:test ${{ inputs.build_properties }}'
             java_tool_options: '-Dfile.encoding=UTF8'

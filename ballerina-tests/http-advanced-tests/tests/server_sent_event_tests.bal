@@ -213,7 +213,7 @@ function testServiceCompletesStreamWithErrorEvent() returns error? {
     check assertEventStream(actualSseEvents, expectedSseEvents);
 }
 
-@test:Config {}
+@test:Config {serialExecution: true}
 function testSseStreamWhoseSourcePanicsIsFailedAtTheClient() returns error? {
     foreach http:Client sseClient in [http1SseClient, http2SseClient] {
         stream<http:SseEvent, error?> events = check sseClient->/sse/panicking;
@@ -273,7 +273,7 @@ function testSseEventLargerThanTheReadBuffer() returns error? {
     test:assertEquals(events[1].data, "after");
 }
 
-@test:Config {}
+@test:Config {serialExecution: true}
 function testSseEventIsDeliveredWithoutWaitingForMoreBytes() returns error? {
     string firstEvent = "data: first\n\n";
     byte[] payload = string `${firstEvent}data: second${"\n\n"}`.toBytes();

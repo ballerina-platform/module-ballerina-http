@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/jballerina.java;
 import ballerina/lang.'string as strings;
 import ballerina/test;
 import ballerina/http_test_common as common;
@@ -63,7 +64,7 @@ service /protocol on sslProtocol13Listener {
     }
 }
 
-http:ClientSecureSocket sslProtocolClientConfig = {
+final readonly & http:ClientSecureSocket sslProtocolClientConfig = {
     cert: {
         path: common:TRUSTSTORE_PATH,
         password: "ballerina"
@@ -71,8 +72,8 @@ http:ClientSecureSocket sslProtocolClientConfig = {
 };
 
 @test:Config {}
-public function testTLS12() returns error? {
-    http:ClientSecureSocket sslConfig = sslProtocolClientConfig.clone();
+function testTLS12() returns error? {
+    http:ClientSecureSocket sslConfig = {...sslProtocolClientConfig};
     sslConfig.protocol = {
         name: http:TLS,
         versions: ["TLSv1.2"]
@@ -83,8 +84,8 @@ public function testTLS12() returns error? {
 }
 
 @test:Config {}
-public function testTLS13() returns error? {
-    http:ClientSecureSocket sslConfig = sslProtocolClientConfig.clone();
+function testTLS13() returns error? {
+    http:ClientSecureSocket sslConfig = {...sslProtocolClientConfig};
     sslConfig.protocol = {
         name: http:TLS,
         versions: ["TLSv1.3"]
@@ -95,8 +96,8 @@ public function testTLS13() returns error? {
 }
 
 @test:Config {}
-public function testSslProtocol() returns error? {
-    http:ClientSecureSocket sslConfig = sslProtocolClientConfig.clone();
+function testSslProtocol() returns error? {
+    http:ClientSecureSocket sslConfig = {...sslProtocolClientConfig};
     sslConfig.protocol = {
         name: http:TLS,
         versions: ["TLSv1.2", "TLSv1.3"]
@@ -111,9 +112,11 @@ public function testSslProtocol() returns error? {
     test:assertEquals(resp, "Hello, World!");
 }
 
-@test:Config {}
-public function testSslProtocolConflict() returns error? {
-    http:ClientSecureSocket sslConfig = sslProtocolClientConfig.clone();
+// Serial since, under concurrent load, the server's reset can reach the client before the TLS alert, which surfaces
+// as a generic connection error. On Windows that happens even when the test runs alone.
+@test:Config {serialExecution: true}
+function testSslProtocolConflict() returns error? {
+    http:ClientSecureSocket sslConfig = {...sslProtocolClientConfig};
     sslConfig.protocol = {
         name: http:TLS,
         versions: ["TLSv1.2"]
@@ -123,7 +126,7 @@ public function testSslProtocolConflict() returns error? {
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error");
     } else {
-        test:assertTrue(strings:includes(resp.message(), "SSL connection failed"));
+        assertProtocolMismatchError(resp.message());
     }
 
     sslConfig.protocol.versions = ["TLSv1.3"];
@@ -132,6 +135,17 @@ public function testSslProtocolConflict() returns error? {
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error");
     } else {
-        test:assertTrue(strings:includes(resp.message(), "SSL connection failed"));
+        assertProtocolMismatchError(resp.message());
     }
 }
+
+isolated function assertProtocolMismatchError(string message) {
+    // On Windows the server's reset can reach the client before the TLS alert, which surfaces as a generic error.
+    boolean genericErrorOnWindows = isWindows() && strings:includes(message, "Something wrong with the connection");
+    test:assertTrue(strings:includes(message, "SSL connection failed") || genericErrorOnWindows, msg = message);
+}
+
+isolated function isWindows() returns boolean = @java:Method {
+    'class: "io.ballerina.stdlib.http.testutils.Platform"
+} external;
+

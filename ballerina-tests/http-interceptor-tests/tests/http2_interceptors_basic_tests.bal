@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-int http2InterceptorBasicTestsPort1 = common:getHttp2Port(interceptorBasicTestsPort1);
+final int http2InterceptorBasicTestsPort1 = common:getHttp2Port(interceptorBasicTestsPort1);
 
 final http:Client http2InterceptorsBasicTestsClientEP1 = check new ("http://localhost:" + http2InterceptorBasicTestsPort1.toString(),
     http2Settings = {http2PriorKnowledge: true});
@@ -106,7 +106,7 @@ function tesHttp2RequestInterceptorReturnsError() returns error? {
         "Internal Server Error", 500, "/requestInterceptorReturnsError", "GET");
 }
 
-int http2ResponseInterceptorReturnsErrorTestPort = common:getHttp2Port(responseInterceptorReturnsErrorTestPort);
+final int http2ResponseInterceptorReturnsErrorTestPort = common:getHttp2Port(responseInterceptorReturnsErrorTestPort);
 
 final http:Client http2ResponseInterceptorReturnsErrorTestClientEP = check new ("http://localhost:" + http2ResponseInterceptorReturnsErrorTestPort.toString(),
     http2Settings = {http2PriorKnowledge: true});
@@ -132,7 +132,7 @@ function tesHttp2ResponseInterceptorReturnsError() returns error? {
         "Internal Server Error", 500, "/", "GET");
 }
 
-int http2InterceptorBasicTestsPort2 = common:getHttp2Port(interceptorBasicTestsPort2);
+final int http2InterceptorBasicTestsPort2 = common:getHttp2Port(interceptorBasicTestsPort2);
 
 final http:Client http2InterceptorsBasicTestsClientEP2 = check new ("http://localhost:" + http2InterceptorBasicTestsPort2.toString(),
     http2Settings = {http2PriorKnowledge: true});
@@ -288,7 +288,7 @@ function tesHttp2RequestInterceptorSetPayload() returns error? {
     common:assertHeaderValue(check res.getHeader("request-interceptor-setpayload"), "true");
 }
 
-int http2InterceptorBasicTestsPort3 = common:getHttp2Port(interceptorBasicTestsPort3);
+final int http2InterceptorBasicTestsPort3 = common:getHttp2Port(interceptorBasicTestsPort3);
 
 final http:Client http2InterceptorsBasicTestsClientEP3 = check new ("http://localhost:" + http2InterceptorBasicTestsPort3.toString(),
     http2Settings = {http2PriorKnowledge: true});
@@ -423,7 +423,7 @@ function tesHttp2RequestInterceptorPathAndVerb() returns error? {
     common:assertHeaderValue(check res.getHeader("error-type"), "DispatchingError-Resource");
 }
 
-int http2RequestInterceptorBasePathTestPort = common:getHttp2Port(requestInterceptorBasePathTestPort);
+final int http2RequestInterceptorBasePathTestPort = common:getHttp2Port(requestInterceptorBasePathTestPort);
 
 final http:Client http2RequestInterceptorBasePathClientEP = check new ("http://localhost:" + http2RequestInterceptorBasePathTestPort.toString(),
     http2Settings = {http2PriorKnowledge: true});
@@ -466,7 +466,7 @@ function tesHttp2RequestInterceptorBasePath() returns error? {
     common:assertHeaderValue(check res.getHeader("last-request-interceptor"), "true");
 }
 
-int http2GetRequestInterceptorBasePathTestPort = common:getHttp2Port(getRequestInterceptorBasePathTestPort);
+final int http2GetRequestInterceptorBasePathTestPort = common:getHttp2Port(getRequestInterceptorBasePathTestPort);
 
 final http:Client http2GetRequestInterceptorBasePathClientEP = check new ("http://localhost:" + http2GetRequestInterceptorBasePathTestPort.toString(),
     http2Settings = {http2PriorKnowledge: true});

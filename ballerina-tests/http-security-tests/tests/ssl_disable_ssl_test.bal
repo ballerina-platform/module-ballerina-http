@@ -39,7 +39,7 @@ service /httpsService on httpsListener {
     }
 }
 
-http:ClientConfiguration disableSslClientConf1 = {
+function disableSslClientConf1() returns http:ClientConfiguration => {
     httpVersion: http:HTTP_1_1,
     secureSocket: {
         enable: false
@@ -47,8 +47,8 @@ http:ClientConfiguration disableSslClientConf1 = {
 };
 
 @test:Config {}
-public function testSslDisabledClient1() returns error? {
-    http:Client httpClient = check new ("https://localhost:9238", disableSslClientConf1);
+function testSslDisabledClient1() returns error? {
+    http:Client httpClient = check new ("https://localhost:9238", disableSslClientConf1());
     http:Response|error resp = httpClient->get("/httpsService");
     if resp is http:Response {
         var payload = resp.getTextPayload();
