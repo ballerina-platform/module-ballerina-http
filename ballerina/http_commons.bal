@@ -321,6 +321,7 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
                 foreach var childPart in childParts {
                     // When performing passthrough scenarios, message needs to be built before
                     // invoking the endpoint to create a message datasource.
+                    check bufferBodyPartByteStream(childPart);
                     byte[]|error childBlobContent = childPart.getByteArray();
                     if childBlobContent is error {
                         log:printDebug("Error building datasource for multipart request: " + childBlobContent.message());
@@ -328,6 +329,7 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
                 }
                 bodyPart.setBodyParts(childParts, bodyPart.getContentType());
             } else {
+                check bufferBodyPartByteStream(bodyPart);
                 byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
                 if bodyPartBlobContent is error {
                     log:printDebug("Error building datasource for multipart request: " + bodyPartBlobContent.message());
@@ -337,6 +339,38 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
         inRequest.setBodyParts(bodyParts, inRequest.getContentType());
     }
     return inRequest;
+}
+
+// Reads a byte stream body of the entity into memory and returns the content, or nil if the body is not a stream.
+// An error of the stream is returned instead of letting an incomplete body to be sent.
+isolated function readEntityByteStream(mime:Entity entity) returns byte[]|ClientError? {
+    stream<byte[], io:Error?>|mime:Error? byteStream = externGetMimeByteStream(entity);
+    if byteStream is () || byteStream is mime:Error {
+        // The body is not a byte stream set on the entity (for example, text, a byte array or no body).
+        return;
+    }
+    byte[] content = [];
+    error? result = from byte[] chunk in byteStream
+        do {
+            content.push(...chunk);
+        };
+    if result is error {
+        return error GenericClientError("Error reading the byte stream of the payload: " + result.message(), result);
+    }
+    return content;
+}
+
+// Replaces a byte stream body of a body part with its content, so that the part can be sent more than once.
+isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns ClientError? {
+    byte[]? content = check readEntityByteStream(bodyPart);
+    if content is byte[] {
+        string contentType = bodyPart.getContentType();
+        if contentType == "" {
+            bodyPart.setByteArray(content);
+        } else {
+            bodyPart.setByteArray(content, contentType);
+        }
+    }
 }
 
 isolated function isMultipartRequest(Request request) returns boolean {

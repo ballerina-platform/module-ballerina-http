@@ -39,6 +39,9 @@ public client isolated class LoadBalanceClient {
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(*LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
+        if loadBalanceClientConfig.targets.length() == 0 {
+            return error GenericClientError("LoadBalanceClient requires at least one target");
+        }
         self.failover = loadBalanceClientConfig.failover;
         self.loadBalanceClientsArray = [];
         Client clientEp;
@@ -521,7 +524,8 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         cookieConfig:lbConfig.cookieConfig,
         responseLimits:lbConfig.responseLimits,
         validation:lbConfig.validation,
-        socketConfig:lbConfig.socketConfig
+        socketConfig:lbConfig.socketConfig,
+        proxy:lbConfig.proxy
     };
     return clientEPConfig;
 }

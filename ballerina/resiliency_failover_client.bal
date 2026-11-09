@@ -48,6 +48,9 @@ public client isolated class FailoverClient {
     # + failoverClientConfig - The configurations of the client endpoint associated with this `Failover` instance
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(*FailoverClientConfiguration failoverClientConfig) returns ClientError? {
+        if failoverClientConfig.targets.length() == 0 {
+            return error GenericClientError("FailoverClient requires at least one target");
+        }
         self.succeededEndpointIndex = 0;
         self.failoverClientsArray = [];
         Client clientEp;
@@ -696,7 +699,8 @@ isolated function createClientEPConfigFromFailoverEPConfig(FailoverClientConfigu
         cookieConfig:foConfig.cookieConfig,
         responseLimits:foConfig.responseLimits,
         validation:foConfig.validation,
-        socketConfig:foConfig.socketConfig
+        socketConfig:foConfig.socketConfig,
+        proxy:foConfig.proxy
     };
     return clientEPConfig;
 }

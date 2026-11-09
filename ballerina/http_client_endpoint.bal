@@ -615,6 +615,9 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
         }
 
         time:Utc circuitStartTime = time:utcNow();
+        if cbConfig.rollingWindow.bucketSize <= 0d {
+            return error GenericClientError("Circuit breaker 'bucketSize' value should be greater than zero.");
+        }
         int numberOfBuckets = <int> (cbConfig.rollingWindow.timeWindow / cbConfig.rollingWindow.bucketSize);
         Bucket?[] bucketArray = [];
         int bucketIndex = 0;
