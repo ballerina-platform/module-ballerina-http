@@ -39,14 +39,12 @@ type RedirectInferredConfig record {|
 # + config - HTTP ClientConfiguration to be used for HTTP client invocation
 # + redirectConfig - Configurations associated with redirect
 # + httpClient - HTTP client for outbound HTTP requests
-# + currentRedirectCount - Current redirect count of the HTTP client
 client isolated class RedirectClient {
 
     final string url;
     private final RedirectInferredConfig config;
     final FollowRedirects & readonly redirectConfig;
     final HttpClient httpClient;
-    private int currentRedirectCount = 0;
     private final boolean cookieEnabled;
     private final PersistentCookieHandler? persistentCookieHandler;
 
@@ -296,18 +294,6 @@ client isolated class RedirectClient {
         self.httpClient->rejectPromise(promise);
     }
 
-    isolated function getCurrentRedirectCount() returns int {
-        lock {
-            return self.currentRedirectCount;
-        }
-    }
-
-    isolated function setCurrentRedirectCount(int currentRedirectCount) {
-        lock {
-            self.currentRedirectCount = currentRedirectCount;
-        }
-    }
-
     //Invoke relevant HTTP client action and check the response for redirect eligibility.
     isolated function performRedirectIfEligible(string path, Request request,
             HttpOperation httpOperation) returns HttpResponse|ClientError {
@@ -328,38 +314,34 @@ client isolated class RedirectClient {
             inRequest = check populateMultipartRequest(inRequest);
         }
         HttpResponse|ClientError result = invokeEndpoint(path, inRequest, httpOperation, self.httpClient);
-        return self.checkRedirectEligibility(result, originalUrl, httpOperation, inRequest);
+        return self.checkRedirectEligibility(result, originalUrl, httpOperation, inRequest, 0);
     }
 
     //Inspect the response for redirect eligibility.
     isolated function checkRedirectEligibility(HttpResponse|ClientError response, string resolvedRequestedURI,
-            HttpOperation httpVerb, Request request) returns HttpResponse|ClientError {
+            HttpOperation httpVerb, Request request, int redirectCount) returns HttpResponse|ClientError {
         if response is Response {
             if isRedirectResponse(response.statusCode) {
-                return self.redirect(response, httpVerb, request, resolvedRequestedURI);
+                return self.redirect(response, httpVerb, request, resolvedRequestedURI, redirectCount);
             } else {
-                self.setCountAndResolvedURL(response, resolvedRequestedURI);
+                setResolvedURL(response, resolvedRequestedURI);
                 return response;
             }
         } else {
-            self.setCurrentRedirectCount(0);
             return response;
         }
     }
 
     //If max redirect count is not reached, perform redirection.
-    isolated function redirect(Response response, HttpOperation httpVerb, Request request, string resolvedRequestedURI)
-            returns HttpResponse|ClientError {
-        int currentCount = self.getCurrentRedirectCount();
-        int maxCount = self.redirectConfig.maxCount;
-        if currentCount >= maxCount {
+    isolated function redirect(Response response, HttpOperation httpVerb, Request request, string resolvedRequestedURI,
+            int redirectCount) returns HttpResponse|ClientError {
+        if redirectCount >= self.redirectConfig.maxCount {
             log:printDebug("Maximum redirect count reached!");
-            self.setCountAndResolvedURL(response, resolvedRequestedURI);
+            setResolvedURL(response, resolvedRequestedURI);
         } else {
-            currentCount += 1;
+            final int currentCount = redirectCount + 1;
             final string currentCountValue = currentCount.toString();
             log:printDebug("Redirect count : " + currentCountValue);
-            self.setCurrentRedirectCount(currentCount);
             var redirectMethod = getRedirectMethod(httpVerb, response);
             if redirectMethod is HttpOperation {
                  var location = response.getHeader(LOCATION);
@@ -368,27 +350,25 @@ client isolated class RedirectClient {
                     if !isAbsolute(location) {
                         var resolvedURI = resolve(resolvedRequestedURI, location);
                         if resolvedURI is string {
-                            return self.performRedirection(resolvedURI, redirectMethod, request, response);
+                            return self.performRedirection(resolvedURI, redirectMethod, request, currentCount);
                         } else {
-                            self.setCurrentRedirectCount(0);
                             return resolvedURI;
                         }
                     } else {
-                        return self.performRedirection(location, redirectMethod, request, response);
+                        return self.performRedirection(location, redirectMethod, request, currentCount);
                     }
                 } else {
-                    self.setCurrentRedirectCount(0);
                     return error GenericClientError("Location header not available!");
                 }
             } else {
-                self.setCountAndResolvedURL(response, resolvedRequestedURI);
+                setResolvedURL(response, resolvedRequestedURI);
             }
         }
         return response;
     }
 
     isolated function performRedirection(string location, HttpOperation redirectMethod, Request request,
-            Response response) returns HttpResponse|ClientError {
+            int redirectCount) returns HttpResponse|ClientError {
         CookieStore? cookieStore = ();
         if self.cookieEnabled {
             cookieStore = new(self.persistentCookieHandler);
@@ -404,7 +384,7 @@ client isolated class RedirectClient {
             HttpResponse|ClientError result = invokeEndpoint("",
                 createRedirectRequest(request, self.redirectConfig.allowAuthHeaders),
                 redirectMethod, retryClient);
-            return self.checkRedirectEligibility(result, location, redirectMethod, request);
+            return self.checkRedirectEligibility(result, location, redirectMethod, request, redirectCount);
         } else {
             return retryClient;
         }
@@ -430,14 +410,12 @@ client isolated class RedirectClient {
         };
         return newEpConfig;
     }
+}
 
-    //Reset the current redirect count to 0 and set the resolved requested URI.
-    isolated function setCountAndResolvedURL(Response response, string resolvedRequestedURI) {
-        final string resolvedRequestedURIValue = resolvedRequestedURI;
-        log:printDebug("ultimate response coming from the request: " + resolvedRequestedURIValue);
-        self.setCurrentRedirectCount(0);
-        response.resolvedRequestedURI = resolvedRequestedURI;
-    }
+isolated function setResolvedURL(Response response, string resolvedRequestedURI) {
+    final string resolvedRequestedURIValue = resolvedRequestedURI;
+    log:printDebug("ultimate response coming from the request: " + resolvedRequestedURIValue);
+    response.resolvedRequestedURI = resolvedRequestedURI;
 }
 
 //Check the response status for redirect eligibility.
