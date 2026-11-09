@@ -21,7 +21,27 @@ specification ([RFC 9110, section 10.2.3](https://www.rfc-editor.org/rfc/rfc9110
 value, so it can be seconds, hours or days. What a client does with a long value is up to the client. Waiting for hours
 inside a request tends to cause timeouts in the callers upstream that are hard to trace.
 
-## What the example does
+## Use it
+
+Wrap the call, and finish with `.ensureType()` to get your own type back. If the server asks for a wait that is too
+long, handle the `RateLimitedError`:
+
+```ballerina
+anydata|error result = callWithRetryAfter(function () returns Order[]|error {
+    return orderApi->get("/orders");
+});
+
+if result is RateLimitedError {
+    // The server asked for more than `maxRetryAfterWait`: reschedule instead of blocking.
+    log:printInfo("rate limited", retryAt = result.detail().retryAt);
+} else {
+    Order[] orders = check result.ensureType();
+}
+```
+
+For a call that returns an `http:Response`, use `callWithRetryAfterResponse` the same way.
+
+## What the helper does
 
 [`client/retry_after.bal`](client/retry_after.bal) is a small helper you can copy into your own project. It uses only the
 standard library.
@@ -67,9 +87,9 @@ cd client
 bal run
 ```
 
-The client runs six scenarios:
+[`client/main.bal`](client/main.bal) reads top to bottom, one scenario after another:
 
-1. The built-in `retryConfig`, which ignores the header and gives up after about three seconds.
+1. The built-in `retryConfig`, which ignores the header and gives up with a `429`.
 2. A `429` with `Retry-After` in seconds.
 3. A `429` with `Retry-After` as an HTTP-date.
 4. A `503` with `Retry-After`.
@@ -79,13 +99,13 @@ The client runs six scenarios:
 The output is similar to:
 
 ```text
-=== 1. Built-in retryConfig (interval 1s, 3 retries, statusCodes [429]); the server says Retry-After: 4 ===
-[client +3.4s] final result: HTTP 429, all retries used up although the server asked for 4s between calls
+=== Built-in retryConfig (interval 1s, 3 retries); the server says Retry-After: 4 ===
+result: HTTP 429
 
-=== 2. 429 with Retry-After in seconds (two failures) ===
-[client +9.5s] final result: [{"id":1,"item":"laptop"},{"id":2,"item":"monitor"}]
+=== Retry-After in seconds (429, 3s, two failures) ===
+result: [{"id":1,"item":"laptop"},{"id":2,"item":"monitor"}]
 ...
-=== 6. Retry-After: 86400 (one day) -> fail fast and hand back the retry time ===
+=== Retry-After: 86400 (one day) ===
 time=... level=WARN module=retry_after/client message="Not retrying, the server asks for a longer wait than allowed" statusCode=429 waitSeconds=86400.0 maxWaitSeconds=30
-[client +16.7s] the caller can reschedule: HTTP 429: retry allowed after 86400.0s; retryAt=2026-11-06T04:36:16.055278Z
+time=... level=INFO module=retry_after/client message="rate limited, reschedule the work" retryAt="2026-11-10T08:37:25.046942Z"
 ```
