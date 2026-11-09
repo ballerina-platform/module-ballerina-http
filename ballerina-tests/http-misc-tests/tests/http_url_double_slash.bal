@@ -151,7 +151,7 @@ function testResourcePath404Negative() returns error? {
 }
 
 @test:Config {}
-public function testClientWithDoubleURLs() returns error? {
+function testClientWithDoubleURLs() returns error? {
     json response = check httpUrlClient->get("/foo");
     test:assertEquals(response, {name: "foo"});
 }

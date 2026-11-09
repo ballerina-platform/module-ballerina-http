@@ -183,7 +183,7 @@ service /retryDemoService on retryTestserviceEndpoint1 {
 
 int retryCount = 0;
 int httpGetRetryCount = 0;
-int httpHeadRetryCount = 0;
+isolated int httpHeadRetryCount = 0;
 int httpPutRetryCount = 0;
 int httpPatchRetryCount = 0;
 int httpDeleteRetryCount = 0;
@@ -196,8 +196,8 @@ service /mockHelloService on retryTestserviceEndpoint1 {
     resource function 'default .(http:Caller caller, http:Request req) {
         int count = 0;
         lock {
-            retryCounter += 1;
-            count = retryCounter;
+            retryCount += 1;
+            count = retryCount;
         }
         if (count % 4 != 0) {
             // log:printInfo("Request received from the client to delayed service.");
@@ -540,8 +540,10 @@ function testExecuteWithRetries() returns error? {
 }
 
 //Test retry functionality with multipart requests
+// Chained after testSimpleRetry: all three POST tests share `retryCount % 4` on mockHelloService.
 @test:Config {
-    groups: ["retryClientTest"]
+    groups: ["retryClientTest"],
+    dependsOn: [testSimpleRetry]
 }
 function testRetryWithMultiPart() {
     test:assertTrue(externTestMultiPart(retryFunctionTestPort1, "retryDemoService"));
@@ -549,7 +551,8 @@ function testRetryWithMultiPart() {
 
 //Test retry functionality when request has nested body parts
 @test:Config {
-    groups: ["retryClientTest"]
+    groups: ["retryClientTest"],
+    dependsOn: [testRetryWithMultiPart]
 }
 function testRetryWithNestedMultiPart() {
     test:assertTrue(externTestNestedMultiPart(retryFunctionTestPort1, "retryDemoService"));
@@ -591,10 +594,10 @@ function testRetryBasedOnHttpStatusCodesContinuousFailure() returns error? {
     }
 }
 
-function externTestMultiPart(int servicePort, string path) returns boolean = @java:Method {
+isolated function externTestMultiPart(int servicePort, string path) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternRetryMultipartTestutil"
 } external;
 
-function externTestNestedMultiPart(int servicePort, string path) returns boolean = @java:Method {
+isolated function externTestNestedMultiPart(int servicePort, string path) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternRetryMultipartTestutil"
 } external;

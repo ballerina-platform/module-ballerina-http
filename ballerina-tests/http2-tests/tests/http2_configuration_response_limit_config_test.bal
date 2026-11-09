@@ -51,8 +51,8 @@ http:ClientConfiguration http2EntityBodyLimitConfig = {
     }
 };
 
-int http2ResponseLimitsTestPort1 = common:getHttp2Port(responseLimitsTestPort1);
-int http2ResponseLimitsTestPort2 = common:getHttp2Port(responseLimitsTestPort2);
+final int http2ResponseLimitsTestPort1 = common:getHttp2Port(responseLimitsTestPort1);
+final int http2ResponseLimitsTestPort2 = common:getHttp2Port(responseLimitsTestPort2);
 
 listener http:Listener http2StatusLineEP = new (http2ResponseLimitsTestPort1);
 listener http:Listener http2ResponseLimitBackendEP = new (http2ResponseLimitsTestPort2);

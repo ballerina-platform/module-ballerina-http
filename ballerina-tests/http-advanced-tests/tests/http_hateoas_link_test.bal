@@ -17,19 +17,19 @@
 import ballerina/http;
 import ballerina/test;
 
-http:Link link1 = {
+final readonly & http:Link link1 = {
     href : "/source/test/testLink1",
     types : ["testMediaType1"],
     methods : [http:GET, http:POST]
 };
 
-http:Link link2 = {
+final readonly & http:Link link2 = {
     href : "/source/test/testLink2",
     types : ["testMediaType2"],
     methods : [http:OPTIONS, http:HEAD]
 };
 
-http:Links links = {
+final readonly & http:Links links = {
     _links : {
         "rel1" : link1,
         "rel2" : link2
@@ -37,7 +37,7 @@ http:Links links = {
 };
 
 @test:Config{}
-public function testLinkRecords() {
+function testLinkRecords() {
     test:assertEquals(links._links["rel1"]?.href, "/source/test/testLink1");
     test:assertEquals(links._links["rel1"]?.methods, [http:GET, http:POST]);
     test:assertEquals(links._links["rel1"]?.types, ["testMediaType1"]);

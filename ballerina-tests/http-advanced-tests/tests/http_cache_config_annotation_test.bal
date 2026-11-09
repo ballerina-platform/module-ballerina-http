@@ -34,7 +34,7 @@ isolated int statusHits = 0;
 isolated int greetingHits = 0;
 final readonly & xml maxAgePayload1 = xml `<message>before cache expiration</message>`;
 final readonly & xml maxAgePayload2 = xml `<message>after cache expiration</message>`;
-readonly & string errorBody = "Error";
+final readonly & string errorBody = "Error";
 final readonly & string mustRevalidatePayload1 = "Hello, World!";
 isolated byte[] mustRevalidatePayload2 = "Hello, New World!".toBytes();
 final readonly & json nocachePayload1 = {"message": "1st response"};
@@ -207,7 +207,7 @@ function testNoCacheCacheControlWithAnnotation() returns error? {
     return;
 }
 
-@test:Config {}
+@test:Config {serialExecution: true}
 function testMaxAgeCacheControlWithAnnotation() returns error? {
     http:Response response = check cacheClientEP->get("/maxAge");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");
@@ -247,7 +247,7 @@ function testMaxAgeCacheControlWithAnnotation() returns error? {
     return;
 }
 
-@test:Config {}
+@test:Config {serialExecution: true}
 function testMustRevalidateCacheControlWithAnnotation() returns error? {
     http:Response response = check cacheClientEP->get("/mustRevalidate");
     test:assertEquals(response.statusCode, 200, msg = "Found unexpected output");

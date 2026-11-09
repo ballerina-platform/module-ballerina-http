@@ -60,7 +60,7 @@ service /maxAgeCacheBackend on cachingBackendListener {
 }
 
 //Test with the e-tag, so the backend should send 304 for the 3rd request
-@test:Config {}
+@test:Config {serialExecution: true}
 function testCacheControlAfterFirstMaxAgeWithStrongValidator() returns error? {
     check sendRequestAndAssert("/maxAgeCache/withEtag", 1);
     // This should be a cached response
@@ -73,7 +73,7 @@ function testCacheControlAfterFirstMaxAgeWithStrongValidator() returns error? {
 }
 
 //Test without the e-tag, so the backend should send 200 for the 3rd request
-@test:Config {dependsOn: [testCacheControlAfterFirstMaxAgeWithStrongValidator]}
+@test:Config {dependsOn: [testCacheControlAfterFirstMaxAgeWithStrongValidator], serialExecution: true}
 function testCacheControlAfterFirstMaxAgeWithWeakValidator() returns error? {
     check sendRequestAndAssert("/maxAgeCache/withoutEtag", 3);
     // This should be a cached response

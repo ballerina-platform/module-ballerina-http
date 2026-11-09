@@ -19,7 +19,7 @@ import ballerina/jwt;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-[jwt:Header, jwt:Payload] reqCtxJwtValues = [];
+isolated [jwt:Header, jwt:Payload] reqCtxJwtValues = [];
 
 final http:Client interceptorsBasicTestsClientEP1 = check new("http://localhost:" + interceptorBasicTestsPort1.toString(), httpVersion = http:HTTP_1_1);
 
@@ -574,7 +574,9 @@ service http:InterceptableService /requestInterceptorJwtInformation on new http:
 
 @test:Config{}
 function testJwtInformationInRequestContext() returns error? {
-    reqCtxJwtValues = [];
+    lock {
+        reqCtxJwtValues = [];
+    }
     http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
     secureSocket = {
         cert: common:CERT_FILE
@@ -595,17 +597,20 @@ function testJwtInformationInRequestContext() returns error? {
     });
     string response = check jwtClient->get("/requestInterceptorJwtInformation");
     test:assertEquals(response, "Hello client");
-    test:assertEquals(reqCtxJwtValues[0], {"alg":"RS256","typ":"JWT","kid":"5a0b754-895f-4279-8843-b745e11a57e9"});
-    test:assertEquals(reqCtxJwtValues[1].iss, "wso2");
-    test:assertEquals(reqCtxJwtValues[1].sub, "ballerina");
-    test:assertEquals(reqCtxJwtValues[1].aud, ["ballerina","ballerina.org","ballerina.io"]);
-    test:assertEquals(reqCtxJwtValues[1].jti, "JlbmMiOiJBMTI4Q0JDLUhTMjU2In");
-    test:assertEquals(reqCtxJwtValues[1]["scp"], "admin");
+    [jwt:Header, jwt:Payload] jwtValues;
+    lock {
+        jwtValues = reqCtxJwtValues.clone();
+    }
+    test:assertEquals(jwtValues[0], {"alg":"RS256","typ":"JWT","kid":"5a0b754-895f-4279-8843-b745e11a57e9"});
+    test:assertEquals(jwtValues[1].iss, "wso2");
+    test:assertEquals(jwtValues[1].sub, "ballerina");
+    test:assertEquals(jwtValues[1].aud, ["ballerina","ballerina.org","ballerina.io"]);
+    test:assertEquals(jwtValues[1].jti, "JlbmMiOiJBMTI4Q0JDLUhTMjU2In");
+    test:assertEquals(jwtValues[1]["scp"], "admin");
 }
 
 @test:Config{}
 function testEmptyJwtInformationInRequestContext() returns error? {
-    reqCtxJwtValues = [];
     http:Client jwtClient = check new("https://localhost:" + jwtInformationInReqCtxtTestPort.toString(),
     secureSocket = {
         cert: common:CERT_FILE

@@ -104,7 +104,7 @@ service /urlEncodedResponses on generalListener {
 }
 
 @test:Config {}
-public function testUrlEncodedAcceptedResponse() returns error? {
+function testUrlEncodedAcceptedResponse() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/accepted");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -112,7 +112,7 @@ public function testUrlEncodedAcceptedResponse() returns error? {
 }
 
 @test:Config {}
-public function testUrlEncodedAcceptedResponseWithInlineAcceptedBody() returns error? {
+function testUrlEncodedAcceptedResponseWithInlineAcceptedBody() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/acceptedWithInlinePayload");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -120,7 +120,7 @@ public function testUrlEncodedAcceptedResponseWithInlineAcceptedBody() returns e
 }
 
 @test:Config {}
-public function testUrlEncodedWithDirectReturn() returns error? {
+function testUrlEncodedWithDirectReturn() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/directReturn");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -128,7 +128,7 @@ public function testUrlEncodedWithDirectReturn() returns error? {
 }
 
 @test:Config {}
-public function testUrlEncodedClientErrorResponse() returns error? {
+function testUrlEncodedClientErrorResponse() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/clientError");
     test:assertEquals(resp.statusCode, 400, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -136,7 +136,7 @@ public function testUrlEncodedClientErrorResponse() returns error? {
 }
 
 @test:Config {}
-public function testUrlEncodedServerErrorResponse() returns error? {
+function testUrlEncodedServerErrorResponse() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/serverError");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     string payload = check resp.getTextPayload();
@@ -144,7 +144,7 @@ public function testUrlEncodedServerErrorResponse() returns error? {
 }
 
 @test:Config {}
-public function testAcceptedWithStringPayload() returns error? {
+function testAcceptedWithStringPayload() returns error? {
     http:Response resp = check urlEncodedResponsesTestClient->get("/urlEncodedResponses/acceptedWithStringPayload");
     test:assertEquals(resp.statusCode, 202, msg = "Found unexpected output");
     test:assertEquals(resp.getContentType(), mime:APPLICATION_FORM_URLENCODED);
