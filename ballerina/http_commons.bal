@@ -310,7 +310,8 @@ isolated function populateRequestFields (Request originalRequest, Request newReq
 isolated function populateMultipartRequest(Request inRequest) returns Request|ClientError {
     if isMultipartRequest(inRequest) {
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
-        foreach var bodyPart in bodyParts {
+        foreach int partIndex in 0 ..< bodyParts.length() {
+            mime:Entity bodyPart = bodyParts[partIndex];
             if isNestedEntity(bodyPart) {
                 mime:Entity[]|error childParts = bodyPart.getBodyParts();
 
@@ -318,10 +319,11 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
                     return error GenericClientError(childParts.message(), childParts);
                 }
 
-                foreach var childPart in childParts {
+                foreach int childIndex in 0 ..< childParts.length() {
+                    mime:Entity childPart = check bufferBodyPartByteStream(childParts[childIndex]);
+                    childParts[childIndex] = childPart;
                     // When performing passthrough scenarios, message needs to be built before
                     // invoking the endpoint to create a message datasource.
-                    check bufferBodyPartByteStream(childPart);
                     byte[]|error childBlobContent = childPart.getByteArray();
                     if childBlobContent is error {
                         log:printDebug("Error building datasource for multipart request: " + childBlobContent.message());
@@ -329,7 +331,8 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
                 }
                 bodyPart.setBodyParts(childParts, bodyPart.getContentType());
             } else {
-                check bufferBodyPartByteStream(bodyPart);
+                bodyPart = check bufferBodyPartByteStream(bodyPart);
+                bodyParts[partIndex] = bodyPart;
                 byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
                 if bodyPartBlobContent is error {
                     log:printDebug("Error building datasource for multipart request: " + bodyPartBlobContent.message());
@@ -360,15 +363,52 @@ isolated function readEntityByteStream(mime:Entity entity) returns byte[]|Client
     return content;
 }
 
-// Replaces a byte stream body of a body part with its content, so that the part can be sent more than once.
-isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns ClientError? {
+// Returns a body part that holds the content of the byte stream body of the given part in memory, so that the part
+// can be sent more than once. A new entity is created because the drained stream stays attached to the original
+// entity, which would make a second buffering overwrite the content with an empty array. A part that is not
+// backed by a byte stream is returned as it is, so the buffering is done only once.
+// Note: the whole stream is held in memory, there is no size limit.
+isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns mime:Entity|ClientError {
     byte[]? content = check readEntityByteStream(bodyPart);
-    if content is byte[] {
-        string contentType = bodyPart.getContentType();
-        if contentType == "" {
-            bodyPart.setByteArray(content);
-        } else {
-            bodyPart.setByteArray(content, contentType);
+    if content is () {
+        return bodyPart;
+    }
+    mime:Entity bufferedPart = new;
+    foreach string headerName in bodyPart.getHeaderNames() {
+        string[]|mime:HeaderNotFoundError headerValues = bodyPart.getHeaders(headerName);
+        if headerValues is string[] {
+            foreach string headerValue in headerValues {
+                bufferedPart.addHeader(headerName, headerValue);
+            }
+        }
+    }
+    bufferedPart.setByteArray(content, bodyPart.getContentType());
+    return bufferedPart;
+}
+
+// Reads a byte stream payload of the request into memory (once) so that the request can be sent more than once.
+// A payload that is already in memory, a multipart payload (see populateMultipartRequest) or a request without a
+// payload is left as it is. A failure of the stream is returned as an error instead of sending an incomplete body.
+// Note: the whole stream is held in memory, there is no size limit.
+isolated function bufferRequestPayloadForResend(Request request) returns ClientError? {
+    if isMultipartRequest(request) {
+        return;
+    }
+    if !request.hasMsgDataSource() {
+        mime:Entity|ClientError entity = request.getEntityWithBodyAndWithoutHeaders();
+        if entity is mime:Entity {
+            byte[]? streamContent = check readEntityByteStream(entity);
+            if streamContent is byte[] {
+                request.setBinaryPayload(streamContent);
+            }
+        }
+    }
+    // When performing passthrough scenarios, message needs to be built before sending out to keep the request
+    // message for the next attempt.
+    if !request.hasMsgDataSource() {
+        byte[]|error binaryPayload = request.getBinaryPayload();
+        if binaryPayload is error {
+            log:printDebug("Error building payload for request resend: " + binaryPayload.message());
         }
     }
 }

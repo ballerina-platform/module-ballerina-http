@@ -15,8 +15,6 @@
 // under the License.
 
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
-import ballerina/mime;
 
 # Derived set of configurations from the `RetryConfig`.
 #
@@ -306,23 +304,11 @@ isolated function performRetryAction(string path, Request request, HttpOperation
     ClientError httpConnectorErr = retryFailedError;
     Request inRequest = request;
     // The payload is read into memory before the first attempt so that it can be resent. This includes streamed
-    // payloads, and a failure to read a stream fails the call instead of sending an incomplete body.
-    if !isMultipartRequest(inRequest) {
-        mime:Entity|ClientError entity = inRequest.getEntityWithBodyAndWithoutHeaders();
-        if entity is mime:Entity {
-            byte[]? streamContent = check readEntityByteStream(entity);
-            if streamContent is byte[] {
-                inRequest.setBinaryPayload(streamContent);
-            }
-        }
-    }
-    // When performing passthrough scenarios using retry client, message needs to be built before sending out the
-    // to keep the request message to retry.
-    if !inRequest.hasMsgDataSource() {
-        byte[]|error binaryPayload = inRequest.getBinaryPayload();
-        if binaryPayload is error {
-            log:printDebug("Error building payload for request retry: " + binaryPayload.message());
-        }
+    // payloads, and a failure to read a stream fails the call instead of sending an incomplete body. Nothing is
+    // buffered when no retry can happen, so that the request is streamed. The whole payload is held in memory,
+    // there is no size limit.
+    if retryCount > 0 {
+        check bufferRequestPayloadForResend(inRequest);
     }
 
     while (currentRetryCount < (retryCount + 1)) {

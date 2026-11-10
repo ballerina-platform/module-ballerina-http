@@ -1410,9 +1410,9 @@ http:Client clientEP = check new ("http://localhost:9090",
 ```
 
 The following behaviours also apply to the retry client:
-- The client `timeout` applies to each attempt separately. The worst-case duration of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times. In the current implementation, when the last attempt fails with a network-level error, the client waits once more before returning the error, which adds one more wait time to this duration ([ballerina-library#9450](https://github.com/ballerina-platform/ballerina-library/issues/9450)).
+- The client `timeout` applies to each attempt separately. The worst-case duration of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times. The client does not wait after the last attempt.
 - Requests are retried regardless of the HTTP method, including non-idempotent methods such as `POST` and `PATCH`. Configure retrying only when the remote service can safely handle duplicate requests.
-- The request payload is built in memory before the first attempt so that it can be resent. This applies to streaming and passthrough payloads as well.
+- The request payload is built in memory before the first attempt so that it can be resent. This applies to streaming and passthrough payloads as well. A failure while reading a streamed payload fails the call with a `ClientError`. The payload is not buffered when `count` is `0`. The whole payload is held in memory, there is no size limit.
 - When `circuitBreaker` is also configured, the circuit breaker wraps the retry client. Therefore, a call and all of its retries are counted as a single request by the circuit breaker.
 - When `followRedirects` is enabled, the redirect client wraps the retry client. The request to each redirect location is retried independently.
 
@@ -1433,6 +1433,8 @@ http:Client clientEP = check new ("http://localhost:9090",
 );
 ```
 
+The `rollingWindow.bucketSize` must be greater than zero; otherwise, the client initialization returns a `ClientError`.
+
 ##### 2.4.1.6 Cookie
 Provides the cookie functionality across HTTP client actions. The support functions defined in the request can be 
 used to manipulate cookies.
@@ -1450,6 +1452,7 @@ Following clients can be created separately as it requires different configurati
 ##### 2.4.1.7 Load balance
 LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients. It uses the
 LoadBalanceClientConfiguration. 
+`proxy` and the other `ClientConfiguration` fields except `secureSocket` apply to every target. Initialization returns a `ClientError` when `targets` is empty.
 ```ballerina
 public type LoadBalanceClientConfiguration record {|
     *CommonClientConfiguration;
@@ -1471,6 +1474,7 @@ http:LoadBalanceClient clientEP = check new (
 ##### 2.4.1.8 Failover
 An HTTP client endpoint which provides failover support over multiple HTTP clients. It uses the
 FailoverClientConfiguration.
+`proxy` and the other `ClientConfiguration` fields except `secureSocket` apply to every target. Initialization returns a `ClientError` when `targets` is empty.
 ```ballerina
 public type FailoverClientConfiguration record {|
     *CommonClientConfiguration;

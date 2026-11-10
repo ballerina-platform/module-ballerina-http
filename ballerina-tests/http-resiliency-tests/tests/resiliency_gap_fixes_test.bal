@@ -64,6 +64,210 @@ service /lbMultipart on new http:Listener(lbMultipartStreamPartTestPort, httpVer
         }
         return result;
     }
+
+    resource function post body(http:Request req) returns string|error {
+        return string `body=${check req.getTextPayload()}`;
+    }
+}
+
+isolated map<int> flakyHits = {};
+
+// Fails the first call of every id with 503 and echoes the text of the body parts (or the body) afterwards.
+service /flaky on new http:Listener(flakyBackendTestPort, httpVersion = http:HTTP_1_1) {
+    resource function post [string id]/echo(http:Request req) returns http:Response|error {
+        int hits;
+        lock {
+            hits = (flakyHits[id] ?: 0) + 1;
+            flakyHits[id] = hits;
+        }
+        http:Response res = new;
+        if hits == 1 {
+            res.statusCode = 503;
+            return res;
+        }
+        if req.getContentType().startsWith("multipart/") {
+            string result = "";
+            foreach mime:Entity part in check req.getBodyParts() {
+                result += check part.getText();
+                result += "|";
+            }
+            res.setTextPayload(result);
+        } else {
+            res.setTextPayload(string `body=${check req.getTextPayload()}`);
+        }
+        return res;
+    }
+
+    resource function post redirect(http:Request req) returns http:Response {
+        http:Response res = new;
+        res.statusCode = 307;
+        res.setHeader("Location", "http://localhost:" + flakyBackendTestPort.toString() + "/flaky/redirected/echo");
+        return res;
+    }
+}
+
+isolated string[] proxiedRequestTargets = [];
+
+// Acts as a minimal forward proxy: it only records the target of the request sent to it (a request sent to a
+// proxy has the absolute target URI, or at least the path of the proxied request).
+service / on new http:Listener(fakeProxyTestPort, httpVersion = http:HTTP_1_1) {
+    resource function 'default [string... path](http:Request req) returns string {
+        lock {
+            proxiedRequestTargets.push(req.rawPath);
+        }
+        return "via proxy";
+    }
+}
+
+function multipartWithStreamPart() returns http:Request {
+    mime:Entity part1 = new;
+    part1.setText("part-one");
+    mime:Entity part2 = new;
+    part2.setByteStream(new stream<byte[], io:Error?>(new SingleChunkByteGenerator()));
+    http:Request req = new;
+    req.setBodyParts([part1, part2]);
+    return req;
+}
+
+function streamBodyRequest() returns http:Request {
+    http:Request req = new;
+    req.setByteStream(new stream<byte[], io:Error?>(new SingleChunkByteGenerator()));
+    return req;
+}
+
+final string lbMultipartEchoUrl = "http://localhost:" + lbMultipartStreamPartTestPort.toString();
+final string flakyUrl = "http://localhost:" + flakyBackendTestPort.toString();
+final string deadUrl = "http://localhost:" + unreachableBackendPort.toString();
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testLoadBalanceAndFailoverClientUseProxy() returns error? {
+    http:ProxyConfig proxy = {host: "localhost", port: fakeProxyTestPort};
+    http:LoadBalanceClient lb = check new ({targets: [{url: deadUrl}], proxy, httpVersion: http:HTTP_1_1});
+    http:FailoverClient fo = check new ({targets: [{url: deadUrl}], proxy, httpVersion: http:HTTP_1_1});
+    http:Response _ = check lb->get("/proxied/lb");
+    http:Response _ = check fo->get("/proxied/fo");
+    string[] targets;
+    lock {
+        targets = proxiedRequestTargets.clone();
+    }
+    test:assertTrue(targets.some(t => t.endsWith("/proxied/lb")), "The load balance request did not reach the proxy");
+    test:assertTrue(targets.some(t => t.endsWith("/proxied/fo")), "The failover request did not reach the proxy");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testFailoverClientMultipartStreamPartAfterFailedTarget() returns error? {
+    http:FailoverClient fo = check new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: deadUrl}, {url: lbMultipartEchoUrl}]
+    });
+    string res = check fo->post("/lbMultipart/echo", multipartWithStreamPart());
+    test:assertEquals(res, "part-one|part-two|");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testLoadBalanceClientMultipartStreamPartAfterFailedTarget() returns error? {
+    http:LoadBalanceClient lb = check new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: deadUrl}, {url: lbMultipartEchoUrl}]
+    });
+    string res = check lb->post("/lbMultipart/echo", multipartWithStreamPart());
+    test:assertEquals(res, "part-one|part-two|");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testRetryClientMultipartStreamPartOnSecondAttempt() returns error? {
+    http:Client c = check new (flakyUrl, httpVersion = http:HTTP_1_1,
+        retryConfig = {count: 2, interval: 0.1, statusCodes: [503]});
+    string res = check c->post("/flaky/retry-multipart/echo", multipartWithStreamPart());
+    test:assertEquals(res, "part-one|part-two|");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testRetryClientStreamBodyOnSecondAttempt() returns error? {
+    http:Client c = check new (flakyUrl, httpVersion = http:HTTP_1_1,
+        retryConfig = {count: 2, interval: 0.1, statusCodes: [503]});
+    string res = check c->post("/flaky/retry-body/echo", streamBodyRequest());
+    test:assertEquals(res, "body=part-two");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testLoadBalanceClientWithRetryMultipartStreamPart() returns error? {
+    http:LoadBalanceClient lb = check new ({
+        httpVersion: http:HTTP_1_1,
+        retryConfig: {count: 1, interval: 0.1},
+        targets: [{url: lbMultipartEchoUrl}]
+    });
+    string res = check lb->post("/lbMultipart/echo", multipartWithStreamPart());
+    test:assertEquals(res, "part-one|part-two|");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testFailoverClientWithRetryMultipartStreamPart() returns error? {
+    http:FailoverClient fo = check new ({
+        httpVersion: http:HTTP_1_1,
+        retryConfig: {count: 1, interval: 0.1},
+        targets: [{url: lbMultipartEchoUrl}]
+    });
+    string res = check fo->post("/lbMultipart/echo", multipartWithStreamPart());
+    test:assertEquals(res, "part-one|part-two|");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testLoadBalanceClientStreamBody() returns error? {
+    http:LoadBalanceClient lb = check new ({httpVersion: http:HTTP_1_1, targets: [{url: lbMultipartEchoUrl}]});
+    string res = check lb->post("/lbMultipart/body", streamBodyRequest());
+    test:assertEquals(res, "body=part-two");
+    http:LoadBalanceClient lbRetry = check new ({
+        httpVersion: http:HTTP_1_1,
+        retryConfig: {count: 1, interval: 0.1},
+        targets: [{url: deadUrl}, {url: lbMultipartEchoUrl}]
+    });
+    res = check lbRetry->post("/lbMultipart/body", streamBodyRequest());
+    test:assertEquals(res, "body=part-two");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testFailoverClientStreamBody() returns error? {
+    http:FailoverClient fo = check new ({httpVersion: http:HTTP_1_1, targets: [{url: lbMultipartEchoUrl}]});
+    string res = check fo->post("/lbMultipart/body", streamBodyRequest());
+    test:assertEquals(res, "body=part-two");
+    http:FailoverClient foAfterFailure = check new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: deadUrl}, {url: lbMultipartEchoUrl}]
+    });
+    res = check foAfterFailure->post("/lbMultipart/body", streamBodyRequest());
+    test:assertEquals(res, "body=part-two");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testLoadBalanceAndFailoverClientFailingStreamBody() returns error? {
+    http:Request req = new;
+    req.setByteStream(new stream<byte[], io:Error?>(new FailingByteGenerator()));
+    http:LoadBalanceClient lb = check new ({httpVersion: http:HTTP_1_1, targets: [{url: lbMultipartEchoUrl}]});
+    http:Response|http:ClientError lbRes = lb->post("/lbMultipart/body", req);
+    test:assertTrue(lbRes is http:ClientError, "A failing stream must fail the load balance call");
+    http:Request req2 = new;
+    req2.setByteStream(new stream<byte[], io:Error?>(new FailingByteGenerator()));
+    http:FailoverClient fo = check new ({httpVersion: http:HTTP_1_1, targets: [{url: lbMultipartEchoUrl}]});
+    http:Response|http:ClientError foRes = fo->post("/lbMultipart/body", req2);
+    test:assertTrue(foRes is http:ClientError, "A failing stream must fail the failover call");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testRedirectWithRetryStreamBody() returns error? {
+    http:Client c = check new (flakyUrl, httpVersion = http:HTTP_1_1,
+        followRedirects = {enabled: true, allowAuthHeaders: false},
+        retryConfig = {count: 2, interval: 0.1, statusCodes: [503]});
+    // The redirected call fails once with 503 and is retried, so the body is sent twice after the redirect.
+    string res = check c->post("/flaky/redirect", streamBodyRequest());
+    test:assertEquals(res, "body=part-two");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testRetryClientWithoutRetriesStreamsBody() returns error? {
+    http:Client c = check new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 0});
+    string res = check c->post("/lbMultipart/body", streamBodyRequest());
+    test:assertEquals(res, "body=part-two");
 }
 
 @test:Config {groups: ["resiliencyGaps"]}
@@ -78,17 +282,6 @@ function testLoadBalanceClientEmptyTargets() {
 function testFailoverClientEmptyTargets() {
     http:FailoverClient|http:ClientError fo = new ({targets: []});
     test:assertTrue(fo is http:ClientError, "FailoverClient init with empty targets should fail");
-}
-
-@test:Config {groups: ["resiliencyGaps"]}
-function testLoadBalanceAndFailoverClientUseProxy() {
-    http:ProxyConfig proxy = {host: "no-such-proxy.invalid", port: 3128};
-    http:Client|http:ClientError plain = new ("http://localhost:9", proxy = proxy);
-    test:assertTrue(plain is http:ClientError, "Client with an unresolvable proxy should fail");
-    http:LoadBalanceClient|http:ClientError lb = new ({targets: [{url: "http://localhost:9"}], proxy});
-    test:assertTrue(lb is http:ClientError, "LoadBalanceClient should apply the proxy to its targets");
-    http:FailoverClient|http:ClientError fo = new ({targets: [{url: "http://localhost:9"}], proxy});
-    test:assertTrue(fo is http:ClientError, "FailoverClient should apply the proxy to its targets");
 }
 
 @test:Config {groups: ["resiliencyGaps"]}

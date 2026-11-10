@@ -17,7 +17,6 @@
 import ballerina/jballerina.java;
 import ballerina/lang.runtime as runtime;
 import ballerina/mime;
-import ballerina/log;
 
 # Represents the inferred failover configurations passed into the failover client.
 type FailoverInferredConfig record {|
@@ -528,14 +527,10 @@ public client isolated class FailoverClient {
         if isMultipartRequest(failoverRequest) {
             failoverRequest = check populateMultipartRequest(failoverRequest);
         } else {
-            // When performing passthrough scenarios using Failover connector, message needs to be built before trying
-            // out the failover endpoints to keep the request message to failover the messages.
-            if !failoverRequest.hasMsgDataSource() {
-                byte[]|error binaryPayload = failoverRequest.getBinaryPayload();
-                if binaryPayload is error {
-                    log:printDebug("Error building payload for request failover: " + binaryPayload.message());
-                }
-            }
+            // When performing passthrough scenarios using Failover connector, message needs to be built (including
+            // a byte stream payload) before trying out the failover endpoints to keep the request message to
+            // failover the messages.
+            check bufferRequestPayloadForResend(failoverRequest);
             requestEntity = check failoverRequest.getEntity();
         }
         while (startIndex != currentIndex) {
