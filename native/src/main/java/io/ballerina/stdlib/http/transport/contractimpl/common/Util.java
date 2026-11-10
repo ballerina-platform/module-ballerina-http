@@ -111,6 +111,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1139,6 +1140,8 @@ public class Util {
         }
     }
 
+    private static final AtomicBoolean NAMED_GROUPS_FAILURE_LOGGED = new AtomicBoolean();
+
     private static void applyNamedGroups(SSLConfig sslConfig, SSLEngine engine) {
         String[] namedGroups = sslConfig.getNamedGroups();
         if (namedGroups == null || namedGroups.length == 0 || engine instanceof ReferenceCountedOpenSslEngine) {
@@ -1149,7 +1152,11 @@ public class Util {
             parameters.setNamedGroups(namedGroups);
             engine.setSSLParameters(parameters);
         } catch (RuntimeException e) {
-            LOG.warn("Could not set the TLS named groups {}: {}", String.join(",", namedGroups), e.getMessage());
+            if (NAMED_GROUPS_FAILURE_LOGGED.compareAndSet(false, true)) {
+                LOG.warn("Could not set the TLS named groups {}: {}", String.join(",", namedGroups), e.getMessage());
+            } else {
+                LOG.debug("Could not set the TLS named groups: {}", e.getMessage());
+            }
         }
     }
 

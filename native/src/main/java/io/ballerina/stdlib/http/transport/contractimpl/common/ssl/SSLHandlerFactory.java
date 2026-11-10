@@ -23,6 +23,7 @@ import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.OpenSslContextOption;
 import io.netty.handler.ssl.OpenSslSessionContext;
 import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
 import io.netty.handler.ssl.SslContext;
@@ -314,6 +315,7 @@ public class SSLHandlerFactory {
                 .trustManager(this.getTrustStoreFactory())
                 .sslProvider(sslProvider);
         setClientAuth(serverSslContextBuilder);
+        setNamedGroups(serverSslContextBuilder, sslProvider);
         return serverSslContextBuilder;
     }
 
@@ -321,6 +323,7 @@ public class SSLHandlerFactory {
         SslContextBuilder clientSslContextBuilder = SslContextBuilder.forClient().sslProvider(sslProvider)
                 .keyManager(kmf).trustManager(tmf);
         setEndpointIdentification(clientSslContextBuilder);
+        setNamedGroups(clientSslContextBuilder, sslProvider);
         return clientSslContextBuilder;
     }
 
@@ -331,6 +334,7 @@ public class SSLHandlerFactory {
                 .keyManager(sslConfig.getServerCertificates(), sslConfig.getServerKeyFile(), keyPassword)
                 .trustManager(sslConfig.getServerTrustCertificates()).sslProvider(sslProvider);
         setClientAuth(serverSslContextBuilder);
+        setNamedGroups(serverSslContextBuilder, sslProvider);
         return serverSslContextBuilder;
     }
 
@@ -340,6 +344,7 @@ public class SSLHandlerFactory {
                 .keyManager(sslConfig.getClientCertificates(), sslConfig.getClientKeyFile(), keyPassword)
                 .trustManager(sslConfig.getClientTrustCertificates());
         setEndpointIdentification(clientSslContextBuilder);
+        setNamedGroups(clientSslContextBuilder, sslProvider);
         return clientSslContextBuilder;
     }
 
@@ -382,6 +387,7 @@ public class SSLHandlerFactory {
         SslContextBuilder clientSslContextBuilder = SslContextBuilder.forClient().sslProvider(sslProvider)
                 .keyManager(kmf);
         setEndpointIdentification(clientSslContextBuilder);
+        setNamedGroups(clientSslContextBuilder, sslProvider);
         return clientSslContextBuilder;
     }
 
@@ -391,6 +397,15 @@ public class SSLHandlerFactory {
                         ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
                         ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
                         ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1));
+    }
+
+    // Set once per context. OpenSSL engines ignore SSLParameters named groups, so they need the context option; JDK
+    // engines get the groups per connection (see Util.configureSslHandler).
+    private void setNamedGroups(SslContextBuilder sslContextBuilder, SslProvider sslProvider) {
+        String[] namedGroups = sslConfig.getNamedGroups();
+        if (sslProvider == SslProvider.OPENSSL && namedGroups != null && namedGroups.length > 0) {
+            sslContextBuilder.option(OpenSslContextOption.GROUPS, namedGroups);
+        }
     }
 
     private void setOcspStapling(SslContextBuilder sslContextBuilder, boolean enableOcsp) {

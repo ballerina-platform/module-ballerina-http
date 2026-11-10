@@ -146,6 +146,7 @@ function testListenerPortRange() {
 @test:Config {groups: ["listenerConfig"]}
 function testInvalidHttp2SettingsAreRejected() {
     test:assertTrue(new http:Listener(21110, http2InitialWindowSize = -5) is error);
+    test:assertTrue(new http:Listener(21114, http2InitialWindowSize = 0) is error);
     test:assertTrue(new http:Listener(21111, http2MaxActiveStreams = 0) is error);
     test:assertTrue(new http:Listener(21112, http2MaxActiveStreams = -1) is error);
     test:assertTrue(new http:Listener(21113, http2InitialWindowSize = 1000000, http2MaxActiveStreams = 7)
@@ -177,6 +178,9 @@ function testSecondListenerOnUsedPortKeepsFirstListenerServing() returns error? 
     check second.attach(new ListenerCfgService(), "/b");
     error? startResult = trap second.'start();
     test:assertTrue(startResult is error, "starting a second listener on a used port must fail");
+    // Stopping the listener that failed to start must not stop the first listener.
+    check second.gracefulStop();
+    check second.immediateStop();
 
     http:Client c = check new ("http://localhost:" + listenerCfgDuplicatePort.toString(),
         httpVersion = http:HTTP_1_1);

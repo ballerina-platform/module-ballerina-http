@@ -1629,8 +1629,8 @@ public class HttpUtil {
             }
             listenerConfiguration.setHttp2MaxConcurrentStreams((int) http2MaxActiveStreams);
             long http2InitialWindowSize = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE);
-            if (http2InitialWindowSize < 0 || http2InitialWindowSize > Integer.MAX_VALUE) {
-                throw new BallerinaConnectorException("http2InitialWindowSize must be between 0 and 2147483647");
+            if (http2InitialWindowSize <= 0 || http2InitialWindowSize > Integer.MAX_VALUE) {
+                throw new BallerinaConnectorException("http2InitialWindowSize must be between 1 and 2147483647");
             }
             listenerConfiguration.setHttp2InitialWindowSize((int) http2InitialWindowSize);
         }

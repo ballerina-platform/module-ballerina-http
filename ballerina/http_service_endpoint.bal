@@ -155,7 +155,7 @@ public type Local record {|
 #                            HTTP/2. All streams on a connection share the connection window, so with many concurrent
 #                            streams the default of 65535 bytes limits how fast request bodies arrive. Raise it, for
 #                            example to 4194304, when clients send many requests over one connection. The value must
-#                            be between 0 and 2147483647, the largest window HTTP/2 allows (RFC 9113, section 6.5.2).
+#                            be between 1 and 2147483647, the largest window HTTP/2 allows (RFC 9113, section 6.5.2).
 #                            A value below 65535 shrinks only the stream windows, as the connection window starts at
 #                            65535 (RFC 9113, section 6.9.2)
 # + http2MaxActiveStreams - Maximum concurrent HTTP/2 streams per connection advertised to clients.
