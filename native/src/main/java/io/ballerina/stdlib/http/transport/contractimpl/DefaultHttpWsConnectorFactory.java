@@ -74,7 +74,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
     private final EventLoopGroup clientGroup;
-    private EventExecutorGroup pipeliningGroup;
+    private volatile EventExecutorGroup pipeliningGroup;
 
     private final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
