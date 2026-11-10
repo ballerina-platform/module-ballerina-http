@@ -20,6 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/jballerina.java;
+import ballerina/scan;
 import ballerina/url;
 import ballerina/data.jsondata;
 
@@ -33,6 +34,7 @@ import ballerina/data.jsondata;
 # + cacheControl - The cache-control directives for the request. This needs to be explicitly initialized if intending
 #                  on utilizing HTTP caching.
 # + mutualSslHandshake - A record providing mutual ssl handshake results.
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_CLASS], reason: "Has public mutable fields; making it isolated would break the public API"}
 public class Request {
 
     public string rawPath = "";
@@ -572,6 +574,7 @@ public class Request {
     }
 
     // For use within the module. Takes the Cache-Control header and parses it to a RequestCacheControl object.
+    @scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "The header is read only after hasHeader confirms it is present"}
     isolated function parseCacheControlHeader() {
         // If the request doesn't contain a cache-control header, resort to default cache control settings
         if !self.hasHeader(CACHE_CONTROL) {

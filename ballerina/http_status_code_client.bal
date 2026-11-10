@@ -16,6 +16,7 @@
 
 import ballerina/jballerina.java;
 import ballerina/observe;
+import ballerina/scan;
 
 # The HTTP status code client provides the capability for initiating contact with a remote HTTP service. The API it
 # provides includes the functions for the standard HTTP methods forwarding a received request and sending requests
@@ -390,6 +391,7 @@ public client isolated class StatusCodeClient {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
+    @scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "observe:addTagToSpan with the default span ID and observe:addTagToMetrics never return an error"}
     remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
         if observabilityEnabled && response is Response {

@@ -18,6 +18,7 @@ import ballerina/io;
 import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/observe;
+import ballerina/scan;
 import ballerina/time;
 
 # The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.
@@ -459,6 +460,7 @@ public client isolated class Client {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
+    @scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "observe:addTagToSpan with the default span ID and observe:addTagToMetrics never return an error"}
     remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
         if observabilityEnabled && response is Response {

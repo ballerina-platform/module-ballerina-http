@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/scan;
+
 isolated Listener? defaultListener = ();
 
 # Default HTTP listener port used by the HTTP Default Listener.
@@ -41,6 +43,7 @@ public configurable ListenerConfiguration defaultListenerConfig = {};
 # ```
 #
 # + return - The default HTTP listener or an error if the listener creation fails.
+@scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "The listener is assigned within the same lock, so it is never nil here"}
 public isolated function getDefaultListener() returns Listener|ListenerError {
     lock {
         if defaultListener is () {

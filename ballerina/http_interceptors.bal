@@ -16,6 +16,7 @@
 
 import ballerina/jwt;
 import ballerina/log;
+import ballerina/scan;
 
 # The HTTP request interceptor service object type
 public type RequestInterceptor distinct service object {
@@ -72,6 +73,7 @@ isolated class JwtDecoder {
     #
     # + jwt - The jwt value as a string
     # + return - `[jwt:Header, jwt:Payload]` if successful or else an `error`
+    @scan:Suppress {rules: ["ballerina/jwt:7"], reason: "Decoded claims are exposed for convenience; the spec states they are trusted only after the token is validated"}
     isolated function decodeJwt(string jwt) returns [jwt:Header, jwt:Payload]|error {
         return jwt:decode(jwt);
     }

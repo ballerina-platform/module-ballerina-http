@@ -16,6 +16,7 @@
 
 import ballerina/log;
 import ballerina/lang.'decimal;
+import ballerina/scan;
 import ballerina/time;
 
 // Based on https://tools.ietf.org/html/rfc7234#section-4.2.3
@@ -60,6 +61,7 @@ isolated function getDateValue(Response inboundResponse) returns time:Utc {
 
     // Based on https://tools.ietf.org/html/rfc7231#section-7.1.1.2
     time:Utc currentT = time:utcNow();
+    @scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "Formats the current time with a constant pattern"}
     string timeStr = <string> checkpanic utcToString(currentT, RFC_1123_DATE_TIME);
 
     inboundResponse.setHeader(DATE, timeStr);

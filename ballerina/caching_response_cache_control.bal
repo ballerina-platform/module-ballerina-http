@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/scan;
+
 # Configures cache control directives for an `http:Response`.
 #
 # + mustRevalidate - Sets the `must-revalidate` directive
@@ -28,6 +30,7 @@
 #                   must be validated with the origin server.
 # + privateFields - Optional fields for the `private` directive. A cache can omit the fields specified and store
 #                   the rest of the response.
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_CLASS], reason: "Has public mutable fields; making it isolated would break the public API"}
 public class ResponseCacheControl {
 
     public boolean mustRevalidate = false;
