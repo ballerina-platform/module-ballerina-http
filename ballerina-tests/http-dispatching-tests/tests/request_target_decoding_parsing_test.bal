@@ -219,7 +219,18 @@ function testEncodedSlashInSegments() returns error? {
 }
 
 @test:Config {}
-function testSemicolonOnlySegmentIsClientError() returns error? {
+function testEscapesDecodingToInvalidUtf8AreRejected() returns error? {
+    check assertRequestTarget("/albums/%FF", 400);
+    check assertRequestTarget("/albums/%C0%AE", 400);
+    check assertRequestTarget("/files/ok/%FF", 400);
+    check assertRequestTarget("/q?x=%FF", 400);
+    check assertRequestTarget("/q?x=%C0%AE", 400);
+    check assertRequestTarget("/albums/caf%C3%A9", 200, "id=[café]");
+    check assertRequestTarget("/q?x=caf%C3%A9", 200, "x=[café]");
+}
+
+@test:Config {}
+function testSemicolonOnlySegmentIsClientError()returns error? {
     check assertRequestTarget("/;", 400);
     check assertRequestTarget("/albums/;", 400);
 }

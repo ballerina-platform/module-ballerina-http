@@ -44,7 +44,7 @@ public class URIUtilPercentDecodeTest {
 
     @DataProvider(name = "malformed")
     public Object[][] malformed() {
-        return new Object[][]{{"%"}, {"%z"}, {"%zz"}, {"a%2"}, {"%2g"}, {"100%"}};
+        return new Object[][]{{"%"}, {"%z"}, {"%zz"}, {"a%2"}, {"%2g"}, {"100%"}, {"%FF"}, {"%C0%AE"}, {"%E9"}};
     }
 
     @Test(dataProvider = "malformed", expectedExceptions = IllegalArgumentException.class,

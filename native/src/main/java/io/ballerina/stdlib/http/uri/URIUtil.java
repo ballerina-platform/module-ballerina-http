@@ -29,6 +29,9 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -182,8 +185,8 @@ public final class URIUtil {
      * @param value       the encoded value
      * @param plusAsSpace whether {@code +} becomes a space (query values)
      * @return the decoded value
-     * @throws MalformedPercentEncodingException if the value has a malformed percent-escape. Escapes that decode
-     *                                           to invalid UTF-8 are replaced with U+FFFD, not rejected.
+     * @throws MalformedPercentEncodingException if the value has a malformed percent-escape, or if the escapes
+     *                                           decode to invalid UTF-8
      */
     public static String percentDecode(String value, boolean plusAsSpace) {
         if (value.indexOf('%') < 0 && (!plusAsSpace || value.indexOf('+') < 0)) {
@@ -210,7 +213,14 @@ public final class URIUtil {
                 i += Character.charCount(codePoint);
             }
         }
-        return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
+        try {
+            return StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(bytes.toByteArray())).toString();
+        } catch (CharacterCodingException e) {
+            throw new MalformedPercentEncodingException();
+        }
     }
 
     private static int decodeEscape(String value, int percentIndex) {
