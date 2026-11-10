@@ -26,6 +26,32 @@ const int listenerCfgGracefulPort = 21103;
 const int listenerCfgDuplicatePort = 21104;
 const int listenerCfgPipelineLimitPort = 21105;
 const int listenerCfgPipelineLimit2Port = 21106;
+const int listenerCfgRepeatPort = 21107;
+
+@test:Config {groups: ["listenerLifecycle"]}
+function testRepeatedSecondListenerOnUsedPortKeepsFirstListenerServing() returns error? {
+    // The failed bind completes on another thread, so the scenario is repeated to catch a race between the
+    // roll-back of the failed start and the state the second start() hands back.
+    http:Listener first = check new (listenerCfgRepeatPort, httpVersion = http:HTTP_1_1);
+    check first.attach(new ListenerCfgService(), "/a");
+    check first.'start();
+    http:Client c = check new ("http://localhost:" + listenerCfgRepeatPort.toString(), httpVersion = http:HTTP_1_1);
+    foreach int i in 0 ..< 50 {
+        http:Listener second = check new (listenerCfgRepeatPort, httpVersion = http:HTTP_1_1);
+        check second.attach(new ListenerCfgService(), "/b");
+        error? startResult = trap second.'start();
+        test:assertTrue(startResult is error, "iteration " + i.toString() + ": second start() must fail");
+        http:Response r = check c->get("/a/hello");
+        test:assertEquals(r.statusCode, 200, "iteration " + i.toString() + ": first listener must keep serving");
+    }
+    check first.gracefulStop();
+}
+
+@test:Config {groups: ["listenerConfig"]}
+function testHttp2SettingsAreNotValidatedForHttp1Listeners() {
+    test:assertTrue(new http:Listener(21120, httpVersion = http:HTTP_1_1, http2InitialWindowSize = -5,
+        http2MaxActiveStreams = 0) is http:Listener);
+}
 
 isolated function sendRawAndReadAll(int port, boolean tls, string rawRequest, int expectedResponses)
         returns string|error = @java:Method {

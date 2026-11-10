@@ -226,11 +226,11 @@ public class ServerConnectorBootstrap {
 
        private final Logger log = LoggerFactory.getLogger(HttpServerConnector.class);
 
-        private ServerConnectorFuture serverConnectorFuture;
+        private volatile ServerConnectorFuture serverConnectorFuture;
         private String host;
         private int port;
         private String connectorID;
-        private Channel serverChannel;
+        private volatile Channel serverChannel;
 
         HttpServerConnector(String id, String host, int port) {
             this.host = host;
@@ -260,14 +260,14 @@ public class ServerConnectorBootstrap {
                     httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
                     startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
                 } else {
-                    if (previousServerChannel != null && serverChannel == channelFuture.channel()) {
-                        serverChannel = previousServerChannel;
-                        serverConnectorFuture = previousServerConnectorFuture;
-                    }
+                    // Roll back to the state before this start: the running listener (or nothing, when this was
+                    // the first start, so that stop() has no failed channel to wait on).
+                    serverChannel = previousServerChannel;
+                    serverConnectorFuture = previousServerConnectorFuture;
                     startedFuture.notifyPortBindingError(future.cause());
                 }
             });
-            return serverConnectorFuture;
+            return startedFuture;
         }
 
         @Override

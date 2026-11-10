@@ -84,6 +84,9 @@ public final class ExternListenerTestUtil {
                 return false;
             }
             String headers = data.substring(searchFrom, headerEnd).toLowerCase();
+            if (headers.contains("transfer-encoding: chunked")) {
+                throw new IllegalStateException("Chunked responses are not supported by this test helper");
+            }
             int lengthIndex = headers.indexOf("content-length:");
             int length = 0;
             if (lengthIndex != -1) {
@@ -100,6 +103,13 @@ public final class ExternListenerTestUtil {
     }
 
     private static Socket tlsSocket(int port) throws Exception {
+        SSLContext context = trustAllContext();
+        SSLSocket socket = (SSLSocket) context.getSocketFactory().createSocket("localhost", port);
+        socket.startHandshake();
+        return socket;
+    }
+
+    private static SSLContext trustAllContext() throws Exception {
         TrustManager[] trustAll = {new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -116,8 +126,6 @@ public final class ExternListenerTestUtil {
         }};
         SSLContext context = SSLContext.getInstance("TLS");
         context.init(null, trustAll, new SecureRandom());
-        SSLSocket socket = (SSLSocket) context.getSocketFactory().createSocket("localhost", port);
-        socket.startHandshake();
-        return socket;
+        return context;
     }
 }

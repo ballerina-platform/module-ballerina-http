@@ -23,6 +23,7 @@ import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.OpenSslSessionContext;
 import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -51,6 +52,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
@@ -177,10 +179,7 @@ public class SSLHandlerFactory {
         setSslProtocol(sslContextBuilder);
         ReferenceCountedOpenSslContext referenceCountedOpenSslCtx = (ReferenceCountedOpenSslContext) sslContextBuilder
                 .build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            referenceCountedOpenSslCtx.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(referenceCountedOpenSslCtx.sessionContext());
         return referenceCountedOpenSslCtx;
     }
 
@@ -204,11 +203,24 @@ public class SSLHandlerFactory {
         setSslProtocol(sslContextBuilder);
         ReferenceCountedOpenSslContext referenceCountedOpenSslCtx = (ReferenceCountedOpenSslContext) sslContextBuilder
                 .build();
+        applySessionSettings(referenceCountedOpenSslCtx.sessionContext());
+        return referenceCountedOpenSslCtx;
+    }
+
+    /**
+     * Applies the session timeout and the shareSession setting to a session context. With shareSession=false the
+     * session cache of OpenSSL contexts is disabled. This is best-effort: it stops resumption through the session
+     * cache only. Resumption through stateless session tickets (JDK and OpenSSL) cannot be switched off per
+     * context; the JDK controls it with the JVM-wide jdk.tls.server.enableSessionTicketExtension property only.
+     */
+    private void applySessionSettings(SSLSessionContext sessionContext) {
         int sessionTimeout = sslConfig.getSessionTimeOut();
         if (sessionTimeout > 0) {
-            referenceCountedOpenSslCtx.sessionContext().setSessionTimeout(sessionTimeout);
+            sessionContext.setSessionTimeout(sessionTimeout);
         }
-        return referenceCountedOpenSslCtx;
+        if (!sslConfig.isEnableSessionCreation() && sessionContext instanceof OpenSslSessionContext) {
+            ((OpenSslSessionContext) sessionContext).setSessionCacheEnabled(false);
+        }
     }
 
     /**
@@ -268,10 +280,7 @@ public class SSLHandlerFactory {
         setOcspStapling(sslContextBuilder, sslConfig.isOcspStaplingEnabled());
 
         SslContext sslCtx = sslContextBuilder.build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            sslCtx.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(sslCtx.sessionContext());
 
         return sslCtx;
     }
@@ -285,10 +294,7 @@ public class SSLHandlerFactory {
     public SslContext createHttpTLSContextForServer() throws SSLException {
         SslProvider provider = SslProvider.JDK;
         SslContext certsSslContext = serverContextBuilderWithCerts(provider).build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            certsSslContext.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(certsSslContext.sessionContext());
         return certsSslContext;
     }
 
@@ -301,10 +307,7 @@ public class SSLHandlerFactory {
     public SslContext createHttpTLSContextForClient() throws SSLException {
         SslProvider provider = SslProvider.JDK;
         SslContext certsSslContext = clientContextBuilderWithCerts(provider).build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            certsSslContext.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(certsSslContext.sessionContext());
         return certsSslContext;
     }
 
@@ -365,10 +368,7 @@ public class SSLHandlerFactory {
         setAlpnConfigs(sslContextBuilder);
         setOcspStapling(sslContextBuilder, enableOcsp);
         SslContext sslContext = sslContextBuilder.build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            sslContext.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(sslContext.sessionContext());
         return sslContextBuilder.build();
     }
 

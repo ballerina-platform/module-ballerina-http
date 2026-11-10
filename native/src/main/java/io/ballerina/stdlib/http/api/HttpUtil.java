@@ -160,6 +160,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_ST
 import static io.ballerina.stdlib.http.api.HttpErrorType.CLIENT_CONNECTOR_ERROR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
+import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
@@ -1619,24 +1620,29 @@ public class HttpUtil {
             setServerSocketConfig(serverSocketConfig, listenerConfiguration);
         }
 
+        // The HTTP/2 settings are validated only when the listener serves HTTP/2; they are ignored otherwise.
+        boolean http2Enabled = HTTP_2_0_VERSION.equals(httpVersion);
         long http2MaxActiveStreams = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
-        if (http2MaxActiveStreams <= 0 || http2MaxActiveStreams > Integer.MAX_VALUE) {
+        if (http2Enabled && (http2MaxActiveStreams <= 0 || http2MaxActiveStreams > Integer.MAX_VALUE)) {
             throw new BallerinaConnectorException("http2MaxActiveStreams must be a positive 32-bit integer");
         }
-        listenerConfiguration.setHttp2MaxConcurrentStreams((int) http2MaxActiveStreams);
+        if (http2Enabled) {
+            listenerConfiguration.setHttp2MaxConcurrentStreams((int) http2MaxActiveStreams);
+        }
 
         // The settings below apply to cleartext and TLS listeners alike, so they are set before the secure socket.
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
         long http2InitialWindowSize = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE);
-        if (http2InitialWindowSize < 0 || http2InitialWindowSize > Integer.MAX_VALUE) {
+        if (http2Enabled && (http2InitialWindowSize < 0 || http2InitialWindowSize > Integer.MAX_VALUE)) {
             throw new BallerinaConnectorException("http2InitialWindowSize must be between 0 and 2147483647");
         }
-        listenerConfiguration.setHttp2InitialWindowSize((int) http2InitialWindowSize);
+        if (http2Enabled) {
+            listenerConfiguration.setHttp2InitialWindowSize((int) http2InitialWindowSize);
+        }
 
         double minIdleTimeInStaleState =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
-        listenerConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
-                (long) (minIdleTimeInStaleState * 1000));
+        listenerConfiguration.setMinIdleTimeInStaleState(toMinIdleTimeInStaleStateMillis(minIdleTimeInStaleState));
 
         double timeBetweenStaleEviction =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS))
@@ -1649,6 +1655,17 @@ public class HttpUtil {
             return setSslConfig(sslConfig, listenerConfiguration);
         }
         return listenerConfiguration;
+    }
+
+    /**
+     * Converts minIdleTimeInStaleState in seconds to milliseconds. -1 (or less) keeps a stale connection open until
+     * its streams complete and stays -1; other negative values count as 0.
+     *
+     * @param seconds the configured value in seconds
+     * @return the value in milliseconds, or -1
+     */
+    static long toMinIdleTimeInStaleStateMillis(double seconds) {
+        return seconds <= -1 ? -1 : Math.max(0L, (long) (seconds * 1000));
     }
 
     private static void setServerSocketConfig(BMap<BString, Object> serverSocketConfig,

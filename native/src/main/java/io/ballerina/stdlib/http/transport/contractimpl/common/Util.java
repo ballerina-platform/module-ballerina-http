@@ -1131,7 +1131,8 @@ public class Util {
         }
         if (!sslConfig.isEnableSessionCreation()) {
             // shareSession=false: sessions must still be created for the handshake to succeed, but they are
-            // invalidated once the handshake completes so that they can not be resumed.
+            // invalidated once the handshake completes so that the session cache does not resume them. Best-effort:
+            // a client can still resume through a stateless session ticket, which cannot be disabled per context.
             sslHandler.handshakeFuture().addListener(future -> {
                 if (future.isSuccess()) {
                     sslHandler.engine().getSession().invalidate();
@@ -1151,7 +1152,7 @@ public class Util {
             parameters.setNamedGroups(namedGroups);
             engine.setSSLParameters(parameters);
         } catch (RuntimeException e) {
-            LOG.debug("Could not set the TLS named groups: {}", e.getMessage());
+            LOG.warn("Could not set the TLS named groups {}: {}", String.join(",", namedGroups), e.getMessage());
         }
     }
 
