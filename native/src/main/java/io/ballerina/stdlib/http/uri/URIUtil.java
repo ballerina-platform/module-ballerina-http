@@ -28,6 +28,7 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -225,8 +226,16 @@ public final class URIUtil {
         return ch < 128 ? Character.digit(ch, 16) : -1;
     }
 
+    /**
+     * Populates the map with the decoded query parameters.
+     *
+     * @param queryParamString the raw query string
+     * @param queryParamsMap   the map to populate
+     * @throws UnsupportedEncodingException never thrown; declared because other modules catch it
+     */
     @SuppressWarnings("unchecked")
-    public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap) {
+    public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap)
+            throws UnsupportedEncodingException {
         Map<String, List<String>> tempParamMap = new HashMap<>();
         String[] queryParamVals = queryParamString.split("&");
         for (String queryParam : queryParamVals) {

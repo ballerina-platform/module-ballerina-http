@@ -38,6 +38,7 @@ import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.uri.MalformedPercentEncodingException;
 import io.ballerina.stdlib.http.uri.URIUtil;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -322,6 +323,8 @@ public class ParamHandler {
             } catch (MalformedPercentEncodingException e) {
                 throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_QUERY_PARAM_BINDING_ERROR,
                         "malformed percent-encoding in the query string");
+            } catch (UnsupportedEncodingException e) {
+                throw new IllegalStateException(e);
             }
         }
         return queryParams;
