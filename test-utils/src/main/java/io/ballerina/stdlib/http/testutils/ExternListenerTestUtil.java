@@ -113,10 +113,12 @@ public final class ExternListenerTestUtil {
         TrustManager[] trustAll = {new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                // Test-only trust manager: all certificates are accepted.
             }
 
             @Override
             public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                // Test-only trust manager: all certificates are accepted.
             }
 
             @Override

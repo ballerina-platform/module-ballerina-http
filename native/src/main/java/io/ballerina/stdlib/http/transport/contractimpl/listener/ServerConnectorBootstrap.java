@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 
 import javax.net.ssl.SSLContext;
 
@@ -247,21 +248,27 @@ public class ServerConnectorBootstrap {
             if (Objects.nonNull(channelFuture)) {
                 serverChannel = channelFuture.channel();
             }
-            serverConnectorFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
-            ServerConnectorFuture startedFuture = serverConnectorFuture;
+            HttpWsServerConnectorFuture startedFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
+            serverConnectorFuture = startedFuture;
+            CountDownLatch handover = new CountDownLatch(1);
+            startedFuture.setHandoverLatch(handover);
             channelFuture.addListener(future -> {
-                if (future.isSuccess()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
+                try {
+                    if (future.isSuccess()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
+                        }
+                        // Hand over dispatching only once the port is bound.
+                        httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
+                        startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
+                    } else {
+                        // Roll back to the state before this start.
+                        serverChannel = previousServerChannel;
+                        serverConnectorFuture = previousServerConnectorFuture;
+                        startedFuture.notifyPortBindingError(future.cause());
                     }
-                    // Hand over dispatching only once the port is bound.
-                    httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
-                    startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
-                } else {
-                    // Roll back to the state before this start.
-                    serverChannel = previousServerChannel;
-                    serverConnectorFuture = previousServerConnectorFuture;
-                    startedFuture.notifyPortBindingError(future.cause());
+                } finally {
+                    handover.countDown();
                 }
             });
             return startedFuture;

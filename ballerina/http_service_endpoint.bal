@@ -162,7 +162,8 @@ public type Local record {|
 #                          Defaults to 100
 # + minIdleTimeInStaleState - Minimum time in seconds for a connection to be kept open which has received a GOAWAY.
 #                             This only applies for HTTP/2. Default value is 5 minutes. If the value is set to -1,
-#                             the connection will be closed after all in-flight streams are completed
+#                             the connection will be closed after all in-flight streams are completed. Values
+#                             below -1 are treated as -1
 # + timeBetweenStaleEviction - Time between the connection stale eviction runs in seconds. This only applies for HTTP/2.
 #                              Default value is 30 seconds
 public type ListenerConfiguration record {|

@@ -367,7 +367,7 @@ public class SSLHandlerFactory {
         setOcspStapling(sslContextBuilder, enableOcsp);
         SslContext sslContext = sslContextBuilder.build();
         applySessionSettings(sslContext.sessionContext());
-        return sslContextBuilder.build();
+        return sslContext;
     }
 
     private void setCiphers(SslContextBuilder sslContextBuilder, List<String> ciphers) {
