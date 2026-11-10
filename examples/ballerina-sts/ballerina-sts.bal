@@ -1,6 +1,7 @@
 import ballerina/http;
 import ballerina/log;
 import ballerina/regex;
+import ballerina/scan;
 import ballerina/uuid;
 
 // Default values of mock authorization server.
@@ -10,8 +11,10 @@ configurable int TOKEN_VALIDITY_PERIOD = 2; // in seconds
 
 // Credentials of the mock authorization server.
 configurable string USERNAME = "admin";
+@scan:Suppress {rules: [scan:HARD_CODED_SECRET], reason: "Published default credential of the mock authorization server"}
 configurable string PASSWORD = "admin";
 configurable string CLIENT_ID = "FlfJYKBD2c925h4lkycqNZlC2l4a";
+@scan:Suppress {rules: [scan:HARD_CODED_SECRET], reason: "Published default credential of the mock authorization server"}
 configurable string CLIENT_SECRET = "PJz0UhTJMrHOo68QQNpvnqAY_3Aa";
 
 // Values that the grant_type parameter can hold.
@@ -136,7 +139,6 @@ service /oauth2 on sts1, sts2 {
                 if payload is string {
                     string[] params = regex:split(payload, "&");
                     string token = "";
-                    string tokenTypeHint = "";
                     foreach string param in params {
                         if param.includes("token=") {
                             token = regex:split(param, "=")[1];
@@ -145,11 +147,9 @@ service /oauth2 on sts1, sts2 {
                             if param.endsWith("==") {
                                 token += "==";
                             }
-                        } else if param.includes("token_type_hint=") {
-                            tokenTypeHint = regex:split(param, "=")[1];
                         }
                     }
-                    return prepareIntrospectionResponse(token, tokenTypeHint);
+                    return prepareIntrospectionResponse(token);
                 }
                 string description = "The request is malformed and failed to retrieve the text payload.";
                 return createInvalidRequest(description);
@@ -283,7 +283,7 @@ function prepareTokenResponse(string grantType, string username, string password
     return createUnsupportedGrant(description);
 }
 
-function prepareIntrospectionResponse(string accessToken, string tokenTypeHint) returns json {
+function prepareIntrospectionResponse(string accessToken) returns json {
     foreach string token in accessTokenStore {
         if token == accessToken {
             json response = {
