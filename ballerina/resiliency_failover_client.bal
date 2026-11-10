@@ -527,9 +527,7 @@ public client isolated class FailoverClient {
         if isMultipartRequest(failoverRequest) {
             failoverRequest = check populateMultipartRequest(failoverRequest);
         } else {
-            // When performing passthrough scenarios using Failover connector, message needs to be built (including
-            // a byte stream payload) before trying out the failover endpoints to keep the request message to
-            // failover the messages.
+            // Build the payload (including a byte stream) first, so the request can be sent to the next endpoint.
             check bufferRequestPayloadForResend(failoverRequest);
             requestEntity = check failoverRequest.getEntity();
         }

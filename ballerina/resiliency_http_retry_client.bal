@@ -303,10 +303,8 @@ isolated function performRetryAction(string path, Request request, HttpOperation
     AllRetryAttemptsFailed retryFailedError = error AllRetryAttemptsFailed("All the retry attempts failed.");
     ClientError httpConnectorErr = retryFailedError;
     Request inRequest = request;
-    // The payload is read into memory before the first attempt so that it can be resent. This includes streamed
-    // payloads, and a failure to read a stream fails the call instead of sending an incomplete body. Nothing is
-    // buffered when no retry can happen, so that the request is streamed. The whole payload is held in memory,
-    // there is no size limit.
+    // Read the payload into memory before the first attempt so it can be resent. Skipped when no retry can happen,
+    // so the request is streamed.
     if retryCount > 0 {
         check bufferRequestPayloadForResend(inRequest);
     }

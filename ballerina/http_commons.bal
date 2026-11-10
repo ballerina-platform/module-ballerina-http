@@ -344,12 +344,10 @@ isolated function populateMultipartRequest(Request inRequest) returns Request|Cl
     return inRequest;
 }
 
-// Reads a byte stream body of the entity into memory and returns the content, or nil if the body is not a stream.
-// An error of the stream is returned instead of letting an incomplete body to be sent.
+// Reads the entity's byte stream body into memory. Returns nil if the body is not a stream, or the stream's error.
 isolated function readEntityByteStream(mime:Entity entity) returns byte[]|ClientError? {
     stream<byte[], io:Error?>|mime:Error? byteStream = externGetMimeByteStream(entity);
     if byteStream is () || byteStream is mime:Error {
-        // The body is not a byte stream set on the entity (for example, text, a byte array or no body).
         return;
     }
     byte[] content = [];
@@ -363,11 +361,9 @@ isolated function readEntityByteStream(mime:Entity entity) returns byte[]|Client
     return content;
 }
 
-// Returns a body part that holds the content of the byte stream body of the given part in memory, so that the part
-// can be sent more than once. A new entity is created because the drained stream stays attached to the original
-// entity, which would make a second buffering overwrite the content with an empty array. A part that is not
-// backed by a byte stream is returned as it is, so the buffering is done only once.
-// Note: the whole stream is held in memory, there is no size limit.
+// Returns a body part with the stream content held in memory, so it can be sent again. A new entity is needed because
+// the drained stream stays attached to the original. Parts that are not streams are returned as they are.
+// The whole stream is held in memory; there is no size limit.
 isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns mime:Entity|ClientError {
     byte[]? content = check readEntityByteStream(bodyPart);
     if content is () {
@@ -386,10 +382,8 @@ isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns mime:En
     return bufferedPart;
 }
 
-// Reads a byte stream payload of the request into memory (once) so that the request can be sent more than once.
-// A payload that is already in memory, a multipart payload (see populateMultipartRequest) or a request without a
-// payload is left as it is. A failure of the stream is returned as an error instead of sending an incomplete body.
-// Note: the whole stream is held in memory, there is no size limit.
+// Reads a byte stream payload into memory (once) so the request can be resent. Multipart, buffered and empty
+// payloads are left as they are. The whole stream is held in memory; there is no size limit.
 isolated function bufferRequestPayloadForResend(Request request) returns ClientError? {
     if isMultipartRequest(request) {
         return;
@@ -403,8 +397,6 @@ isolated function bufferRequestPayloadForResend(Request request) returns ClientE
             }
         }
     }
-    // When performing passthrough scenarios, message needs to be built before sending out to keep the request
-    // message for the next attempt.
     if !request.hasMsgDataSource() {
         byte[]|error binaryPayload = request.getBinaryPayload();
         if binaryPayload is error {

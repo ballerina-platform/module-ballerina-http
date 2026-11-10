@@ -427,9 +427,7 @@ public client isolated class LoadBalanceClient {
             if isMultipartRequest(loadBalancerInRequest) {
                 loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
             } else {
-                // When performing passthrough scenarios using Load Balance connector,
-                // message needs to be built (including a byte stream payload) before trying out the load balance
-                // endpoints to keep the request message to load balance the messages in case of failure.
+                // Build the payload (including a byte stream) first, so the request can be sent to the next endpoint.
                 check bufferRequestPayloadForResend(loadBalancerInRequest);
                 requestEntity = check loadBalancerInRequest.getEntity();
             }

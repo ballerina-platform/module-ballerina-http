@@ -108,8 +108,7 @@ service /flaky on new http:Listener(flakyBackendTestPort, httpVersion = http:HTT
 
 isolated string[] proxiedRequestTargets = [];
 
-// Acts as a minimal forward proxy: it only records the target of the request sent to it (a request sent to a
-// proxy has the absolute target URI, or at least the path of the proxied request).
+// Minimal forward proxy: it only records the target of the request it receives.
 service / on new http:Listener(fakeProxyTestPort, httpVersion = http:HTTP_1_1) {
     resource function 'default [string... path](http:Request req) returns string {
         lock {
@@ -258,7 +257,7 @@ function testRedirectWithRetryStreamBody() returns error? {
     http:Client c = check new (flakyUrl, httpVersion = http:HTTP_1_1,
         followRedirects = {enabled: true, allowAuthHeaders: false},
         retryConfig = {count: 2, interval: 0.1, statusCodes: [503]});
-    // The redirected call fails once with 503 and is retried, so the body is sent twice after the redirect.
+    // The call fails once with 503 after the redirect and is retried.
     string res = check c->post("/flaky/redirect", streamBodyRequest());
     test:assertEquals(res, "body=part-two");
 }
