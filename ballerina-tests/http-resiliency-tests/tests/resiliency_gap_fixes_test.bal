@@ -115,8 +115,9 @@ function testRetryClientNoWaitAfterLastAttempt() returns error? {
     decimal attempt = 0d;
     foreach int i in 0 ..< 2 {
         decimal begin = <decimal>time:monotonicNow();
-        http:Response|http:ClientError _ = plainClient->get("/u");
+        http:Response|http:ClientError probe = plainClient->get("/u");
         decimal took = <decimal>time:monotonicNow() - begin;
+        test:assertTrue(probe is http:ClientError);
         if took > attempt {
             attempt = took;
         }
