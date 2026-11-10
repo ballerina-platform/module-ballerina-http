@@ -181,7 +181,8 @@ public final class URIUtil {
      * @param value       the encoded value
      * @param plusAsSpace whether {@code +} becomes a space (query values)
      * @return the decoded value
-     * @throws IllegalArgumentException if the value has a malformed percent-escape
+     * @throws MalformedPercentEncodingException if the value has a malformed percent-escape. Escapes that decode
+     *                                           to invalid UTF-8 are replaced with U+FFFD, not rejected.
      */
     public static String percentDecode(String value, boolean plusAsSpace) {
         if (value.indexOf('%') < 0 && (!plusAsSpace || value.indexOf('+') < 0)) {
@@ -199,8 +200,12 @@ public final class URIUtil {
                 bytes.write(' ');
                 i++;
             } else {
-                byte[] encoded = new String(Character.toChars(codePoint)).getBytes(StandardCharsets.UTF_8);
-                bytes.write(encoded, 0, encoded.length);
+                if (codePoint < 128) {
+                    bytes.write(codePoint);
+                } else {
+                    byte[] encoded = new String(Character.toChars(codePoint)).getBytes(StandardCharsets.UTF_8);
+                    bytes.write(encoded, 0, encoded.length);
+                }
                 i += Character.charCount(codePoint);
             }
         }
@@ -211,7 +216,7 @@ public final class URIUtil {
         int high = percentIndex + 2 < value.length() ? hexValue(value.charAt(percentIndex + 1)) : -1;
         int low = percentIndex + 2 < value.length() ? hexValue(value.charAt(percentIndex + 2)) : -1;
         if (high < 0 || low < 0) {
-            throw new IllegalArgumentException("malformed percent-encoding in the request target");
+            throw new MalformedPercentEncodingException();
         }
         return (high << 4) | low;
     }
@@ -287,6 +292,11 @@ public final class URIUtil {
         String pathToMatrixParam = "";
         for (String pathSegment : pathSegments) {
             String[] splitPathSegment = pathSegment.split(";");
+            if (splitPathSegment.length == 0) {
+                // A segment made only of ';' has no segment name.
+                String message = String.format("found a segment without a name in path '%s'", path);
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_BAD_MATRIX_PARAMS_ERROR, message);
+            }
             pathToMatrixParam = pathToMatrixParam.concat("/" + splitPathSegment[0]);
             Map<String, String> segmentMatrixParams = new HashMap<>();
             for (int i = 1; i < splitPathSegment.length; i++) {
@@ -301,8 +311,9 @@ public final class URIUtil {
             matrixParams.put(pathToMatrixParam, segmentMatrixParams);
         }
 
-        for (int i = 1; i < pathSplits.length; i++) {
-            pathToMatrixParam = pathToMatrixParam.concat("?").concat(pathSplits[i]);
+        // An empty query ("/base?") is dropped, as before.
+        if (pathSplits.length > 1 && !pathSplits[1].isEmpty()) {
+            pathToMatrixParam = pathToMatrixParam.concat("?").concat(pathSplits[1]);
         }
         return pathToMatrixParam;
     }

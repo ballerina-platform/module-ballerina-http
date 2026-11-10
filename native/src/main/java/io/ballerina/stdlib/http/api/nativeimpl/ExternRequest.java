@@ -29,6 +29,7 @@ import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.uri.MalformedPercentEncodingException;
 import io.ballerina.stdlib.http.uri.URIUtil;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
@@ -77,7 +78,7 @@ public class ExternRequest {
             }
             requestObj.addNativeData(QUERY_PARAM_MAP, params);
             return params;
-        } catch (IllegalArgumentException e) {
+        } catch (MalformedPercentEncodingException e) {
             throw HttpUtil.createHttpError("error while retrieving query param from message: "
                     + "malformed percent-encoding in the query string", HttpErrorType.GENERIC_LISTENER_ERROR);
         } catch (Exception e) {

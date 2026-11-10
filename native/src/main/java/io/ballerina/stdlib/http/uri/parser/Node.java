@@ -76,7 +76,17 @@ public abstract class Node<DataType, InboundMsgType> {
             if (dataElement.getData(inboundMsg, dataReturnAgent)) {
                 return true;
             }
-            return matchRestWithZeroSegments(variables, inboundMsg, dataReturnAgent);
+            // A node whose own resource handles the method keeps its rejection (415, 406).
+            if (dataElement.hasData() && dataElement.handlesRequestMethod(inboundMsg)) {
+                return false;
+            }
+            // When the node has a resource that rejected only the method, its 405 stays if the rest child fails.
+            DataReturnAgent<DataType> restAgent = dataElement.hasData() ? new DataReturnAgent<>() : dataReturnAgent;
+            boolean found = matchRestWithZeroSegments(variables, inboundMsg, restAgent);
+            if (found && restAgent != dataReturnAgent) {
+                dataReturnAgent.setData(restAgent.getData());
+            }
+            return found;
         }
         if (matchLength >= uriFragment.length()) {
             return false;
@@ -100,7 +110,7 @@ public abstract class Node<DataType, InboundMsgType> {
         for (Node<DataType, InboundMsgType> childNode : childNodesList) {
             if (childNode instanceof Literal) {
                 String regex = childNode.getToken();
-                if (regex.equals("*")) {
+                if (isRestNode(childNode)) {
                     regex = "." + regex;
                     if (!subPath.matches(regex)) {
                         continue;
@@ -138,13 +148,17 @@ public abstract class Node<DataType, InboundMsgType> {
     private boolean matchRestWithZeroSegments(HttpResourceArguments variables, InboundMsgType inboundMsg,
                                               DataReturnAgent<DataType> dataReturnAgent) {
         for (Node<DataType, InboundMsgType> childNode : childNodesList) {
-            if (childNode instanceof Literal && "*".equals(childNode.getToken())
+            if (isRestNode(childNode)
                     && childNode.matchAll("", variables, 0, inboundMsg, dataReturnAgent)) {
                 setUriPostFix(variables, "");
                 return true;
             }
         }
         return false;
+    }
+
+    private static boolean isRestNode(Node<?, ?> node) {
+        return node instanceof Literal && "*".equals(node.getToken());
     }
 
     private void setUriPostFix(HttpResourceArguments variables, String subUriFragment) {

@@ -45,6 +45,26 @@ service / on requestTargetParsingListener {
     resource function get hba(@http:Header boolean[] x\-flags) returns string => x\-flags.toString();
 }
 
+service /fb on requestTargetParsingListener {
+    @http:ResourceConfig {consumes: ["application/json"]}
+    resource function post files2(@http:Payload json j) returns string => "post files2";
+
+    resource function get files2/[string... p]() returns string => "get files2 rest";
+
+    @http:ResourceConfig {consumes: ["application/json"]}
+    resource function post files3(@http:Payload json j) returns string => "post files3";
+
+    resource function 'default files3/[string... p]() returns string => "default files3 rest";
+
+    resource function get foo() returns string => "get foo";
+
+    resource function post foo/[string... p]() returns string => "post foo rest";
+}
+
+service /optsvc on requestTargetParsingListener {
+    resource function get x() returns string => "x";
+}
+
 const int requestTargetRootRestTestPort = 9642;
 
 listener http:Listener requestTargetRootRestListener = new (requestTargetRootRestTestPort, httpVersion = http:HTTP_1_1);
@@ -196,4 +216,27 @@ function testQueryPlusIsSpaceButEncodedPlusIsPlus() returns error? {
 function testEncodedSlashInSegments() returns error? {
     check assertRequestTarget("/albums/a%2Fb", 200, "id=[a/b]");
     check assertRequestTarget("/files/a%2Fb/c", 200, "path=[\"a/b\",\"c\"]");
+}
+
+@test:Config {}
+function testSemicolonOnlySegmentIsClientError() returns error? {
+    check assertRequestTarget("/;", 400);
+    check assertRequestTarget("/albums/;", 400);
+}
+
+@test:Config {}
+function testOptionsWithEmptyQueryOnBasePath() returns error? {
+    http:Response res = check requestTargetParsingClient->options("/optsvc?");
+    test:assertEquals(res.statusCode, 204);
+}
+
+@test:Config {}
+function testZeroSegmentFallbackDoesNotOverrideRejectedExactResource() returns error? {
+    http:Response res = check requestTargetParsingClient->post("/fb/files2", "text", mediaType = "text/plain");
+    test:assertEquals(res.statusCode, 415, "unsupported media type must not become 405");
+    res = check requestTargetParsingClient->post("/fb/files3", "text", mediaType = "text/plain");
+    test:assertEquals(res.statusCode, 415, "must not be dispatched to the default rest resource");
+    res = check requestTargetParsingClient->get("/fb/files2");
+    test:assertEquals(res.statusCode, 200);
+    test:assertEquals(check res.getTextPayload(), "get files2 rest");
 }
