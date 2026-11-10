@@ -47,7 +47,7 @@ http:ClientConfiguration conf01 = {
     timeout: 2
 };
 
-final http:Client healthyClientEP = checkpanic new("http://localhost:8087", conf01);
+final http:Client healthyClientEP = check new("http://localhost:8087", conf01);
 
 service /cb on circuitBreakerEP01 {
 
@@ -207,7 +207,7 @@ service /healthy on new http:Listener(8087, httpVersion = http:HTTP_1_1) {
 
 
 //Test for circuit breaker forceOpen functionality
-final http:Client testForceOpenClient = checkpanic new("http://localhost:9307", httpVersion = http:HTTP_1_1);
+final http:Client testForceOpenClient = check new("http://localhost:9307", httpVersion = http:HTTP_1_1);
 
 // These tests share `forceOpen % 3` and the breaker of `healthyClientEP`, so their rows must not interleave.
 @test:Config {

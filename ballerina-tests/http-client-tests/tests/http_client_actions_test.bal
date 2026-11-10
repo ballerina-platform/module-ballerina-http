@@ -422,7 +422,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     }
 
     resource function get testServiceUnavailable() returns error? {
-        http:Client ep = checkpanic new("http://localhost:8080");
+        http:Client ep = check new("http://localhost:8080");
         return ep->get("/bar");
     }
 }
