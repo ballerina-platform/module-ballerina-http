@@ -93,8 +93,7 @@ public class ParamUtils {
     }
 
     /**
-     * Strictly parses a boolean: only {@code true} and {@code false}, in any case, are accepted. This is the single
-     * boolean parser used for path, query and header parameters.
+     * Parses a boolean strictly: only {@code true} and {@code false}, in any case.
      *
      * @param value the text to parse
      * @return the parsed value

@@ -176,15 +176,12 @@ public final class URIUtil {
     }
 
     /**
-     * Strictly percent-decodes the given value exactly once. This is the single decoder used for path segments
-     * and query values.
+     * Percent-decodes the value exactly once, rejecting malformed escapes.
      *
      * @param value       the encoded value
-     * @param plusAsSpace whether {@code +} is converted to a space (form-style decoding, used for query values);
-     *                    path segments are decoded with {@code false} so that {@code +} stays as it is
+     * @param plusAsSpace whether {@code +} becomes a space (query values)
      * @return the decoded value
-     * @throws IllegalArgumentException if the value contains a malformed percent-escape; the message does not
-     *                                  carry any JDK exception text
+     * @throws IllegalArgumentException if the value has a malformed percent-escape
      */
     public static String percentDecode(String value, boolean plusAsSpace) {
         if (value.indexOf('%') < 0 && (!plusAsSpace || value.indexOf('+') < 0)) {

@@ -114,7 +114,6 @@ public class HttpDispatcher {
             return service;
         } catch (Exception e) {
             if (!(e instanceof BError)) {
-                // An unexpected failure during service lookup is a server error. The exception text is not exposed.
                 logger.error("unexpected error while looking up the service", e);
                 throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR,
                         "unexpected error while dispatching the request");
@@ -186,7 +185,6 @@ public class HttpDispatcher {
             return service;
         } catch (Exception e) {
             if (!(e instanceof BError)) {
-                // An unexpected failure during service lookup is a server error. The exception text is not exposed.
                 logger.error("unexpected error while looking up the service", e);
                 throw HttpUtil.createHttpStatusCodeError(INTERNAL_RESOURCE_DISPATCHING_SERVER_ERROR,
                         "unexpected error while dispatching the request");
