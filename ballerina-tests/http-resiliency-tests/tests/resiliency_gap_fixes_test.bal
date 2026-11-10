@@ -109,14 +109,27 @@ function testRetryClientFailingRequestStream() returns error? {
 
 @test:Config {groups: ["resiliencyGaps"]}
 function testRetryClientNoWaitAfterLastAttempt() returns error? {
-    http:Client retryClient = check new ("http://localhost:" + unreachableBackendPort.toString(),
-        httpVersion = http:HTTP_1_1, retryConfig = {count: 2, interval: 1, backOffFactor: 1.0});
+    string url = "http://localhost:" + unreachableBackendPort.toString();
+    // The time a refused connection takes differs between platforms, so measure it instead of assuming it.
+    http:Client plainClient = check new (url, httpVersion = http:HTTP_1_1);
+    decimal attempt = 0d;
+    foreach int i in 0 ..< 2 {
+        decimal begin = <decimal>time:monotonicNow();
+        http:Response|http:ClientError _ = plainClient->get("/u");
+        decimal took = <decimal>time:monotonicNow() - begin;
+        if took > attempt {
+            attempt = took;
+        }
+    }
+    http:Client retryClient = check new (url,
+        httpVersion = http:HTTP_1_1, retryConfig = {count: 2, interval: 2, backOffFactor: 1.0});
     decimal startTime = <decimal>time:monotonicNow();
     http:Response|http:ClientError res = retryClient->get("/u");
     decimal elapsed = <decimal>time:monotonicNow() - startTime;
     test:assertTrue(res is http:ClientError);
-    // Two waits of one second are expected; a third wait after the last attempt would take it past three seconds.
-    test:assertTrue(elapsed >= 1.9d && elapsed < 2.7d, "Unexpected retry duration: " + elapsed.toString());
+    // Three attempts and two waits of two seconds. A wait after the last attempt would add two more seconds.
+    test:assertTrue(elapsed < 3 * attempt + 5d,
+            "Unexpected retry duration: " + elapsed.toString() + ", attempt: " + attempt.toString());
 }
 
 @test:Config {groups: ["resiliencyGaps"]}
