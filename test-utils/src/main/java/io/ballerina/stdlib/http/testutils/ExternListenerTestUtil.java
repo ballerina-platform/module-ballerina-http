@@ -89,7 +89,12 @@ public final class ExternListenerTestUtil {
             }
             int lengthIndex = headers.indexOf("content-length:");
             int length = 0;
-            if (lengthIndex != -1) {
+            if (lengthIndex == -1) {
+                // No length: the body is close-delimited, unless the status rules out a body. Keep reading to EOF.
+                if (!headers.matches("(?s)http/1\\.[01] (1\\d\\d|204|304).*")) {
+                    return false;
+                }
+            } else {
                 int lineEnd = headers.indexOf("\r\n", lengthIndex);
                 String value = headers.substring(lengthIndex + 15, lineEnd == -1 ? headers.length() : lineEnd);
                 length = Integer.parseInt(value.trim());

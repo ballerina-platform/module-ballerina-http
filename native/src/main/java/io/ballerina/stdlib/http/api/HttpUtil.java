@@ -1621,25 +1621,22 @@ public class HttpUtil {
             setServerSocketConfig(serverSocketConfig, listenerConfiguration);
         }
 
-        // The HTTP/2 settings are validated only when the listener serves HTTP/2; they are ignored otherwise.
-        boolean http2Enabled = HTTP_2_0_VERSION.equals(httpVersion);
-        long http2MaxActiveStreams = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
-        if (http2Enabled && (http2MaxActiveStreams <= 0 || http2MaxActiveStreams > Integer.MAX_VALUE)) {
-            throw new BallerinaConnectorException("http2MaxActiveStreams must be a positive 32-bit integer");
-        }
-        if (http2Enabled) {
+        // The HTTP/2 settings are validated and applied only when the listener serves HTTP/2.
+        if (HTTP_2_0_VERSION.equals(httpVersion)) {
+            long http2MaxActiveStreams = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
+            if (http2MaxActiveStreams <= 0 || http2MaxActiveStreams > Integer.MAX_VALUE) {
+                throw new BallerinaConnectorException("http2MaxActiveStreams must be a positive 32-bit integer");
+            }
             listenerConfiguration.setHttp2MaxConcurrentStreams((int) http2MaxActiveStreams);
-        }
-
-        // The settings below apply to cleartext and TLS listeners alike, so they are set before the secure socket.
-        listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
-        long http2InitialWindowSize = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE);
-        if (http2Enabled && (http2InitialWindowSize < 0 || http2InitialWindowSize > Integer.MAX_VALUE)) {
-            throw new BallerinaConnectorException("http2InitialWindowSize must be between 0 and 2147483647");
-        }
-        if (http2Enabled) {
+            long http2InitialWindowSize = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE);
+            if (http2InitialWindowSize < 0 || http2InitialWindowSize > Integer.MAX_VALUE) {
+                throw new BallerinaConnectorException("http2InitialWindowSize must be between 0 and 2147483647");
+            }
             listenerConfiguration.setHttp2InitialWindowSize((int) http2InitialWindowSize);
         }
+
+        // These settings apply to cleartext and TLS listeners alike, so they are set before the secure socket.
+        listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
 
         double minIdleTimeInStaleState =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
@@ -1648,8 +1645,9 @@ public class HttpUtil {
         double timeBetweenStaleEviction =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS))
                         .floatValue();
-        if (timeBetweenStaleEviction > 0) {
-            listenerConfiguration.setTimeBetweenStaleEviction((long) (timeBetweenStaleEviction * 1000));
+        long timeBetweenStaleEvictionMillis = toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction);
+        if (timeBetweenStaleEvictionMillis > 0) {
+            listenerConfiguration.setTimeBetweenStaleEviction(timeBetweenStaleEvictionMillis);
         }
 
         if (sslConfig != null) {
@@ -1667,6 +1665,17 @@ public class HttpUtil {
      */
     static long toMinIdleTimeInStaleStateMillis(double seconds) {
         return seconds <= -1 ? -1 : Math.max(0L, (long) (seconds * 1000));
+    }
+
+    /**
+     * Converts timeBetweenStaleEviction in seconds to milliseconds. Returns 0 when the value is not positive after
+     * the conversion, so that the default applies (a zero period is rejected by Timer.schedule).
+     *
+     * @param seconds the configured value in seconds
+     * @return the value in milliseconds, or 0
+     */
+    static long toTimeBetweenStaleEvictionMillis(double seconds) {
+        return Math.max(0L, (long) (seconds * 1000));
     }
 
     private static void setServerSocketConfig(BMap<BString, Object> serverSocketConfig,

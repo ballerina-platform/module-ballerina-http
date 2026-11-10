@@ -43,11 +43,11 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     private ChannelFuture nettyBindFuture;
     private ChannelGroup allChannels;
 
-    private String openingServerConnectorId;
-    private boolean isOpeningSCHttps;
-    private String closingServerConnectorId;
-    private boolean isClosingSCHttps;
-    private Throwable connectorInitException;
+    private volatile String openingServerConnectorId;
+    private volatile boolean isOpeningSCHttps;
+    private volatile String closingServerConnectorId;
+    private volatile boolean isClosingSCHttps;
+    private volatile Throwable connectorInitException;
     private volatile CountDownLatch handoverLatch;
 
     public HttpWsServerConnectorFuture() {

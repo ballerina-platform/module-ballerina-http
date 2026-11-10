@@ -46,7 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import javax.net.ssl.SSLContext;
@@ -245,9 +244,7 @@ public class ServerConnectorBootstrap {
             Channel previousServerChannel = serverChannel;
             ServerConnectorFuture previousServerConnectorFuture = serverConnectorFuture;
             ChannelFuture channelFuture = bindInterface();
-            if (Objects.nonNull(channelFuture)) {
-                serverChannel = channelFuture.channel();
-            }
+            serverChannel = channelFuture.channel();
             HttpWsServerConnectorFuture startedFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
             serverConnectorFuture = startedFuture;
             CountDownLatch handover = new CountDownLatch(1);
@@ -276,10 +273,14 @@ public class ServerConnectorBootstrap {
 
         @Override
         public boolean stop() {
+            return stop(gracefulStopTimeout);
+        }
+
+        private boolean stop(int stopTimeout) {
             boolean connectorStopped = false;
 
             try {
-                connectorStopped = unBindInterface();
+                connectorStopped = unBindInterface(stopTimeout);
                 if (connectorStopped) {
                     serverConnectorFuture.notifyPortUnbindingEvent(this.connectorID, isHttps);
                 }
@@ -295,14 +296,8 @@ public class ServerConnectorBootstrap {
 
         @Override
         public boolean immediateStop() {
-            // Zero timeout for this stop only; the configured gracefulStopTimeout is restored afterwards.
-            int configuredGracefulStopTimeout = gracefulStopTimeout;
-            setGracefulStopTimeout(0);
-            try {
-                return this.stop();
-            } finally {
-                setGracefulStopTimeout(configuredGracefulStopTimeout);
-            }
+            // The zero timeout applies to this stop only; the configured gracefulStopTimeout is left untouched.
+            return stop(0);
         }
 
         @Override
@@ -335,7 +330,7 @@ public class ServerConnectorBootstrap {
             return serverBootstrap.bind(new InetSocketAddress(getHost(), getPort()));
         }
 
-        private boolean unBindInterface() throws InterruptedException {
+        private boolean unBindInterface(int stopTimeout) throws InterruptedException {
             if (!initialized) {
                 log.error("ServerConnectorBootstrap is not initialized");
                 return false;
@@ -348,7 +343,7 @@ public class ServerConnectorBootstrap {
                     //Close will stop accepting new connections.
                     listenerChannel.close().sync();
                     try {
-                        Thread.sleep(gracefulStopTimeout);
+                        Thread.sleep(stopTimeout);
                     } catch (InterruptedException e) {
                         log.warn("Couldn't complete the graceful time period");
                     }

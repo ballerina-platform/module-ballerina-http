@@ -43,4 +43,11 @@ public class ListenerConfigConversionTest {
         Assert.assertEquals(HttpUtil.toMinIdleTimeInStaleStateMillis(0.5), 500L);
         Assert.assertEquals(HttpUtil.toMinIdleTimeInStaleStateMillis(300), 300000L);
     }
+
+    @Test
+    public void testTinyEvictionIntervalKeepsTheDefault() {
+        Assert.assertEquals(HttpUtil.toTimeBetweenStaleEvictionMillis(0.0001), 0L);
+        Assert.assertEquals(HttpUtil.toTimeBetweenStaleEvictionMillis(-3), 0L);
+        Assert.assertEquals(HttpUtil.toTimeBetweenStaleEvictionMillis(0.5), 500L);
+    }
 }
