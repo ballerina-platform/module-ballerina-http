@@ -82,9 +82,20 @@ public abstract class Node<DataType, InboundMsgType> {
             }
             // When the node has a resource that rejected only the method, its 405 stays if the rest child fails.
             DataReturnAgent<DataType> restAgent = dataElement.hasData() ? new DataReturnAgent<>() : dataReturnAgent;
-            boolean found = matchRestWithZeroSegments(variables, inboundMsg, restAgent);
-            if (found && restAgent != dataReturnAgent) {
-                dataReturnAgent.setData(restAgent.getData());
+            Node<DataType, InboundMsgType> restChild = findRestChild();
+            if (restChild == null) {
+                return false;
+            }
+            boolean found = restChild.matchAll("", variables, 0, inboundMsg, restAgent);
+            if (found) {
+                setUriPostFix(variables, "");
+                if (restAgent != dataReturnAgent) {
+                    dataReturnAgent.setData(restAgent.getData());
+                }
+            } else if (restAgent != dataReturnAgent && restAgent.getError() != null
+                    && restChild.dataElement.hasData() && restChild.dataElement.handlesRequestMethod(inboundMsg)) {
+                // The rest child handles the method but rejected the request (415, 406): keep that error over 405.
+                dataReturnAgent.setError(restAgent.getError());
             }
             return found;
         }
@@ -142,19 +153,13 @@ public abstract class Node<DataType, InboundMsgType> {
         return false;
     }
 
-    /**
-     * The path is fully consumed at this node. A rest parameter child ({@code *}) still matches, with zero segments.
-     */
-    private boolean matchRestWithZeroSegments(HttpResourceArguments variables, InboundMsgType inboundMsg,
-                                              DataReturnAgent<DataType> dataReturnAgent) {
+    private Node<DataType, InboundMsgType> findRestChild() {
         for (Node<DataType, InboundMsgType> childNode : childNodesList) {
-            if (isRestNode(childNode)
-                    && childNode.matchAll("", variables, 0, inboundMsg, dataReturnAgent)) {
-                setUriPostFix(variables, "");
-                return true;
+            if (isRestNode(childNode)) {
+                return childNode;
             }
         }
-        return false;
+        return null;
     }
 
     private static boolean isRestNode(Node<?, ?> node) {

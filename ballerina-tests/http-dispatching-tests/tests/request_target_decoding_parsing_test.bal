@@ -61,6 +61,13 @@ service /fb on requestTargetParsingListener {
     resource function post foo/[string... p]() returns string => "post foo rest";
 }
 
+service /fb2 on requestTargetParsingListener {
+    resource function get files4() returns string => "get files4";
+
+    @http:ResourceConfig {consumes: ["application/json"]}
+    resource function post files4/[string... p](@http:Payload json j) returns string => "post files4 rest";
+}
+
 service /optsvc on requestTargetParsingListener {
     resource function get x() returns string => "x";
 }
@@ -250,4 +257,14 @@ function testZeroSegmentFallbackDoesNotOverrideRejectedExactResource() returns e
     res = check requestTargetParsingClient->get("/fb/files2");
     test:assertEquals(res.statusCode, 200);
     test:assertEquals(check res.getTextPayload(), "get files2 rest");
+}
+
+@test:Config {}
+function testZeroSegmentRestChildMediaErrorIsPreserved() returns error? {
+    http:Response res = check requestTargetParsingClient->post("/fb2/files4", "text", mediaType = "text/plain");
+    test:assertEquals(res.statusCode, 415, "the rest child handles POST but rejects the media type");
+    res = check requestTargetParsingClient->post("/fb2/files4", {a: 1});
+    test:assertEquals(res.statusCode, 201);
+    res = check requestTargetParsingClient->put("/fb2/files4", "x");
+    test:assertEquals(res.statusCode, 405, "neither resource handles PUT");
 }
