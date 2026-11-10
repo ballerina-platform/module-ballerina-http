@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix a TLS listener with `shareSession: false` failing every handshake](https://github.com/ballerina-platform/ballerina-library/issues/9547)
 - [Fix a listener port outside 1 to 65535 being accepted, and `gracefulStop()` ignoring the configured `gracefulStopTimeout` after an `immediateStop()`](https://github.com/ballerina-platform/ballerina-library/issues/9548)
 - [Fix a second listener that fails to bind a port that is already in use taking over the requests of the listener running on it](https://github.com/ballerina-platform/ballerina-library/issues/9550)
-- [Fix the listener setting the process-wide `jdk.tls.namedGroups` system property; the named groups are now set on each connection](https://github.com/ballerina-platform/ballerina-library/issues/9551)
+- [Fix the listener setting the process-wide `jdk.tls.namedGroups` system property; when that property is unset, the default named groups are now set per connection for every TLS listener and client, on non-OpenSSL engines](https://github.com/ballerina-platform/ballerina-library/issues/9551)
 - [Fix `maxPipelinedRequests` allowing one request more than configured, and the HTTP/2 listener settings being accepted with values that cannot work](https://github.com/ballerina-platform/ballerina-library/issues/9552)
 
 ### Changed

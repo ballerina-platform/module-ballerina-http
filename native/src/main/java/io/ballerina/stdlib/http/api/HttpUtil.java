@@ -1451,6 +1451,7 @@ public class HttpUtil {
             }
             return;
         }
+        applyDefaultNamedGroups(senderConfiguration);
         Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
         if (cert == null) {
             senderConfiguration.useJavaDefaults();
@@ -1794,6 +1795,7 @@ public class HttpUtil {
                                                       ListenerConfiguration listenerConfiguration) {
         List<Parameter> serverParamList = new ArrayList<>();
         listenerConfiguration.setScheme(HttpConstants.PROTOCOL_HTTPS);
+        applyDefaultNamedGroups(listenerConfiguration);
         BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
         assert key != null; // This validation happens at Ballerina level
         evaluateKeyField(key, listenerConfiguration);
@@ -1914,6 +1916,9 @@ public class HttpUtil {
         if (!sslProtocol.isBlank()) {
             sslConfiguration.setSSLProtocol(sslProtocol);
         }
+    }
+
+    private static void applyDefaultNamedGroups(SslConfiguration sslConfiguration) {
         if (System.getProperty(JAVA_CONFIG_TLS_NAMED_GROUPS) == null) {
             sslConfiguration.setNamedGroups(DEFAULT_NAMED_GROUPS);
         }
