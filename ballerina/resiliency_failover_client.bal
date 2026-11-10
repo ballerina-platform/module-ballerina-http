@@ -524,11 +524,13 @@ public client isolated class FailoverClient {
         ClientError?[] failoverActionErrData = [];
         mime:Entity requestEntity = new;
 
+        // Build the payload first, so the request can be sent to the next endpoint. A byte stream is read only if there
+        // is another endpoint to fail over to, so that it is streamed otherwise.
+        boolean canFailover = noOfEndpoints > 1;
         if isMultipartRequest(failoverRequest) {
-            failoverRequest = check populateMultipartRequest(failoverRequest);
+            failoverRequest = check populateMultipartRequest(failoverRequest, canFailover);
         } else {
-            // Build the payload (including a byte stream) first, so the request can be sent to the next endpoint.
-            check bufferRequestPayloadForResend(failoverRequest);
+            check bufferRequestPayloadForResend(failoverRequest, canFailover);
             requestEntity = check failoverRequest.getEntity();
         }
         while (startIndex != currentIndex) {

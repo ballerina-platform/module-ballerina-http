@@ -1452,7 +1452,7 @@ Following clients can be created separately as it requires different configurati
 ##### 2.4.1.7 Load balance
 LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients. It uses the
 LoadBalanceClientConfiguration. 
-`proxy` and the other `ClientConfiguration` fields except `secureSocket` apply to every target. Initialization returns a `ClientError` when `targets` is empty.
+The common client configuration fields, including `proxy`, apply to every target. `secureSocket` is configured per target in `TargetService`. Initialization returns a `ClientError` when `targets` is empty.
 ```ballerina
 public type LoadBalanceClientConfiguration record {|
     *CommonClientConfiguration;
@@ -1474,7 +1474,7 @@ http:LoadBalanceClient clientEP = check new (
 ##### 2.4.1.8 Failover
 An HTTP client endpoint which provides failover support over multiple HTTP clients. It uses the
 FailoverClientConfiguration.
-`proxy` and the other `ClientConfiguration` fields except `secureSocket` apply to every target. Initialization returns a `ClientError` when `targets` is empty.
+The common client configuration fields, including `proxy`, apply to every target. `secureSocket` is configured per target in `TargetService`. Initialization returns a `ClientError` when `targets` is empty.
 ```ballerina
 public type FailoverClientConfiguration record {|
     *CommonClientConfiguration;

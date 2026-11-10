@@ -303,14 +303,13 @@ isolated function performRetryAction(string path, Request request, HttpOperation
     AllRetryAttemptsFailed retryFailedError = error AllRetryAttemptsFailed("All the retry attempts failed.");
     ClientError httpConnectorErr = retryFailedError;
     Request inRequest = request;
-    // Read the payload into memory before the first attempt so it can be resent. Skipped when no retry can happen,
-    // so the request is streamed.
-    if retryCount > 0 {
-        check bufferRequestPayloadForResend(inRequest);
-    }
+    // Read the payload into memory before the first attempt so it can be resent. A byte stream is read only when a
+    // retry can happen, so that it is streamed otherwise.
+    boolean canRetry = retryCount > 0;
+    check bufferRequestPayloadForResend(inRequest, canRetry);
 
     while (currentRetryCount < (retryCount + 1)) {
-        inRequest = check populateMultipartRequest(inRequest);
+        inRequest = check populateMultipartRequest(inRequest, canRetry);
         var backendResponse = invokeEndpoint(path, inRequest, requestAction, httpClient, verb = verb);
         if backendResponse is Response {
             int responseStatusCode = backendResponse.statusCode;

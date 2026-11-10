@@ -68,6 +68,48 @@ service /lbMultipart on new http:Listener(lbMultipartStreamPartTestPort, httpVer
     resource function post body(http:Request req) returns string|error {
         return string `body=${check req.getTextPayload()}`;
     }
+
+    resource function post nested(http:Request req) returns string|error {
+        return check flattenParts(check req.getBodyParts());
+    }
+
+}
+
+isolated int generatorCloseCount = 0;
+
+function flattenParts(mime:Entity[] parts) returns string|error {
+    string result = "";
+    foreach mime:Entity part in parts {
+        if part.getContentType().startsWith("multipart/") {
+            result += "[" + check flattenParts(check part.getBodyParts()) + "]";
+        } else {
+            result += check part.getText() + "|";
+        }
+    }
+    return result;
+}
+
+class ClosableByteGenerator {
+    private int count = 0;
+    private final boolean failing;
+    isolated function init(boolean failing) {
+        self.failing = failing;
+    }
+    public isolated function next() returns record {|byte[] value;|}|io:Error? {
+        self.count += 1;
+        if self.count == 1 {
+            return {value: "abc".toBytes()};
+        }
+        if self.failing {
+            return error io:GenericError("stream source failed");
+        }
+        return ();
+    }
+    public isolated function close() returns io:Error? {
+        lock {
+            generatorCloseCount += 1;
+        }
+    }
 }
 
 isolated map<int> flakyHits = {};
@@ -262,11 +304,106 @@ function testRedirectWithRetryStreamBody() returns error? {
     test:assertEquals(res, "body=part-two");
 }
 
+const string STREAM_READ_ERROR = "Error reading the byte stream of the payload";
+
+function failingStreamRequest() returns http:Request {
+    http:Request req = new;
+    req.setByteStream(new stream<byte[], io:Error?>(new FailingByteGenerator()));
+    return req;
+}
+
+// A stream that can be resent is read before the request is sent, so its failure is reported by the client. Without
+// a possible resend the stream is not read in advance, so the failure surfaces while the request is being sent.
 @test:Config {groups: ["resiliencyGaps"]}
-function testRetryClientWithoutRetriesStreamsBody() returns error? {
-    http:Client c = check new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 0});
-    string res = check c->post("/lbMultipart/body", streamBodyRequest());
-    test:assertEquals(res, "body=part-two");
+function testRetryClientBuffersOnlyWhenRetriesAreConfigured() {
+    http:Client withRetry = checkpanic new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 1});
+    http:Response|http:ClientError buffered = withRetry->post("/lbMultipart/body", failingStreamRequest());
+    test:assertTrue(buffered is http:ClientError && buffered.message().includes(STREAM_READ_ERROR),
+            "The stream should be read before sending when retries are configured");
+    http:Client noRetry = checkpanic new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 0});
+    http:Response|http:ClientError streamed = noRetry->post("/lbMultipart/body", failingStreamRequest());
+    test:assertFalse(streamed is http:ClientError && streamed.message().includes(STREAM_READ_ERROR),
+            "The stream should not be read in advance when no retry can happen");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testFailoverClientBuffersOnlyWithMultipleTargets() {
+    http:FailoverClient single = checkpanic new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: lbMultipartEchoUrl}]
+    });
+    http:Response|http:ClientError streamed = single->post("/lbMultipart/body", failingStreamRequest());
+    test:assertFalse(streamed is http:ClientError && streamed.message().includes(STREAM_READ_ERROR),
+            "A single target request should not be read in advance");
+    http:FailoverClient multiple = checkpanic new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: lbMultipartEchoUrl}, {url: deadUrl}]
+    });
+    http:Response|http:ClientError buffered = multiple->post("/lbMultipart/body", failingStreamRequest());
+    test:assertTrue(buffered is http:ClientError && buffered.message().includes(STREAM_READ_ERROR),
+            "A request that can fail over should be read in advance");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testLoadBalanceClientBuffersOnlyWithFailoverAndMultipleTargets() {
+    http:LoadBalanceClient single = checkpanic new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: lbMultipartEchoUrl}]
+    });
+    http:Response|http:ClientError streamed = single->post("/lbMultipart/body", failingStreamRequest());
+    test:assertFalse(streamed is http:ClientError && streamed.message().includes(STREAM_READ_ERROR),
+            "A single target request should not be read in advance");
+    http:LoadBalanceClient multiple = checkpanic new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: lbMultipartEchoUrl}, {url: deadUrl}]
+    });
+    http:Response|http:ClientError buffered = multiple->post("/lbMultipart/body", failingStreamRequest());
+    test:assertTrue(buffered is http:ClientError && buffered.message().includes(STREAM_READ_ERROR),
+            "A request that can fail over should be read in advance");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testBufferedByteStreamIsClosed() returns error? {
+    http:Client c = check new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 1});
+    int before;
+    lock {
+        before = generatorCloseCount;
+    }
+    http:Request req = new;
+    req.setByteStream(new stream<byte[], io:Error?>(new ClosableByteGenerator(false)));
+    string res = check c->post("/lbMultipart/body", req);
+    test:assertEquals(res, "body=abc");
+    http:Request failing = new;
+    failing.setByteStream(new stream<byte[], io:Error?>(new ClosableByteGenerator(true)));
+    http:Response|http:ClientError failed = c->post("/lbMultipart/body", failing);
+    test:assertTrue(failed is http:ClientError);
+    int after;
+    lock {
+        after = generatorCloseCount;
+    }
+    test:assertEquals(after - before, 2, "The streams should be closed after they are read, also on failure");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testFailoverClientDeeplyNestedMultipartStreamPart() returns error? {
+    mime:Entity inner = new;
+    mime:Entity streamPart = new;
+    streamPart.setByteStream(new stream<byte[], io:Error?>(new SingleChunkByteGenerator()));
+    mime:Entity textPart = new;
+    textPart.setText("inner-text");
+    inner.setBodyParts([textPart, streamPart]);
+    mime:Entity middle = new;
+    middle.setBodyParts([inner]);
+    mime:Entity top = new;
+    top.setText("top-text");
+    http:Request req = new;
+    req.setBodyParts([top, middle]);
+    http:FailoverClient fo = check new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: deadUrl}, {url: lbMultipartEchoUrl}]
+    });
+    string res = check fo->post("/lbMultipart/nested", req);
+    test:assertEquals(res, "top-text|[[inner-text|part-two|]]");
 }
 
 @test:Config {groups: ["resiliencyGaps"]}
@@ -315,13 +452,13 @@ function testRetryClientNoWaitAfterLastAttempt() returns error? {
         }
     }
     http:Client retryClient = check new (url,
-        httpVersion = http:HTTP_1_1, retryConfig = {count: 2, interval: 2, backOffFactor: 1.0});
+        httpVersion = http:HTTP_1_1, retryConfig = {count: 1, interval: 4, backOffFactor: 1.0});
     decimal startTime = <decimal>time:monotonicNow();
     http:Response|http:ClientError res = retryClient->get("/u");
     decimal elapsed = <decimal>time:monotonicNow() - startTime;
     test:assertTrue(res is http:ClientError);
-    // Three attempts and two waits of two seconds. A wait after the last attempt would add two more seconds.
-    test:assertTrue(elapsed < 3 * attempt + 5d,
+    // Two attempts and one wait of four seconds. A wait after the last attempt would add four more seconds.
+    test:assertTrue(elapsed < 2 * attempt + 6.5d,
             "Unexpected retry duration: " + elapsed.toString() + ", attempt: " + attempt.toString());
 }
 

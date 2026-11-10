@@ -423,19 +423,20 @@ public client isolated class LoadBalanceClient {
         Request loadBalancerInRequest = request;
         mime:Entity requestEntity = new;
 
-        if self.failover {
-            if isMultipartRequest(loadBalancerInRequest) {
-                loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
-            } else {
-                // Build the payload (including a byte stream) first, so the request can be sent to the next endpoint.
-                check bufferRequestPayloadForResend(loadBalancerInRequest);
-                requestEntity = check loadBalancerInRequest.getEntity();
-            }
-        }
-
         int arrLength;
         lock {
             arrLength = self.loadBalanceClientsArray.length();
+        }
+        // Build the payload first, so the request can be sent to the next endpoint. A byte stream is read only if there
+        // is another endpoint to fail over to, so that it is streamed otherwise.
+        if self.failover {
+            boolean canFailover = arrLength > 1;
+            if isMultipartRequest(loadBalancerInRequest) {
+                loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest, canFailover);
+            } else {
+                check bufferRequestPayloadForResend(loadBalancerInRequest, canFailover);
+                requestEntity = check loadBalancerInRequest.getEntity();
+            }
         }
         while (loadBalanceTermination < arrLength) {
             Client|ClientError loadBalanceClient;

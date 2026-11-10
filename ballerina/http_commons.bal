@@ -307,41 +307,47 @@ isolated function populateRequestFields (Request originalRequest, Request newReq
     newRequest.extraPathInfo = originalRequest.extraPathInfo;
 }
 
-isolated function populateMultipartRequest(Request inRequest) returns Request|ClientError {
+// Builds the message of a multipart request. Byte stream parts are read into memory only if `bufferStreams` is set;
+// otherwise, they are left to be streamed.
+isolated function populateMultipartRequest(Request inRequest, boolean bufferStreams = true) returns Request|ClientError {
     if isMultipartRequest(inRequest) {
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
-        foreach int partIndex in 0 ..< bodyParts.length() {
-            mime:Entity bodyPart = bodyParts[partIndex];
-            if isNestedEntity(bodyPart) {
-                mime:Entity[]|error childParts = bodyPart.getBodyParts();
-
-                if childParts is error {
-                    return error GenericClientError(childParts.message(), childParts);
-                }
-
-                foreach int childIndex in 0 ..< childParts.length() {
-                    mime:Entity childPart = check bufferBodyPartByteStream(childParts[childIndex]);
-                    childParts[childIndex] = childPart;
-                    // When performing passthrough scenarios, message needs to be built before
-                    // invoking the endpoint to create a message datasource.
-                    byte[]|error childBlobContent = childPart.getByteArray();
-                    if childBlobContent is error {
-                        log:printDebug("Error building datasource for multipart request: " + childBlobContent.message());
-                    }
-                }
-                bodyPart.setBodyParts(childParts, bodyPart.getContentType());
-            } else {
-                bodyPart = check bufferBodyPartByteStream(bodyPart);
-                bodyParts[partIndex] = bodyPart;
-                byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
-                if bodyPartBlobContent is error {
-                    log:printDebug("Error building datasource for multipart request: " + bodyPartBlobContent.message());
-                }
-            }
-        }
+        bodyParts = check bufferBodyParts(bodyParts, bufferStreams);
         inRequest.setBodyParts(bodyParts, inRequest.getContentType());
     }
     return inRequest;
+}
+
+// Builds the body parts, at all nesting levels, so that they can be sent more than once.
+isolated function bufferBodyParts(mime:Entity[] bodyParts, boolean bufferStreams) returns mime:Entity[]|ClientError {
+    foreach int partIndex in 0 ..< bodyParts.length() {
+        mime:Entity bodyPart = bodyParts[partIndex];
+        if isNestedEntity(bodyPart) {
+            mime:Entity[]|error nestedParts = bodyPart.getBodyParts();
+            if nestedParts is error {
+                return error GenericClientError(nestedParts.message(), nestedParts);
+            }
+            mime:Entity[] childParts = check bufferBodyParts(nestedParts, bufferStreams);
+            bodyPart.setBodyParts(childParts, bodyPart.getContentType());
+        } else {
+            if !bufferStreams && isByteStreamEntity(bodyPart) {
+                continue;
+            }
+            bodyPart = check bufferBodyPartByteStream(bodyPart);
+            bodyParts[partIndex] = bodyPart;
+            // When performing passthrough scenarios, message needs to be built before
+            // invoking the endpoint to create a message datasource.
+            byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
+            if bodyPartBlobContent is error {
+                log:printDebug("Error building datasource for multipart request: " + bodyPartBlobContent.message());
+            }
+        }
+    }
+    return bodyParts;
+}
+
+isolated function isByteStreamEntity(mime:Entity entity) returns boolean {
+    return externGetMimeByteStream(entity) is stream<byte[], io:Error?>;
 }
 
 // Reads the entity's byte stream body into memory. Returns nil if the body is not a stream, or the stream's error.
@@ -355,8 +361,14 @@ isolated function readEntityByteStream(mime:Entity entity) returns byte[]|Client
         do {
             content.push(...chunk);
         };
+    // The stream is not used again, so release its resources whether or not it was read fully.
+    error? closeResult = byteStream.close();
     if result is error {
         return error GenericClientError("Error reading the byte stream of the payload: " + result.message(), result);
+    }
+    if closeResult is error {
+        return error GenericClientError("Error closing the byte stream of the payload: " + closeResult.message(),
+            closeResult);
     }
     return content;
 }
@@ -378,30 +390,34 @@ isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns mime:En
             }
         }
     }
-    bufferedPart.setByteArray(content, bodyPart.getContentType());
+    setByteArray(bufferedPart, content, bodyPart.getContentType(), ());
     return bufferedPart;
 }
 
-// Reads a byte stream payload into memory (once) so the request can be resent. Multipart, buffered and empty
-// payloads are left as they are. The whole stream is held in memory; there is no size limit.
-isolated function bufferRequestPayloadForResend(Request request) returns ClientError? {
+// Builds the payload of a non-multipart request so that it can be sent more than once. A byte stream is read into
+// memory (once) only if `bufferStreams` is set; otherwise, it is left to be streamed. The whole stream is held in
+// memory; there is no size limit.
+isolated function bufferRequestPayloadForResend(Request request, boolean bufferStreams = true) returns ClientError? {
     if isMultipartRequest(request) {
         return;
     }
-    if !request.hasMsgDataSource() {
-        mime:Entity|ClientError entity = request.getEntityWithBodyAndWithoutHeaders();
-        if entity is mime:Entity {
+    if request.hasMsgDataSource() {
+        // Already built, possibly by an outer client; the entity may still hold the drained stream.
+        return;
+    }
+    mime:Entity entity = check request.getEntityWithBodyAndWithoutHeaders();
+    if isByteStreamEntity(entity) {
+        if bufferStreams {
             byte[]? streamContent = check readEntityByteStream(entity);
             if streamContent is byte[] {
                 request.setBinaryPayload(streamContent);
             }
         }
+        return;
     }
-    if !request.hasMsgDataSource() {
-        byte[]|error binaryPayload = request.getBinaryPayload();
-        if binaryPayload is error {
-            log:printDebug("Error building payload for request resend: " + binaryPayload.message());
-        }
+    byte[]|error binaryPayload = request.getBinaryPayload();
+    if binaryPayload is error {
+        log:printDebug("Error building payload for request resend: " + binaryPayload.message());
     }
 }
 
