@@ -1130,9 +1130,7 @@ public class Util {
             sslHandler.setHandshakeTimeout(handshakeTimeout, TimeUnit.SECONDS);
         }
         if (!sslConfig.isEnableSessionCreation()) {
-            // shareSession=false: sessions must still be created for the handshake to succeed, but they are
-            // invalidated once the handshake completes so that the session cache does not resume them. Best-effort:
-            // a client can still resume through a stateless session ticket, which cannot be disabled per context.
+            // shareSession=false: invalidate the session after the handshake (best-effort, tickets can still resume).
             sslHandler.handshakeFuture().addListener(future -> {
                 if (future.isSuccess()) {
                     sslHandler.engine().getSession().invalidate();
@@ -1147,7 +1145,6 @@ public class Util {
             return;
         }
         try {
-            // Per-engine setting. It does not touch the process-wide jdk.tls.namedGroups property.
             SSLParameters parameters = engine.getSSLParameters();
             parameters.setNamedGroups(namedGroups);
             engine.setSSLParameters(parameters);

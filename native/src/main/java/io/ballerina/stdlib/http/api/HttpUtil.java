@@ -1915,7 +1915,6 @@ public class HttpUtil {
             sslConfiguration.setSSLProtocol(sslProtocol);
         }
         if (System.getProperty(JAVA_CONFIG_TLS_NAMED_GROUPS) == null) {
-            // Applied per connection, so that the process-wide jdk.tls.namedGroups property is left untouched.
             sslConfiguration.setNamedGroups(DEFAULT_NAMED_GROUPS);
         }
     }

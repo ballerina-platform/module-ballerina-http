@@ -208,10 +208,8 @@ public class SSLHandlerFactory {
     }
 
     /**
-     * Applies the session timeout and the shareSession setting to a session context. With shareSession=false the
-     * session cache of OpenSSL contexts is disabled. This is best-effort: it stops resumption through the session
-     * cache only. Resumption through stateless session tickets (JDK and OpenSSL) cannot be switched off per
-     * context; the JDK controls it with the JVM-wide jdk.tls.server.enableSessionTicketExtension property only.
+     * Applies the session timeout and shareSession to a session context. With shareSession=false the OpenSSL
+     * session cache is disabled. Best-effort: stateless session tickets cannot be disabled per context.
      */
     private void applySessionSettings(SSLSessionContext sessionContext) {
         int sessionTimeout = sslConfig.getSessionTimeOut();

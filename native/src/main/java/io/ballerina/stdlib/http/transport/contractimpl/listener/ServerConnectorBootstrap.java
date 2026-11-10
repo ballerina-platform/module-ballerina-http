@@ -254,14 +254,11 @@ public class ServerConnectorBootstrap {
                     if (log.isDebugEnabled()) {
                         log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
                     }
-                    // The dispatching of requests is handed over only once the port is bound. A failed bind (for
-                    // example a second listener on a port that is already in use) must leave the dispatching of the
-                    // listener that is already running untouched.
+                    // Hand over dispatching only once the port is bound.
                     httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
                     startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
                 } else {
-                    // Roll back to the state before this start: the running listener (or nothing, when this was
-                    // the first start, so that stop() has no failed channel to wait on).
+                    // Roll back to the state before this start.
                     serverChannel = previousServerChannel;
                     serverConnectorFuture = previousServerConnectorFuture;
                     startedFuture.notifyPortBindingError(future.cause());
@@ -291,8 +288,7 @@ public class ServerConnectorBootstrap {
 
         @Override
         public boolean immediateStop() {
-            // The immediate stop uses a zero timeout only for this stop, so the configured gracefulStopTimeout still
-            // applies to a later gracefulStop() after the listener is started again.
+            // Zero timeout for this stop only; the configured gracefulStopTimeout is restored afterwards.
             int configuredGracefulStopTimeout = gracefulStopTimeout;
             setGracefulStopTimeout(0);
             try {
