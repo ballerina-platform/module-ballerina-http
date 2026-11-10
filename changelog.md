@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Fixed
 
+- [Fix a path parameter being percent-decoded twice, and `+` in a path segment being bound as a space; the value is now decoded once and `+` stays `+`](https://github.com/ballerina-platform/ballerina-library/issues/9559)
+- [Fix a malformed percent-escape in a path parameter returning a `500` with Java exception text, or binding the trailing `%` literally; it now returns a `400`](https://github.com/ballerina-platform/ballerina-library/issues/9568)
+- [Fix a malformed percent-escape in a query value returning a `500` with Java exception text; it now returns a `400`](https://github.com/ballerina-platform/ballerina-library/issues/9573)
+- [Fix the request target being split at every `?`, which cut a query value that contains `?`; it is now split at the first `?` only](https://github.com/ballerina-platform/ballerina-library/issues/9561)
+- [Fix a rest parameter not matching zero segments, so `GET /files` and `GET /files/` now select a `files/[string... path]` resource with an empty `path`](https://github.com/ballerina-platform/ballerina-library/issues/9560)
+- [Fix a `boolean` path, query or header parameter binding `false` for any value other than `true`, such as `yes`; the value is now parsed strictly and any other value returns a `400`](https://github.com/ballerina-platform/ballerina-library/issues/9562)
 - [Serve the embedded OpenAPI definition when the listener port cannot be resolved at compile time](https://github.com/ballerina-platform/ballerina-library/issues/9436)
 - [Apply the service auth to the generated OpenAPI and Swagger UI resources, so requests to them now require valid credentials when the service configures `auth`](https://github.com/ballerina-platform/ballerina-library/issues/9432)
 - [Fix HTTP/2 client requests hanging forever once a connection reaches `maxActiveStreamsPerConnection`, the client opening a new connection for most requests after a connection was exhausted, a connection taking more streams than `maxActiveStreamsPerConnection` after the server pushed responses on it, requests waiting for a new connection being released by an unrelated connection attempt on the route, a connection no longer being used once the server refused to open a stream on it, an unexpected event on a connection being opened failing the requests waiting for it, and a connection opened by a request that stopped waiting ending the wait for the connection still being opened](https://github.com/ballerina-platform/ballerina-library/issues/9233)

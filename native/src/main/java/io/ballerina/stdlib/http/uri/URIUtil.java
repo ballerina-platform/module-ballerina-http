@@ -193,12 +193,7 @@ public final class URIUtil {
         while (i < length) {
             int codePoint = value.codePointAt(i);
             if (codePoint == '%') {
-                int high = i + 2 < length ? hexValue(value.charAt(i + 1)) : -1;
-                int low = i + 2 < length ? hexValue(value.charAt(i + 2)) : -1;
-                if (high < 0 || low < 0) {
-                    throw new IllegalArgumentException("malformed percent-encoding in the request target");
-                }
-                bytes.write((high << 4) | low);
+                bytes.write(decodeEscape(value, i));
                 i += 3;
             } else if (codePoint == '+' && plusAsSpace) {
                 bytes.write(' ');
@@ -210,6 +205,15 @@ public final class URIUtil {
             }
         }
         return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
+    }
+
+    private static int decodeEscape(String value, int percentIndex) {
+        int high = percentIndex + 2 < value.length() ? hexValue(value.charAt(percentIndex + 1)) : -1;
+        int low = percentIndex + 2 < value.length() ? hexValue(value.charAt(percentIndex + 2)) : -1;
+        if (high < 0 || low < 0) {
+            throw new IllegalArgumentException("malformed percent-encoding in the request target");
+        }
+        return (high << 4) | low;
     }
 
     private static int hexValue(char ch) {
