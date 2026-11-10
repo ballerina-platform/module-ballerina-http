@@ -375,7 +375,7 @@ isolated function readEntityByteStream(mime:Entity entity) returns byte[]|Client
 
 // Returns a body part with the stream content held in memory, so it can be sent again. A new entity is needed because
 // the drained stream stays attached to the original. Parts that are not streams are returned as they are.
-// The whole stream is held in memory; there is no size limit.
+// The whole stream is held in memory; there is no size limit (ballerina-library#9652).
 isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns mime:Entity|ClientError {
     byte[]? content = check readEntityByteStream(bodyPart);
     if content is () {
@@ -396,7 +396,7 @@ isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns mime:En
 
 // Builds the payload of a non-multipart request so that it can be sent more than once. A byte stream is read into
 // memory (once) only if `bufferStreams` is set; otherwise, it is left to be streamed. The whole stream is held in
-// memory; there is no size limit.
+// memory; there is no size limit (ballerina-library#9652).
 isolated function bufferRequestPayloadForResend(Request request, boolean bufferStreams = true) returns ClientError? {
     if isMultipartRequest(request) {
         return;
