@@ -28,7 +28,6 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -221,8 +220,7 @@ public final class URIUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap)
-            throws UnsupportedEncodingException {
+    public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap) {
         Map<String, List<String>> tempParamMap = new HashMap<>();
         String[] queryParamVals = queryParamString.split("&");
         for (String queryParam : queryParamVals) {
@@ -283,7 +281,7 @@ public final class URIUtil {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
-        String[] pathSplits = path.split("\\?");
+        String[] pathSplits = path.split("\\?", 2);
         String[] pathSegments = pathSplits[0].split("/");
         String pathToMatrixParam = "";
         for (String pathSegment : pathSegments) {

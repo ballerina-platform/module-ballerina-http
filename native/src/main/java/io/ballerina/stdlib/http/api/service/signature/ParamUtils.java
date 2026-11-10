@@ -101,13 +101,18 @@ public class ParamUtils {
      * @throws IllegalArgumentException if the text is neither {@code true} nor {@code false}
      */
     public static boolean parseBoolean(String value) {
-        if ("true".equalsIgnoreCase(value)) {
+        // ASCII-only, case-insensitive comparison (equalsIgnoreCase also folds some non-ASCII characters).
+        if (value.length() == 4 && value.regionMatches(true, 0, "true", 0, 4) && isAscii(value)) {
             return true;
         }
-        if ("false".equalsIgnoreCase(value)) {
+        if (value.length() == 5 && value.regionMatches(true, 0, "false", 0, 5) && isAscii(value)) {
             return false;
         }
         throw new IllegalArgumentException("'" + value + "' is not a valid boolean value");
+    }
+
+    private static boolean isAscii(String value) {
+        return value.chars().allMatch(c -> c < 128);
     }
 
     public static BArray castParamArray(Type elementType, String[] argValueArr) {

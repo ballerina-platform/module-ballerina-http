@@ -76,7 +76,7 @@ public abstract class Node<DataType, InboundMsgType> {
             if (dataElement.getData(inboundMsg, dataReturnAgent)) {
                 return true;
             }
-            return matchRestWithZeroSegments(variables, start + matchLength, inboundMsg, dataReturnAgent);
+            return matchRestWithZeroSegments(variables, inboundMsg, dataReturnAgent);
         }
         if (matchLength >= uriFragment.length()) {
             return false;
@@ -135,11 +135,11 @@ public abstract class Node<DataType, InboundMsgType> {
     /**
      * The path is fully consumed at this node. A rest parameter child ({@code *}) still matches, with zero segments.
      */
-    private boolean matchRestWithZeroSegments(HttpResourceArguments variables, int start, InboundMsgType inboundMsg,
+    private boolean matchRestWithZeroSegments(HttpResourceArguments variables, InboundMsgType inboundMsg,
                                               DataReturnAgent<DataType> dataReturnAgent) {
         for (Node<DataType, InboundMsgType> childNode : childNodesList) {
             if (childNode instanceof Literal && "*".equals(childNode.getToken())
-                    && childNode.matchAll("", variables, start, inboundMsg, dataReturnAgent)) {
+                    && childNode.matchAll("", variables, 0, inboundMsg, dataReturnAgent)) {
                 setUriPostFix(variables, "");
                 return true;
             }

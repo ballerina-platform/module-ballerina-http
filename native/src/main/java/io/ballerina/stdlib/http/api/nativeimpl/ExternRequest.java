@@ -77,6 +77,9 @@ public class ExternRequest {
             }
             requestObj.addNativeData(QUERY_PARAM_MAP, params);
             return params;
+        } catch (IllegalArgumentException e) {
+            throw HttpUtil.createHttpError("error while retrieving query param from message: "
+                    + "malformed percent-encoding in the query string", HttpErrorType.GENERIC_LISTENER_ERROR);
         } catch (Exception e) {
             throw HttpUtil.createHttpError("error while retrieving query param from message: " + e.getMessage(),
                                            HttpErrorType.GENERIC_LISTENER_ERROR);

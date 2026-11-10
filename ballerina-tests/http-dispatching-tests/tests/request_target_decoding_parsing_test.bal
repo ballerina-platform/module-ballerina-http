@@ -45,6 +45,18 @@ service / on requestTargetParsingListener {
     resource function get hba(@http:Header boolean[] x\-flags) returns string => x\-flags.toString();
 }
 
+const int requestTargetRootRestTestPort = 9642;
+
+listener http:Listener requestTargetRootRestListener = new (requestTargetRootRestTestPort, httpVersion = http:HTTP_1_1);
+final http:Client requestTargetRootRestClient = check new (string `http://localhost:${requestTargetRootRestTestPort}`,
+    httpVersion = http:HTTP_1_1);
+
+service / on requestTargetRootRestListener {
+    resource function get [string... p]() returns string => "root=" + p.toString();
+
+    resource function get getonly/[string... p]() returns string => "getonly=" + p.toString();
+}
+
 function assertRequestTarget(string target, int status, string? body = ()) returns error? {
     http:Response res = check requestTargetParsingClient->get(target);
     test:assertEquals(res.statusCode, status, "Status code mismatched for " + target);
@@ -131,4 +143,57 @@ function testBooleanHeaderParamStrict() returns error? {
     test:assertEquals(res.statusCode, 400);
     res = check requestTargetParsingClient->get("/hba", {"x-flags": ["true", "abc"]});
     test:assertEquals(res.statusCode, 400);
+}
+
+@test:Config {}
+function testTrailingQuestionMarkStaysInQuery() returns error? {
+    check assertRequestTarget("/q?x=1?", 200, "x=[1?]");
+    check assertRequestTarget("/q?x=?", 200, "x=[?]");
+}
+
+@test:Config {}
+function testRootLevelRestParamMatchesRoot() returns error? {
+    http:Response res = check requestTargetRootRestClient->get("/");
+    test:assertEquals(res.statusCode, 200);
+    test:assertEquals(check res.getTextPayload(), "root=[]");
+    res = check requestTargetRootRestClient->get("/a/b");
+    test:assertEquals(check res.getTextPayload(), "root=[\"a\",\"b\"]");
+}
+
+@test:Config {}
+function testZeroSegmentRestResourceKeepsMethodSearchRule() returns error? {
+    http:Response res = check requestTargetRootRestClient->get("/getonly");
+    test:assertEquals(res.statusCode, 200);
+    test:assertEquals(check res.getTextPayload(), "getonly=[]");
+    http:Response withSegment = check requestTargetRootRestClient->post("/getonly/x", "p");
+    http:Response zeroSegments = check requestTargetRootRestClient->post("/getonly", "p");
+    test:assertEquals(withSegment.statusCode, 405);
+    test:assertEquals(zeroSegments.statusCode, withSegment.statusCode,
+        "Zero-segment rest match must report the same status as a one-segment match");
+}
+
+@test:Config {}
+function testBooleanArrayHeaderPositive() returns error? {
+    http:Response res = check requestTargetParsingClient->get("/hba", {"x-flags": ["true", "FALSE"]});
+    test:assertEquals(res.statusCode, 200);
+    test:assertEquals(check res.getTextPayload(), "[true,false]");
+}
+
+@test:Config {}
+function testBooleanParsingIsAsciiOnly() returns error? {
+    // U+017F (long s) case-folds to 's' in some Unicode comparisons.
+    check assertRequestTarget("/bool/fal%C5%BFe", 400);
+    check assertRequestTarget("/qb?flag=fal%C5%BFe", 400);
+}
+
+@test:Config {}
+function testQueryPlusIsSpaceButEncodedPlusIsPlus() returns error? {
+    check assertRequestTarget("/q?x=a+b", 200, "x=[a b]");
+    check assertRequestTarget("/q?x=a%2Bb", 200, "x=[a+b]");
+}
+
+@test:Config {}
+function testEncodedSlashInSegments() returns error? {
+    check assertRequestTarget("/albums/a%2Fb", 200, "id=[a/b]");
+    check assertRequestTarget("/files/a%2Fb/c", 200, "path=[\"a/b\",\"c\"]");
 }
