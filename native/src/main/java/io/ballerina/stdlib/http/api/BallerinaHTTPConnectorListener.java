@@ -24,7 +24,6 @@ import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
-import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
@@ -58,15 +57,13 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
     protected final HTTPServicesRegistry httpServicesRegistry;
     protected final List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries;
 
-    protected final BMap endpointConfig;
     protected final Object listenerLevelInterceptors;
 
     public BallerinaHTTPConnectorListener(HTTPServicesRegistry httpServicesRegistry,
                                           List<HTTPInterceptorServicesRegistry> httpInterceptorServicesRegistries,
-                                          BMap endpointConfig, Object interceptors) {
+                                          Object interceptors) {
         this.httpInterceptorServicesRegistries = httpInterceptorServicesRegistries;
         this.httpServicesRegistry = httpServicesRegistry;
-        this.endpointConfig = endpointConfig;
         this.listenerLevelInterceptors = interceptors;
     }
 
@@ -165,7 +162,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
         boolean isTransactionInfectable = httpResource.isTransactionInfectable();
         Map<String, Object> properties = collectRequestProperties(inboundMessage, isTransactionInfectable);
 
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage, endpointConfig,
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(httpResource, inboundMessage,
                 httpServicesRegistry.getRuntime());
 
         if (ObserveUtils.isObservabilityEnabled()) {
@@ -238,7 +235,7 @@ public class BallerinaHTTPConnectorListener implements HttpConnectorListener {
 
         Map<String, Object> properties = collectRequestProperties(inboundMessage, true);
         Runtime runtime = registry.getRuntime();
-        Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage, endpointConfig,
+        Object[] signatureParams = HttpDispatcher.getSignatureParameters(resource, inboundMessage,
                 registry.getRuntime());
         HttpRequestInterceptorUnitCallback callback = new HttpRequestInterceptorUnitCallback(inboundMessage, runtime,
                 this);

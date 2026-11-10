@@ -104,7 +104,7 @@ public isolated class HttpCache {
     }
 
     isolated function getAll(string key) returns Response[]|() {
-        var cacheEntry = trap <Response[]> checkpanic self.cache.get(key);
+        any|cache:Error cacheEntry = self.cache.get(key);
         if cacheEntry is Response[] {
             return cacheEntry;
         }
@@ -174,8 +174,8 @@ isolated function isCacheableStatusCode(int statusCode) returns boolean {
 }
 
 isolated function addEntry(cache:Cache cache, string key, Response inboundResponse) {
-    if cache.hasKey(key) {
-        Response[] existingResponses = <Response[]> checkpanic cache.get(key);
+    any|cache:Error existingResponses = cache.get(key);
+    if existingResponses is Response[] {
         existingResponses.push(inboundResponse);
     } else {
         Response[] cachedResponses = [inboundResponse];

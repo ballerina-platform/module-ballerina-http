@@ -32,7 +32,6 @@ public isolated client class Caller {
     public final readonly & Local localAddress;
     public final string protocol;
     private string? resourceAccessor;
-    private ListenerConfiguration config = {};
     private boolean present = false;
 
     isolated function init(Remote remoteAddress, Local localAddress, string protocol, string? resourceAccessor) {

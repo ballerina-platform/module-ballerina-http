@@ -639,7 +639,7 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
             lastForcedOpenTime: circuitStartTime,
             totalBuckets: bucketArray
         };
-        return new CircuitBreakerClient(uri, configuration, circuitBreakerInferredConfig, cbHttpClient, circuitHealth);
+        return new CircuitBreakerClient(uri, circuitBreakerInferredConfig, cbHttpClient, circuitHealth);
     } else {
         return createCookieClient(uri, configuration, cookieStore);
     }
@@ -657,7 +657,7 @@ isolated function createRetryClient(string url, ClientConfiguration configuratio
         };
         var httpCookieClient = createCookieClient(url, configuration, cookieStore);
         if httpCookieClient is HttpClient {
-            return new RetryClient(url, configuration, retryInferredConfig, httpCookieClient);
+            return new RetryClient(retryInferredConfig, httpCookieClient);
         }
         return httpCookieClient;
     }

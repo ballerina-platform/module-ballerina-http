@@ -129,13 +129,12 @@ client isolated class CircuitBreakerClient {
     # A Circuit Breaker implementation which can be used to gracefully handle network failures.
     #
     # + url - The URL of the target service
-    # + config - The configurations of the client endpoint associated with this `CircuitBreaker` instance
     # + circuitBreakerInferredConfig - Configurations derived from the `http:CircuitBreakerConfig`
     # + httpClient - The underlying `HttpActions` instance, which will be making the actual network calls
     # + circuitHealth - The circuit health monitor
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    isolated function init(string url, ClientConfiguration config, CircuitBreakerInferredConfig
-        circuitBreakerInferredConfig, HttpClient httpClient, CircuitHealth circuitHealth) returns ClientError? {
+    isolated function init(string url, CircuitBreakerInferredConfig circuitBreakerInferredConfig,
+        HttpClient httpClient, CircuitHealth circuitHealth) returns ClientError? {
         RollingWindow rollingWindow = circuitBreakerInferredConfig.rollingWindow;
         if rollingWindow.timeWindow < rollingWindow.bucketSize {
             return error GenericClientError("Circuit breaker 'timeWindow' value should be greater" +
@@ -417,7 +416,7 @@ client isolated class CircuitBreakerClient {
             if totalRequestsCount >= self.circuitBreakerInferredConfig.rollingWindow.requestVolumeThreshold {
                 if currentState == CB_OPEN_STATE {
                     currentState = self.switchCircuitStateOpenToHalfOpenOnResetTime(self.circuitBreakerInferredConfig,
-                                                                                    self.circuitHealth, currentState);
+                                                                                    currentState);
                 } else if currentState == CB_HALF_OPEN_STATE {
                     if !self.circuitHealth.lastRequestSuccess {
                         // If the trial run has failed, trip the circuit again
@@ -441,7 +440,7 @@ client isolated class CircuitBreakerClient {
                 }
             } else {
                 currentState = self.switchCircuitStateOpenToHalfOpenOnResetTime(self.circuitBreakerInferredConfig,
-                                                                                self.circuitHealth, currentState);
+                                                                                currentState);
             }
             Bucket bucket = <Bucket> self.circuitHealth.totalBuckets[currentBucketId];
             bucket.totalCount += 1;
@@ -665,11 +664,10 @@ client isolated class CircuitBreakerClient {
     # Switches circuit state from open to half open state when reset time exceeded.
     #
     # + circuitBreakerInferredConfig -  Configurations derived from `CircuitBreakerConfig`
-    # + circuitHealth - Circuit Breaker health status
     # + currentState - current state of the circuit
     # + return - Calculated state value of the circuit
     isolated function switchCircuitStateOpenToHalfOpenOnResetTime(CircuitBreakerInferredConfig circuitBreakerInferredConfig,
-                                            CircuitHealth circuitHealth, CircuitState currentState) returns CircuitState {
+                                            CircuitState currentState) returns CircuitState {
         CircuitState currentCircuitState = currentState;
         if currentState == CB_OPEN_STATE {
             time:Utc effectiveErrorTime = self.getEffectiveErrorTime();

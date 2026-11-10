@@ -481,17 +481,6 @@ public class Response {
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Sets a `ByteChannel` as the payload.
-    #
-    # + payload - A `ByteChannel` through which the message payload can be read
-    # + contentType - The content type of the payload. Set this to override the default `content-type`
-    #                 header value
-    isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
-        mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        // entity.setByteChannel(payload, contentType);
-        self.setEntityAndUpdateContentTypeHeader(entity);
-    }
-
     # Sets a `Stream` as the payload. If the content-type header is not set then this method set content-type
     # headers with the default content-type, which is `application/octet-stream`. Any existing content-type can
     # be overridden by passing the content-type as an optional parameter.
