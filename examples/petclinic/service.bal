@@ -7,9 +7,12 @@ import ballerina/sql;
 
 configurable int port = 9966;
 
+// Origins allowed to call the API from a browser (e.g. a Pet Clinic UI).
+configurable string[] allowedOrigins = ["http://localhost:4200"];
+
 @http:ServiceConfig {
     cors: {
-        allowOrigins: ["*"],
+        allowOrigins: allowedOrigins,
         allowCredentials: false,
         allowHeaders: ["*"],
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
