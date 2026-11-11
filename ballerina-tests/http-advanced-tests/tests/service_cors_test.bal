@@ -294,12 +294,8 @@ function testPreFlightReqServiceResourceCorsOverride() returns error? {
         [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_POST],
         [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PINGOTHER"
     };
-    http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if response is http:Response {
-        check assertEqualsCorsResponse(response, 204, "http://www.wso2.com", "true", "X-PINGOTHER", common:HTTP_METHOD_POST, "-1");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check corsClient->options("/hello1/test1", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.wso2.com", "true", "X-PINGOTHER", common:HTTP_METHOD_POST, "-1");
 }
 
 //Test preflight without origin header considered as a normal options request
@@ -359,12 +355,8 @@ function testPreFlightReqwithHeadMethod() returns error? {
         [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_HEAD],
         [common:ACCESS_CONTROL_REQUEST_HEADERS] : "CORELATION_ID"
     };
-    http:Response|error response = corsClient->options("/hello1/test2", headers);
-    if response is http:Response {
-        check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "CORELATION_ID", common:HTTP_METHOD_HEAD, "1");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check corsClient->options("/hello1/test2", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "CORELATION_ID", common:HTTP_METHOD_HEAD, "1");
 }
 
 //Test preflight for invalid headers
@@ -446,12 +438,8 @@ function testPreFlightReqwithAllowedMethod() returns error? {
         [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_PUT],
         [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PINGOTHER"
     };
-    http:Response|error response = corsClient->options("/hello3/info1", headers);
-    if response is http:Response {
-        check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_PUT, "1");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check corsClient->options("/hello3/info1", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_PUT, "1");
 }
 
 //Test preflight with missing headers at resource level
@@ -526,12 +514,8 @@ function testPreFlightReqwithCaseInsensitiveHeader() returns error? {
         [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_POST],
         [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-pingOTHER"
     };
-    http:Response|error response = corsClient->options("/hello1/test1", headers);
-    if response is http:Response {
-        check assertEqualsCorsResponse(response, 204, "http://www.wso2.com", "true", "X-pingOTHER", common:HTTP_METHOD_POST, "-1");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check corsClient->options("/hello1/test1", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.wso2.com", "true", "X-pingOTHER", common:HTTP_METHOD_POST, "-1");
 }
 
 //Test for serviceLevel wildcard/default CORS configs
@@ -563,12 +547,8 @@ function testPreFlightReqwithWildCardResourceConfigs() returns error? {
         [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_POST],
         [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PINGOTHER"
     };
-    http:Response|error response = corsClient->options("/echo4/info3", headers);
-    if response is http:Response {
-        check assertEqualsCorsResponse(response, 204, "http://www.wso2Ballerina456.com", "true", "X-PINGOTHER", "POST", "-1");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check corsClient->options("/echo4/info3", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.wso2Ballerina456.com", "true", "X-PINGOTHER", "POST", "-1");
 }
 
 //Test for resource Level wildcard/default CORS configs override
@@ -579,13 +559,9 @@ function testPreFlightReqwithWildCardResourceConfigsOverride() returns error? {
         [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_PUT],
         [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PONGOTHER"
     };
-    http:Response|error response = corsClient->options("/hello1/test4", headers);
-    if response is http:Response {
-        check assertEqualsCorsResponse(response, 204, "http://www.wso2Ballerina123.com", "true", "X-PONGOTHER",
-            common:HTTP_METHOD_PUT, "-1");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check corsClient->options("/hello1/test4", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.wso2Ballerina123.com", "true", "X-PONGOTHER",
+        common:HTTP_METHOD_PUT, "-1");
 }
 
 function assertEqualsCorsResponse(http:Response response, int statusCode, string origin, string credentials,
