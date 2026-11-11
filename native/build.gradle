@@ -101,6 +101,10 @@ test {
     maxParallelForks = project.hasProperty('nativeTestForks') ? project.findProperty('nativeTestForks').toString().toInteger() : 3
     // Every test class shuts a connector factory down, and Netty's 2 s quiet period would add minutes to the suite.
     systemProperty 'ballerina.http.transport.shutdownQuietPeriodMillis', '0'
+    // HttpURLConnection reads this once, when its class is first used. WebSocketServerHandshakeFunctionalityTestCase
+    // sends Connection and Upgrade headers, which are dropped silently (and the request then waits forever) if an
+    // earlier test class in the same fork has already used HttpURLConnection.
+    systemProperty 'sun.net.http.allowRestrictedHeaders', 'true'
     testLogging.showStandardStreams = true
     testLogging {
         events "PASSED", "FAILED", "SKIPPED"
