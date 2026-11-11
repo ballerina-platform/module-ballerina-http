@@ -43,6 +43,11 @@ service / on requestTargetParsingListener {
     resource function get hb(@http:Header boolean x\-flag) returns string => x\-flag.toString();
 
     resource function get hba(@http:Header boolean[] x\-flags) returns string => x\-flags.toString();
+
+    resource function get qn(@http:Query {name: "first name"} string? fn) returns string =>
+        "first name=[" + (fn ?: "()") + "]";
+
+    resource function post form(@http:Payload map<string> m) returns string => m.toString();
 }
 
 service /fb on requestTargetParsingListener {
@@ -267,4 +272,29 @@ function testZeroSegmentRestChildMediaErrorIsPreserved() returns error? {
     test:assertEquals(res.statusCode, 201);
     res = check requestTargetParsingClient->put("/fb2/files4", "x");
     test:assertEquals(res.statusCode, 405, "neither resource handles PUT");
+}
+
+@test:Config {}
+function testQueryParameterNamesAreDecoded() returns error? {
+    check assertRequestTarget("/qb?fl%61g=true", 200, "true");
+    check assertRequestTarget("/qn?first%20name=a", 200, "first name=[a]");
+    check assertRequestTarget("/qn?first+name=a", 200, "first name=[a]");
+    check assertRequestTarget("/q?x%zz=1", 400);
+    check assertRequestTarget("/q?x%=1", 400);
+}
+
+@test:Config {}
+function testFormBodyDecoding() returns error? {
+    http:Response res = check requestTargetParsingClient->post("/form", "a=b%20c&d=1+2",
+        mediaType = "application/x-www-form-urlencoded");
+    test:assertEquals(res.statusCode, 201);
+    test:assertEquals(check res.getTextPayload(), "{\"a\":\"b c\",\"d\":\"1 2\"}");
+    foreach string body in ["a=100%", "a=%zz", "a=%FF", "%zz=1"] {
+        res = check requestTargetParsingClient->post("/form", body, mediaType = "application/x-www-form-urlencoded");
+        test:assertTrue(res.statusCode >= 400 && res.statusCode < 500, "unexpected status for " + body + ": "
+            + res.statusCode.toString());
+        string payload = check res.getTextPayload();
+        test:assertFalse(payload.includes("java.") || payload.includes("URLDecoder") || payload.includes("Illegal"),
+            "JDK text leaked for " + body + ": " + payload);
+    }
 }

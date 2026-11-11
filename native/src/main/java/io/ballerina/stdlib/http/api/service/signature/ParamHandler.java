@@ -286,7 +286,8 @@ public class ParamHandler {
             String queryParamName = getQueryParamName(paramName, annotations);
             paramName = queryParamName.isBlank() ? paramName : queryParamName;
         }
-        paramName = HttpUtil.unescapeAndEncodeValue(paramName);
+        // The query string names are percent-decoded, so the declared name is matched unencoded.
+        paramName = HttpUtil.unescapeValue(paramName);
         QueryParam queryParam = new QueryParam(originalType, paramName, index, parameter.isDefault,
                 constraintValidation);
         this.queryParams.add(queryParam);

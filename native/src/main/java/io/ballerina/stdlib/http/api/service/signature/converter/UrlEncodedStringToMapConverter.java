@@ -30,9 +30,8 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.BallerinaConnectorException;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.uri.URIUtil;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,16 +75,14 @@ public class UrlEncodedStringToMapConverter {
             for (String formParam : formParamValues) {
                 int index = formParam.indexOf('=');
                 if (index == -1) {
-                    String decodedFormParam = URLDecoder.decode(formParam, StandardCharsets.UTF_8);
+                    String decodedFormParam = URIUtil.percentDecode(formParam, true);
                     if (!tempParamMap.containsKey(decodedFormParam)) {
                         tempParamMap.put(decodedFormParam, null);
                     }
                     continue;
                 }
-                String decodedFormParamName = URLDecoder.decode(formParam.substring(0, index).trim(),
-                        StandardCharsets.UTF_8);
-                String decodedFormParamValue = URLDecoder.decode(formParam.substring(index + 1).trim(),
-                        StandardCharsets.UTF_8);
+                String decodedFormParamName = URIUtil.percentDecode(formParam.substring(0, index).trim(), true);
+                String decodedFormParamValue = URIUtil.percentDecode(formParam.substring(index + 1).trim(), true);
                 tempParamMap.put(decodedFormParamName, decodedFormParamValue);
             }
 

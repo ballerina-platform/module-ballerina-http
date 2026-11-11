@@ -24,7 +24,7 @@ package io.ballerina.stdlib.http.uri;
  */
 public class MalformedPercentEncodingException extends IllegalArgumentException {
 
-    public static final String MESSAGE = "malformed percent-encoding in the request target";
+    public static final String MESSAGE = "malformed percent-encoding";
 
     public MalformedPercentEncodingException() {
         super(MESSAGE);

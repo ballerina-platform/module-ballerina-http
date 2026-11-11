@@ -18,10 +18,15 @@
 
 package io.ballerina.stdlib.http.uri;
 
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests for the shared percent-decoder.
@@ -42,13 +47,35 @@ public class URIUtilPercentDecodeTest {
         assertEquals(URIUtil.percentDecode("café", false), "café");
     }
 
+    @Test(description = "Query parameter names, including value-less keys, are decoded like the values")
+    public void testQueryParameterNamesAreDecoded() throws Exception {
+        BMap<BString, Object> map = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("fl%61g=true&first%20name=a%2Bb&lone%20key&p+q=1", map);
+        assertEquals(map.getArrayValue(StringUtils.fromString("flag")).getBString(0).getValue(), "true");
+        assertEquals(map.getArrayValue(StringUtils.fromString("first name")).getBString(0).getValue(), "a+b");
+        assertTrue(map.containsKey(StringUtils.fromString("lone key")));
+        assertTrue(map.containsKey(StringUtils.fromString("p q")));
+    }
+
+    @Test(expectedExceptions = MalformedPercentEncodingException.class,
+            description = "A malformed escape in a query parameter name is rejected")
+    public void testMalformedQueryParameterName() throws Exception {
+        URIUtil.populateQueryParamMap("x%zz=1", ValueCreator.createMapValue());
+    }
+
+    @Test(expectedExceptions = MalformedPercentEncodingException.class,
+            description = "A malformed escape in a value-less query key is rejected")
+    public void testMalformedValueLessQueryKey() throws Exception {
+        URIUtil.populateQueryParamMap("x%", ValueCreator.createMapValue());
+    }
+
     @DataProvider(name = "malformed")
     public Object[][] malformed() {
         return new Object[][]{{"%"}, {"%z"}, {"%zz"}, {"a%2"}, {"%2g"}, {"100%"}, {"%FF"}, {"%C0%AE"}, {"%E9"}};
     }
 
     @Test(dataProvider = "malformed", expectedExceptions = IllegalArgumentException.class,
-            expectedExceptionsMessageRegExp = "malformed percent-encoding in the request target",
+            expectedExceptionsMessageRegExp = "malformed percent-encoding",
             description = "A malformed escape is rejected with a clean message")
     public void testMalformedEscape(String value) {
         URIUtil.percentDecode(value, false);

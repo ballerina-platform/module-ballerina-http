@@ -251,12 +251,13 @@ public final class URIUtil {
         for (String queryParam : queryParamVals) {
             int index = queryParam.indexOf('=');
             if (index == -1) {
-                if (!tempParamMap.containsKey(queryParam)) {
-                    tempParamMap.put(queryParam, null);
+                String decodedName = percentDecode(queryParam, true);
+                if (!tempParamMap.containsKey(decodedName)) {
+                    tempParamMap.put(decodedName, null);
                 }
                 continue;
             }
-            String queryParamName = queryParam.substring(0, index).trim();
+            String queryParamName = percentDecode(queryParam.substring(0, index).trim(), true);
             String queryParamValue = queryParam.substring(index + 1).trim();
             List<String> values = new ArrayList<>();
             Set<String> uniqueValues = new HashSet<>();
