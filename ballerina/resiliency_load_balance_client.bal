@@ -444,7 +444,7 @@ public client isolated class LoadBalanceClient {
                 loadBalanceClient = self.lbRule.getNextClient(self.loadBalanceClientsArray);
             }
             if loadBalanceClient is Client {
-                var serviceResponse = invokeEndpoint(path, request, requestAction, loadBalanceClient.httpClient);
+                var serviceResponse = invokeEndpoint(path, loadBalancerInRequest, requestAction, loadBalanceClient.httpClient);
                 if serviceResponse is Response {
                     return serviceResponse;
                 } else if serviceResponse is HttpFuture {

@@ -69,6 +69,11 @@ service /lbMultipart on new http:Listener(lbMultipartStreamPartTestPort, httpVer
         return string `body=${check req.getTextPayload()}`;
     }
 
+    resource function post headersAndBody(http:Request req) returns string|error {
+        string trace = check req.getHeader("x-trace");
+        return string `${trace}:${check req.getTextPayload()}:${req.getContentType()}`;
+    }
+
     resource function post nested(http:Request req) returns string|error {
         return check flattenParts(check req.getBodyParts());
     }
@@ -489,4 +494,38 @@ function testCircuitBreakerInvalidBucketSize() {
             });
         test:assertTrue(cb is http:ClientError, "bucketSize " + bucketSize.toString() + " should be rejected");
     }
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testLoadBalanceClientSendsPreparedRequestAfterFailedTarget() returns error? {
+    http:LoadBalanceClient lb = check new ({
+        httpVersion: http:HTTP_1_1,
+        targets: [{url: deadUrl}, {url: lbMultipartEchoUrl}]
+    });
+    http:Request req = streamBodyRequest();
+    req.setHeader("x-trace", "t1");
+    string res = check lb->post("/lbMultipart/headersAndBody", req);
+    test:assertEquals(res, "t1:part-two:application/octet-stream");
+}
+
+@test:Config {groups: ["resiliencyGaps"]}
+function testRetryClientDoesNotBufferMultipartStreamPartsWithoutRetries() {
+    http:Client noRetry = checkpanic new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 0});
+    http:Response|http:ClientError streamed = noRetry->post("/lbMultipart/echo", multipartWithFailingStreamPart());
+    test:assertFalse(streamed is http:ClientError && streamed.message().includes(STREAM_READ_ERROR),
+            "A multipart stream part should not be read in advance when no retry can happen");
+    http:Client withRetry = checkpanic new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 1});
+    http:Response|http:ClientError buffered = withRetry->post("/lbMultipart/echo", multipartWithFailingStreamPart());
+    test:assertTrue(buffered is http:ClientError && buffered.message().includes(STREAM_READ_ERROR),
+            "A multipart stream part should be read in advance when a retry can happen");
+}
+
+function multipartWithFailingStreamPart() returns http:Request {
+    mime:Entity part1 = new;
+    part1.setText("part-one");
+    mime:Entity part2 = new;
+    part2.setByteStream(new stream<byte[], io:Error?>(new FailingByteGenerator()));
+    http:Request req = new;
+    req.setBodyParts([part1, part2]);
+    return req;
 }
