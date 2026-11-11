@@ -253,6 +253,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
         } else if (sslConfig.isDisableSsl()) {
             SslContext sslCtx = sslConfig.getSslContext();
             SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), httpRoute.getHost(), httpRoute.getPort());
+            configureSslHandler(sslConfig, sslHandler);
             clientPipeline.addLast(sslHandler);
         } else {
             SslContext sslCtx = sslConfig.getSslContext();

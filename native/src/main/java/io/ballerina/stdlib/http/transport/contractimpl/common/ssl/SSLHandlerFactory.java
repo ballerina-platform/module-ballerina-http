@@ -109,16 +109,8 @@ public class SSLHandlerFactory {
             }
             sslContext = SSLContext.getInstance(protocol);
             sslContext.init(keyManagers, trustManagers, null);
-            int sessionTimeout = sslConfig.getSessionTimeOut();
-            if (isServer) {
-                if (sessionTimeout > 0) {
-                    sslContext.getServerSessionContext().setSessionTimeout(sessionTimeout);
-                }
-            } else {
-                if (sessionTimeout > 0) {
-                    sslContext.getClientSessionContext().setSessionTimeout(sessionTimeout);
-                }
-            }
+            applySessionSettings(isServer ? sslContext.getServerSessionContext()
+                    : sslContext.getClientSessionContext());
             return sslContext;
 
         } catch (UnrecoverableKeyException | KeyManagementException |

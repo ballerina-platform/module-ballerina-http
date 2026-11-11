@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.api;
 
+import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.transport.contract.PortBindingEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +35,27 @@ public class HttpConnectorPortBindingListener implements PortBindingEventListene
     private static final Logger log = LoggerFactory.getLogger(HttpConnectorPortBindingListener.class);
     private static final PrintStream console = System.out;
 
+    private final BObject serviceEndpoint;
+
+    public HttpConnectorPortBindingListener() {
+        this(null);
+    }
+
+    /**
+     * Creates a listener that marks the service endpoint as started as soon as its port is bound, so that a
+     * stop() can release the port even when start() did not get to finish, for example after an interrupt.
+     *
+     * @param serviceEndpoint the listener object whose port is being bound
+     */
+    public HttpConnectorPortBindingListener(BObject serviceEndpoint) {
+        this.serviceEndpoint = serviceEndpoint;
+    }
+
     @Override
     public void onOpen(String serverConnectorId, boolean isHttps) {
+        if (serviceEndpoint != null) {
+            serviceEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, true);
+        }
         if (log.isDebugEnabled()) {
             String message = isHttps ? HttpConstants.HTTPS_ENDPOINT_STARTED : HttpConstants.HTTP_ENDPOINT_STARTED;
             log.debug(message + serverConnectorId);

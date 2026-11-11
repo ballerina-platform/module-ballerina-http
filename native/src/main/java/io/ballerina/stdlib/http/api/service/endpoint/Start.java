@@ -74,7 +74,7 @@ public class Start extends AbstractHttpNativeFunction {
                                                    (BMap) serviceEndpoint.getNativeData(SERVICE_ENDPOINT_CONFIG),
                                                    serviceEndpoint.getNativeData(HttpConstants.INTERCEPTORS));
         serviceEndpoint.addNativeData(SERVER_CONNECTOR_FUTURE, serverConnectorFuture);
-        HttpConnectorPortBindingListener portBindingListener = new HttpConnectorPortBindingListener();
+        HttpConnectorPortBindingListener portBindingListener = new HttpConnectorPortBindingListener(serviceEndpoint);
         serverConnectorFuture.setHttpConnectorListener(httpListener);
         serverConnectorFuture.setPortBindingEventListener(portBindingListener);
 

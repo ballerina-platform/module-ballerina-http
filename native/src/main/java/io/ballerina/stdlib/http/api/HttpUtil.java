@@ -1402,24 +1402,23 @@ public class HttpUtil {
 
         double minEvictableIdleTime =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_EVICTABLE_IDLE_TIME)).floatValue();
-        poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime < 0 ? 0 : (long) minEvictableIdleTime * 1000);
+        poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime < 0 ? 0 : (long) (minEvictableIdleTime * 1000));
 
         double timeBetweenEvictionRuns =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_EVICTION_RUNS)).floatValue();
-        if (timeBetweenEvictionRuns > 0) {
-            poolConfiguration.setTimeBetweenEvictionRuns((long) timeBetweenEvictionRuns * 1000);
+        if (toTimeBetweenStaleEvictionMillis(timeBetweenEvictionRuns) > 0) {
+            poolConfiguration.setTimeBetweenEvictionRuns(toTimeBetweenStaleEvictionMillis(timeBetweenEvictionRuns));
         }
 
         double minIdleTimeInStaleState =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_IDLE_TIME_STALE_STATE)).floatValue();
-        poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
-                (long) minIdleTimeInStaleState * 1000);
+        poolConfiguration.setMinIdleTimeInStaleState(toMinIdleTimeInStaleStateMillis(minIdleTimeInStaleState));
 
         double timeBetweenStaleEviction =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_STALE_CHECK_RUNS))
                         .floatValue();
-        if (timeBetweenStaleEviction > 0) {
-            poolConfiguration.setTimeBetweenStaleEviction((long) timeBetweenStaleEviction * 1000);
+        if (toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction) > 0) {
+            poolConfiguration.setTimeBetweenStaleEviction(toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction));
         }
     }
 
@@ -1821,6 +1820,7 @@ public class HttpUtil {
         }
         BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_CERT_VALIDATION);
         if (certValidation != null) {
+            validateListenerCertValidation(certValidation, mutualSsl != null, listenerConfiguration.getVersion());
             evaluateCertValidationField(certValidation, listenerConfiguration);
         }
         BArray ciphers = secureSocket.containsKey(HttpConstants.SECURESOCKET_CONFIG_CIPHERS) ?
@@ -1930,6 +1930,29 @@ public class HttpUtil {
     private static void applyDefaultNamedGroups(SslConfiguration sslConfiguration) {
         if (System.getProperty(JAVA_CONFIG_TLS_NAMED_GROUPS) == null) {
             sslConfiguration.setNamedGroups(DEFAULT_NAMED_GROUPS);
+        }
+    }
+
+    /**
+     * Rejects the listener certValidation combinations that cannot work: OCSP stapling is not supported on
+     * listeners, and OCSP_CRL validates the client certificate chain, so it needs mutualSsl and is applied on
+     * HTTP/1.x listeners only.
+     */
+    private static void validateListenerCertValidation(BMap<BString, Object> certValidation, boolean mutualSsl,
+                                                       String httpVersion) {
+        String type = certValidation.getStringValue(HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE)
+                .getValue();
+        if (type.equals(HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING.getValue())) {
+            throw new BallerinaConnectorException("secureSocket.certValidation of type OCSP_STAPLING is not " +
+                    "supported on a listener");
+        }
+        if (!mutualSsl) {
+            throw new BallerinaConnectorException("secureSocket.certValidation of type OCSP_CRL on a listener " +
+                    "validates the client certificate, so it requires secureSocket.mutualSsl");
+        }
+        if (HTTP_2_0_VERSION.equals(httpVersion)) {
+            throw new BallerinaConnectorException("secureSocket.certValidation of type OCSP_CRL is not supported " +
+                    "on an HTTP/2 listener; set httpVersion to HTTP_1_1");
         }
     }
 

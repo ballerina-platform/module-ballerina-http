@@ -422,6 +422,8 @@ public class SSLConfig {
             KeyStoreException, UnrecoverableKeyException {
         sslHandlerFactory = new SSLHandlerFactory(this);
         if (isOcspStaplingEnabled()) {
+            // Loads the key and trust stores that the OpenSSL context below is built from.
+            sslHandlerFactory.createSSLContextFromKeystores(false);
             referenceCountedOpenSslContext = (ReferenceCountedOpenSslContext) sslHandlerFactory.
                     createHttp2TLSContextForClient(isOcspStaplingEnabled());
         } else if (isDisableSsl()) {

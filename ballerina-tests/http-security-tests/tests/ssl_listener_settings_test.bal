@@ -62,24 +62,43 @@ final http:ClientSecureSocket tlsSettingsClientSocket = {
 
 @test:Config {groups: ["tlsListenerSettings"]}
 function testCertValidationOnListenerAndClient() returns error? {
-    http:Listener|error l = new (tlsCertValidationPort, secureSocket = {
+    // OCSP_CRL validates the client certificate, so a listener needs mutualSsl and an HTTP/1.1 listener.
+    http:Listener|error l = new (tlsCertValidationPort, httpVersion = http:HTTP_1_1, secureSocket = {
         key: {path: common:KEYSTORE_PATH, password: "ballerina"},
-        certValidation: {'type: http:OCSP_CRL, cacheSize: 10, cacheValidityPeriod: 10}
+        mutualSsl: {verifyClient: http:REQUIRE, cert: {path: common:TRUSTSTORE_PATH, password: "ballerina"}},
+        certValidation: {'type: http:OCSP_CRL, cacheSize: 0, cacheValidityPeriod: 0}
     });
     test:assertTrue(l is http:Listener, "listener with certValidation failed to initialize: " +
         (l is error ? l.message() : ""));
-    http:Listener|error l2 = new (tlsCertValidationPort + 10, secureSocket = {
-        key: {path: common:KEYSTORE_PATH, password: "ballerina"},
-        certValidation: {'type: http:OCSP_STAPLING, cacheSize: 0, cacheValidityPeriod: 0}
-    });
-    test:assertTrue(l2 is http:Listener, "listener with default certValidation cache failed to initialize: " +
-        (l2 is error ? l2.message() : ""));
     http:Client|error c = new ("https://localhost:" + tlsCertValidationPort.toString(), secureSocket = {
         cert: {path: common:TRUSTSTORE_PATH, password: "ballerina"},
         certValidation: {'type: http:OCSP_CRL, cacheSize: 10, cacheValidityPeriod: 10}
     });
     test:assertTrue(c is http:Client, "client with certValidation failed to initialize: " +
         (c is error ? c.message() : ""));
+}
+
+@test:Config {groups: ["tlsListenerSettings"]}
+function testUnsupportedListenerCertValidationIsRejected() {
+    // OCSP_STAPLING is not supported on a listener.
+    http:Listener|error stapling = new (tlsCertValidationPort + 10, httpVersion = http:HTTP_1_1, secureSocket = {
+        key: {path: common:KEYSTORE_PATH, password: "ballerina"},
+        certValidation: {'type: http:OCSP_STAPLING, cacheSize: 0, cacheValidityPeriod: 0}
+    });
+    test:assertTrue(stapling is error, "OCSP_STAPLING on a listener must be rejected");
+    // OCSP_CRL without mutualSsl would fail every handshake.
+    http:Listener|error noMutual = new (tlsCertValidationPort + 11, httpVersion = http:HTTP_1_1, secureSocket = {
+        key: {path: common:KEYSTORE_PATH, password: "ballerina"},
+        certValidation: {'type: http:OCSP_CRL, cacheSize: 0, cacheValidityPeriod: 0}
+    });
+    test:assertTrue(noMutual is error, "OCSP_CRL without mutualSsl must be rejected");
+    // The HTTP/2 listener does not apply OCSP_CRL.
+    http:Listener|error h2 = new (tlsCertValidationPort + 12, secureSocket = {
+        key: {path: common:KEYSTORE_PATH, password: "ballerina"},
+        mutualSsl: {verifyClient: http:REQUIRE, cert: {path: common:TRUSTSTORE_PATH, password: "ballerina"}},
+        certValidation: {'type: http:OCSP_CRL, cacheSize: 0, cacheValidityPeriod: 0}
+    });
+    test:assertTrue(h2 is error, "OCSP_CRL on an HTTP/2 listener must be rejected");
 }
 
 @test:Config {groups: ["tlsListenerSettings"]}

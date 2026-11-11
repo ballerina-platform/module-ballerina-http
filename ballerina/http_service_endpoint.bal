@@ -236,11 +236,13 @@ public type RequestLimitConfigs record {|
 # + key - Configurations associated with `crypto:KeyStore` or combination of certificate and (PKCS8) private key of the server
 # + mutualSsl - Configures associated with mutual SSL operations
 # + protocol - SSL/TLS protocol related options
-# + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
+# + certValidation - Validation of the client certificate against OCSP_CRL. It needs `mutualSsl` and an `HTTP_1_1`
+#                    listener. `OCSP_STAPLING` and the HTTP/2 listener are not supported, and the listener
+#                    initialization fails with a `ListenerError` for them
 # + ciphers - List of ciphers to be used
 #             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-# + shareSession - If `false`, sessions are not cached for reuse. This is best-effort: a client can still resume a
-#                  session through a stateless TLS session ticket. Handshakes always succeed
+# + shareSession - Setting `shareSession` to `false` does not prevent TLS handshakes. It asks for sessions not to be
+#                  reused, on a best-effort basis: a client can still resume a session through a stateless TLS ticket
 # + handshakeTimeout - SSL handshake time out
 # + sessionTimeout - SSL session time out
 public type ListenerSecureSocket record {|
