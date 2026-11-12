@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/scan;
 import 'service.representations as rep;
 
 public isolated function getLocations() returns rep:Locations|error {
@@ -33,6 +34,7 @@ public isolated function getLocations() returns rep:Locations|error {
     };
 }
 
+@scan:Suppress {rules: [scan:UNUSED_FUNCTION_PARAMETER], reason: "The mock returns fixed data regardless of the input"}
 public isolated function getRooms(string startDate, string endDate) returns rep:Rooms|error {
     return {
         rooms: [
@@ -50,6 +52,7 @@ public isolated function getRooms(string startDate, string endDate) returns rep:
     };
 }
 
+@scan:Suppress {rules: [scan:UNUSED_FUNCTION_PARAMETER], reason: "The mock returns fixed data regardless of the input"}
 public isolated function createReservation(rep:Reservation reservation) returns rep:ReservationReceipt|error {
     return {
         id: "re1000",
@@ -97,6 +100,7 @@ public isolated function updateReservation(string id, rep:Reservation reservatio
     };
 }
 
+@scan:Suppress {rules: [scan:UNUSED_FUNCTION_PARAMETER], reason: "The mock returns fixed data regardless of the input"}
 public isolated function cancelReservation(string id) returns rep:ReservationCanceled|error {
     return {
         body: {
@@ -120,6 +124,7 @@ public isolated function cancelReservation(string id) returns rep:ReservationCan
     };
 }
 
+@scan:Suppress {rules: [scan:UNUSED_FUNCTION_PARAMETER], reason: "The mock returns fixed data regardless of the input"}
 public isolated function createPayment(string id, rep:Payment payment) returns rep:PaymentReceipt|error {
     return {
         id: "p1000",

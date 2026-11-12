@@ -15,6 +15,8 @@
 // under the License.
 
 // Remove the union once https://github.com/ballerina-platform/ballerina-lang/issues/30490 is fixed.
+
+import ballerina/scan;
 # Defines the possible status code response record types.
 public type StatusCodeResponse Continue|SwitchingProtocols|Processing|EarlyHints|Ok|Created|Accepted|
     NonAuthoritativeInformation|NoContent|ResetContent|PartialContent|MultiStatus|AlreadyReported|IMUsed|
@@ -34,6 +36,7 @@ type SuccessStatusCodeResponse Ok|Created|Accepted|NonAuthoritativeInformation|N
 # The `Status` object creates the distinction for the different response status code types.
 #
 # + code - The response status code
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_OBJECT], reason: "Implemented by users; making it isolated would force every implementation to be isolated"}
 public type Status distinct object {
     public int code;
 };

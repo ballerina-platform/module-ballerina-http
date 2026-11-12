@@ -70,7 +70,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.18.2"
+version = "2.18.3"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -92,6 +92,7 @@ dependencies = [
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "oauth2"},
 	{org = "ballerina", name = "observe"},
+	{org = "ballerina", name = "scan"},
 	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "url"}
 ]
@@ -103,7 +104,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_misc_tests"
-version = "2.18.2"
+version = "2.18.3"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
@@ -122,7 +123,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.18.2"
+version = "2.18.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "http"},
@@ -316,6 +317,11 @@ dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"}
 ]
+
+[[package]]
+org = "ballerina"
+name = "scan"
+version = "1.0.0"
 
 [[package]]
 org = "ballerina"

@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/scan;
+
 # Configures the cache control directives for an `http:Request`.
 #
 # + noCache - Sets the `no-cache` directive
@@ -23,6 +25,7 @@
 # + maxAge - Sets the `max-age` directive
 # + maxStale - Sets the `max-stale` directive
 # + minFresh - Sets the `min-fresh` directive
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_CLASS], reason: "Has public mutable fields; making it isolated would break the public API"}
 public class RequestCacheControl {
 
     public boolean noCache = false;

@@ -67,7 +67,6 @@ class SseEventGenerator {
 }
 
 class SseEventGenerator2 {
-    private final int eventCount;
     private int currentEventCount = 0;
 
     public isolated function next() returns record {|http:SseEvent value;|}|error {

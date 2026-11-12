@@ -368,13 +368,13 @@ client isolated class RedirectClient {
                     if !isAbsolute(location) {
                         var resolvedURI = resolve(resolvedRequestedURI, location);
                         if resolvedURI is string {
-                            return self.performRedirection(resolvedURI, redirectMethod, request, response);
+                            return self.performRedirection(resolvedURI, redirectMethod, request);
                         } else {
                             self.setCurrentRedirectCount(0);
                             return resolvedURI;
                         }
                     } else {
-                        return self.performRedirection(location, redirectMethod, request, response);
+                        return self.performRedirection(location, redirectMethod, request);
                     }
                 } else {
                     self.setCurrentRedirectCount(0);
@@ -387,8 +387,8 @@ client isolated class RedirectClient {
         return response;
     }
 
-    isolated function performRedirection(string location, HttpOperation redirectMethod, Request request,
-            Response response) returns HttpResponse|ClientError {
+    isolated function performRedirection(string location, HttpOperation redirectMethod, Request request)
+            returns HttpResponse|ClientError {
         CookieStore? cookieStore = ();
         if self.cookieEnabled {
             cookieStore = new(self.persistentCookieHandler);
