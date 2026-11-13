@@ -102,7 +102,8 @@ public type RetryConfig record {|
 # + ciphers - List of ciphers to be used
 #             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 # + verifyHostName - Enable/disable host name verification
-# + shareSession - Enable/disable new SSL session creation
+# + shareSession - Setting `shareSession` to `false` does not prevent TLS handshakes. It asks for sessions not to be
+#                  reused, on a best-effort basis: a server can still resume a session through a stateless TLS ticket
 # + handshakeTimeout - SSL handshake time out
 # + sessionTimeout - SSL session time out
 # + serverName - Server name indication(SNI) to be used. If this is not present, hostname from the target URL will be used

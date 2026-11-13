@@ -23,6 +23,8 @@ import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.OpenSslContextOption;
+import io.netty.handler.ssl.OpenSslSessionContext;
 import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -51,6 +53,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
@@ -106,16 +109,8 @@ public class SSLHandlerFactory {
             }
             sslContext = SSLContext.getInstance(protocol);
             sslContext.init(keyManagers, trustManagers, null);
-            int sessionTimeout = sslConfig.getSessionTimeOut();
-            if (isServer) {
-                if (sessionTimeout > 0) {
-                    sslContext.getServerSessionContext().setSessionTimeout(sessionTimeout);
-                }
-            } else {
-                if (sessionTimeout > 0) {
-                    sslContext.getClientSessionContext().setSessionTimeout(sessionTimeout);
-                }
-            }
+            applySessionSettings(isServer ? sslContext.getServerSessionContext()
+                    : sslContext.getClientSessionContext());
             return sslContext;
 
         } catch (UnrecoverableKeyException | KeyManagementException |
@@ -177,10 +172,7 @@ public class SSLHandlerFactory {
         setSslProtocol(sslContextBuilder);
         ReferenceCountedOpenSslContext referenceCountedOpenSslCtx = (ReferenceCountedOpenSslContext) sslContextBuilder
                 .build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            referenceCountedOpenSslCtx.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(referenceCountedOpenSslCtx.sessionContext());
         return referenceCountedOpenSslCtx;
     }
 
@@ -204,11 +196,22 @@ public class SSLHandlerFactory {
         setSslProtocol(sslContextBuilder);
         ReferenceCountedOpenSslContext referenceCountedOpenSslCtx = (ReferenceCountedOpenSslContext) sslContextBuilder
                 .build();
+        applySessionSettings(referenceCountedOpenSslCtx.sessionContext());
+        return referenceCountedOpenSslCtx;
+    }
+
+    /**
+     * Applies the session timeout and shareSession to a session context. With shareSession=false the OpenSSL
+     * session cache is disabled. Best-effort: stateless session tickets cannot be disabled per context.
+     */
+    private void applySessionSettings(SSLSessionContext sessionContext) {
         int sessionTimeout = sslConfig.getSessionTimeOut();
         if (sessionTimeout > 0) {
-            referenceCountedOpenSslCtx.sessionContext().setSessionTimeout(sessionTimeout);
+            sessionContext.setSessionTimeout(sessionTimeout);
         }
-        return referenceCountedOpenSslCtx;
+        if (!sslConfig.isEnableSessionCreation() && sessionContext instanceof OpenSslSessionContext) {
+            ((OpenSslSessionContext) sessionContext).setSessionCacheEnabled(false);
+        }
     }
 
     /**
@@ -237,7 +240,6 @@ public class SSLHandlerFactory {
         if (sslConfig.getEnableProtocols() != null && sslConfig.getEnableProtocols().length > 0) {
             engine.setEnabledProtocols(sslConfig.getEnableProtocols());
         }
-        engine.setEnableSessionCreation(sslConfig.isEnableSessionCreation());
         return engine;
     }
 
@@ -269,10 +271,7 @@ public class SSLHandlerFactory {
         setOcspStapling(sslContextBuilder, sslConfig.isOcspStaplingEnabled());
 
         SslContext sslCtx = sslContextBuilder.build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            sslCtx.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(sslCtx.sessionContext());
 
         return sslCtx;
     }
@@ -286,10 +285,7 @@ public class SSLHandlerFactory {
     public SslContext createHttpTLSContextForServer() throws SSLException {
         SslProvider provider = SslProvider.JDK;
         SslContext certsSslContext = serverContextBuilderWithCerts(provider).build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            certsSslContext.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(certsSslContext.sessionContext());
         return certsSslContext;
     }
 
@@ -302,10 +298,7 @@ public class SSLHandlerFactory {
     public SslContext createHttpTLSContextForClient() throws SSLException {
         SslProvider provider = SslProvider.JDK;
         SslContext certsSslContext = clientContextBuilderWithCerts(provider).build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            certsSslContext.sessionContext().setSessionTimeout(sessionTimeout);
-        }
+        applySessionSettings(certsSslContext.sessionContext());
         return certsSslContext;
     }
 
@@ -314,6 +307,7 @@ public class SSLHandlerFactory {
                 .trustManager(this.getTrustStoreFactory())
                 .sslProvider(sslProvider);
         setClientAuth(serverSslContextBuilder);
+        setNamedGroups(serverSslContextBuilder, sslProvider);
         return serverSslContextBuilder;
     }
 
@@ -321,6 +315,7 @@ public class SSLHandlerFactory {
         SslContextBuilder clientSslContextBuilder = SslContextBuilder.forClient().sslProvider(sslProvider)
                 .keyManager(kmf).trustManager(tmf);
         setEndpointIdentification(clientSslContextBuilder);
+        setNamedGroups(clientSslContextBuilder, sslProvider);
         return clientSslContextBuilder;
     }
 
@@ -331,6 +326,7 @@ public class SSLHandlerFactory {
                 .keyManager(sslConfig.getServerCertificates(), sslConfig.getServerKeyFile(), keyPassword)
                 .trustManager(sslConfig.getServerTrustCertificates()).sslProvider(sslProvider);
         setClientAuth(serverSslContextBuilder);
+        setNamedGroups(serverSslContextBuilder, sslProvider);
         return serverSslContextBuilder;
     }
 
@@ -340,6 +336,7 @@ public class SSLHandlerFactory {
                 .keyManager(sslConfig.getClientCertificates(), sslConfig.getClientKeyFile(), keyPassword)
                 .trustManager(sslConfig.getClientTrustCertificates());
         setEndpointIdentification(clientSslContextBuilder);
+        setNamedGroups(clientSslContextBuilder, sslProvider);
         return clientSslContextBuilder;
     }
 
@@ -366,11 +363,8 @@ public class SSLHandlerFactory {
         setAlpnConfigs(sslContextBuilder);
         setOcspStapling(sslContextBuilder, enableOcsp);
         SslContext sslContext = sslContextBuilder.build();
-        int sessionTimeout = sslConfig.getSessionTimeOut();
-        if (sessionTimeout > 0) {
-            sslContext.sessionContext().setSessionTimeout(sessionTimeout);
-        }
-        return sslContextBuilder.build();
+        applySessionSettings(sslContext.sessionContext());
+        return sslContext;
     }
 
     private void setCiphers(SslContextBuilder sslContextBuilder, List<String> ciphers) {
@@ -385,6 +379,7 @@ public class SSLHandlerFactory {
         SslContextBuilder clientSslContextBuilder = SslContextBuilder.forClient().sslProvider(sslProvider)
                 .keyManager(kmf);
         setEndpointIdentification(clientSslContextBuilder);
+        setNamedGroups(clientSslContextBuilder, sslProvider);
         return clientSslContextBuilder;
     }
 
@@ -394,6 +389,15 @@ public class SSLHandlerFactory {
                         ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
                         ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
                         ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1));
+    }
+
+    // Set once per context. OpenSSL engines ignore SSLParameters named groups, so they need the context option; JDK
+    // engines get the groups per connection (see Util.configureSslHandler).
+    private void setNamedGroups(SslContextBuilder sslContextBuilder, SslProvider sslProvider) {
+        String[] namedGroups = sslConfig.getNamedGroups();
+        if (sslProvider == SslProvider.OPENSSL && namedGroups != null && namedGroups.length > 0) {
+            sslContextBuilder.option(OpenSslContextOption.GROUPS, namedGroups);
+        }
     }
 
     private void setOcspStapling(SslContextBuilder sslContextBuilder, boolean enableOcsp) {

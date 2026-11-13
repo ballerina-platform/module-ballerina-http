@@ -24,12 +24,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix a service response, or a client request, whose byte stream or byte channel fails part-way never ending, so the peer waited until a timeout; a service response that fails before anything was sent now gets a `500` without the response's own headers, otherwise the HTTP/1.1 connection is closed or the HTTP/2 stream reset, and the failure is logged](https://github.com/ballerina-platform/ballerina-library/issues/9349)
 - [Fix an SSE response ending as complete when the `next()` of its event stream panics, instead of being aborted with the panic logged](https://github.com/ballerina-platform/ballerina-library/issues/9502)
 - [Fix a streamed body read ending at an empty HTTP/2 DATA frame that does not end the stream, as if the body had ended](https://github.com/ballerina-platform/ballerina-library/issues/9267)
+- [Fix `http1Settings` being ignored unless the listener's `httpVersion` is `HTTP_1_1`, and TLS listeners skipping the common listener settings](https://github.com/ballerina-platform/ballerina-library/issues/9544)
+- [Fix `secureSocket.certValidation` failing the listener and client initialization with a `ClassCastException`](https://github.com/ballerina-platform/ballerina-library/issues/9546)
+- [Fix a TLS listener with `shareSession: false` failing every handshake](https://github.com/ballerina-platform/ballerina-library/issues/9547)
+- [Fix a listener port outside 1 to 65535 being accepted, and `gracefulStop()` ignoring the configured `gracefulStopTimeout` after an `immediateStop()`](https://github.com/ballerina-platform/ballerina-library/issues/9548)
+- [Fix a second listener that fails to bind a port that is already in use taking over the requests of the listener running on it](https://github.com/ballerina-platform/ballerina-library/issues/9550)
+- [Fix the listener setting the process-wide `jdk.tls.namedGroups` system property; when that property is unset, the default named groups are now applied to every TLS listener and client, per SSL context on OpenSSL and per connection on other engines](https://github.com/ballerina-platform/ballerina-library/issues/9551)
+- [Fix `maxPipelinedRequests` allowing one request more than configured, and the HTTP/2 listener settings being accepted with values that cannot work](https://github.com/ballerina-platform/ballerina-library/issues/9552)
 
 ### Changed
 
 - [Fail the HTTP/2 client requests waiting for a new connection with that connection attempt's error, instead of each request opening its own connection after the attempt fails](https://github.com/ballerina-platform/ballerina-library/issues/9233)
 - [Reset an HTTP/2 client stream with `CANCEL` instead of `STREAM_CLOSED` when the client gives up on it, that is on an idle timeout or when its request body fails part-way, as RFC 9113 defines `STREAM_CLOSED` for a frame received on a half-closed stream](https://github.com/ballerina-platform/ballerina-library/issues/9244)
 - [Abort a passthrough response whose backend body fails part-way, by closing the HTTP/1.1 connection or resetting the HTTP/2 stream, instead of ending the truncated body as if it were complete](https://github.com/ballerina-platform/ballerina-library/issues/9349)
+- [Fail the listener initialization with a `ListenerError` for a `secureSocket.certValidation` that cannot work: `OCSP_STAPLING` on a listener, and `OCSP_CRL` without `mutualSsl` or on an `HTTP_2_0` listener](https://github.com/ballerina-platform/ballerina-library/issues/9659)
 - [Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read](https://github.com/ballerina-platform/ballerina-library/issues/9267)
 
 ## [2.18.1] - 2026-10-16

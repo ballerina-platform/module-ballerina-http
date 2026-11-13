@@ -55,14 +55,18 @@ public isolated class Listener {
         'class: "io.ballerina.stdlib.http.api.service.endpoint.Start"
     } external;
 
-    # Stops the service listener gracefully. Already-accepted requests will be served before connection closure.
+    # Stops the service listener gracefully. It stops accepting new connections, waits for the configured
+    # `gracefulStopTimeout` and then closes all the remaining connections. Requests that are still in flight at that
+    # point are terminated without a response. With the default `gracefulStopTimeout` of `0`, in-flight requests are
+    # terminated immediately.
     #
     # + return - An `error` if an error occurred during the listener stopping process
     public isolated function gracefulStop() returns error? = @java:Method {
         'class: "io.ballerina.stdlib.http.api.service.endpoint.GracefulStop"
     } external;
 
-    # Stops the service listener immediately. It is not implemented yet.
+    # Stops the service listener immediately. It stops accepting new connections and closes all the connections
+    # immediately.
     #
     # + return - An `error` if an error occurred during the listener stop process
     public isolated function immediateStop() returns error? = @java:Method {
@@ -151,14 +155,15 @@ public type Local record {|
 #                            HTTP/2. All streams on a connection share the connection window, so with many concurrent
 #                            streams the default of 65535 bytes limits how fast request bodies arrive. Raise it, for
 #                            example to 4194304, when clients send many requests over one connection. The value must
-#                            be between 0 and 2147483647, the largest window HTTP/2 allows (RFC 9113, section 6.5.2).
+#                            be between 1 and 2147483647, the largest window HTTP/2 allows (RFC 9113, section 6.5.2).
 #                            A value below 65535 shrinks only the stream windows, as the connection window starts at
 #                            65535 (RFC 9113, section 6.9.2)
 # + http2MaxActiveStreams - Maximum concurrent HTTP/2 streams per connection advertised to clients.
 #                          Defaults to 100
 # + minIdleTimeInStaleState - Minimum time in seconds for a connection to be kept open which has received a GOAWAY.
 #                             This only applies for HTTP/2. Default value is 5 minutes. If the value is set to -1,
-#                             the connection will be closed after all in-flight streams are completed
+#                             the connection will be closed after all in-flight streams are completed. Values
+#                             below -1 are treated as -1
 # + timeBetweenStaleEviction - Time between the connection stale eviction runs in seconds. This only applies for HTTP/2.
 #                              Default value is 30 seconds
 public type ListenerConfiguration record {|
@@ -231,10 +236,13 @@ public type RequestLimitConfigs record {|
 # + key - Configurations associated with `crypto:KeyStore` or combination of certificate and (PKCS8) private key of the server
 # + mutualSsl - Configures associated with mutual SSL operations
 # + protocol - SSL/TLS protocol related options
-# + certValidation - Certificate validation against OCSP_CRL, OCSP_STAPLING related options
+# + certValidation - Validation of the client certificate against OCSP_CRL. It needs `mutualSsl` and an `HTTP_1_1`
+#                    listener. `OCSP_STAPLING` and the HTTP/2 listener are not supported, and the listener
+#                    initialization fails with a `ListenerError` for them
 # + ciphers - List of ciphers to be used
 #             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-# + shareSession - Enable/Disable new SSL session creation
+# + shareSession - Setting `shareSession` to `false` does not prevent TLS handshakes. It asks for sessions not to be
+#                  reused, on a best-effort basis: a client can still resume a session through a stateless TLS ticket
 # + handshakeTimeout - SSL handshake time out
 # + sessionTimeout - SSL session time out
 public type ListenerSecureSocket record {|

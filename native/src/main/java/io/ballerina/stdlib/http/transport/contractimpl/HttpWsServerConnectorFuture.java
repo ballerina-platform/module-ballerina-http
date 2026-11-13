@@ -29,6 +29,8 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.group.ChannelGroup;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * Server connector future implementation.
  */
@@ -41,11 +43,12 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     private ChannelFuture nettyBindFuture;
     private ChannelGroup allChannels;
 
-    private String openingServerConnectorId;
-    private boolean isOpeningSCHttps;
-    private String closingServerConnectorId;
-    private boolean isClosingSCHttps;
-    private Throwable connectorInitException;
+    private volatile String openingServerConnectorId;
+    private volatile boolean isOpeningSCHttps;
+    private volatile String closingServerConnectorId;
+    private volatile boolean isClosingSCHttps;
+    private volatile Throwable connectorInitException;
+    private volatile CountDownLatch handoverLatch;
 
     public HttpWsServerConnectorFuture() {
     }
@@ -89,9 +92,22 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
         httpConnectorListener.onPushPromise(pushPromise);
     }
 
+    /**
+     * Makes {@link #sync()} wait until the bind callback has handed over the request dispatching.
+     *
+     * @param handoverLatch counted down by the bind callback
+     */
+    public void setHandoverLatch(CountDownLatch handoverLatch) {
+        this.handoverLatch = handoverLatch;
+    }
+
     @Override
     public void sync() throws InterruptedException {
         ChannelFuture bindFuture = nettyBindFuture.sync();
+        CountDownLatch latch = this.handoverLatch;
+        if (latch != null) {
+            latch.await();
+        }
         if (this.allChannels != null && bindFuture.channel() != null) {
             this.allChannels.add(bindFuture.channel());
         }

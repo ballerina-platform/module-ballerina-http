@@ -160,6 +160,7 @@ import static io.ballerina.stdlib.http.api.HttpConstants.STATUS_CODE_RESPONSE_ST
 import static io.ballerina.stdlib.http.api.HttpErrorType.CLIENT_CONNECTOR_ERROR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ENCODING_GZIP;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_1_1_VERSION;
+import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_2_0_VERSION;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_TRANSFER_ENCODING_IDENTITY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.PROMISED_STREAM_REJECTED_ERROR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_CLIENT_CLOSED_BEFORE_INITIATING_100_CONTINUE_RESPONSE;
@@ -1396,24 +1397,23 @@ public class HttpUtil {
 
         double minEvictableIdleTime =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_EVICTABLE_IDLE_TIME)).floatValue();
-        poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime < 0 ? 0 : (long) minEvictableIdleTime * 1000);
+        poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime < 0 ? 0 : (long) (minEvictableIdleTime * 1000));
 
         double timeBetweenEvictionRuns =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_EVICTION_RUNS)).floatValue();
-        if (timeBetweenEvictionRuns > 0) {
-            poolConfiguration.setTimeBetweenEvictionRuns((long) timeBetweenEvictionRuns * 1000);
+        if (toTimeBetweenStaleEvictionMillis(timeBetweenEvictionRuns) > 0) {
+            poolConfiguration.setTimeBetweenEvictionRuns(toTimeBetweenStaleEvictionMillis(timeBetweenEvictionRuns));
         }
 
         double minIdleTimeInStaleState =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_IDLE_TIME_STALE_STATE)).floatValue();
-        poolConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
-                (long) minIdleTimeInStaleState * 1000);
+        poolConfiguration.setMinIdleTimeInStaleState(toMinIdleTimeInStaleStateMillis(minIdleTimeInStaleState));
 
         double timeBetweenStaleEviction =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_STALE_CHECK_RUNS))
                         .floatValue();
-        if (timeBetweenStaleEviction > 0) {
-            poolConfiguration.setTimeBetweenStaleEviction((long) timeBetweenStaleEviction * 1000);
+        if (toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction) > 0) {
+            poolConfiguration.setTimeBetweenStaleEviction(toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction));
         }
     }
 
@@ -1445,6 +1445,7 @@ public class HttpUtil {
             }
             return;
         }
+        applyDefaultNamedGroups(senderConfiguration);
         Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
         if (cert == null) {
             senderConfiguration.useJavaDefaults();
@@ -1559,13 +1560,11 @@ public class HttpUtil {
         BMap<BString, Object> sslConfig = endpointConfig.getMapValue(HttpConstants.ENDPOINT_CONFIG_SECURESOCKET);
         String httpVersion = endpointConfig.getStringValue(HttpConstants.ENDPOINT_CONFIG_VERSION).getValue();
         ListenerConfiguration listenerConfiguration = new ListenerConfiguration();
-        if (HTTP_1_1_VERSION.equals(httpVersion)) {
-            BMap<BString, Object> http1Settings =
-                    (BMap<BString, Object>) endpointConfig.get(HttpConstants.HTTP1_SETTINGS);
-            listenerConfiguration.setPipeliningLimit(http1Settings.getIntValue(HttpConstants.PIPELINING_REQUEST_LIMIT));
-            String keepAlive = http1Settings.getStringValue(HttpConstants.ENDPOINT_CONFIG_KEEP_ALIVE).getValue();
-            listenerConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(keepAlive));
-        }
+        // The HTTP/1.x settings apply to every HTTP/1.x connection, whatever the configured httpVersion.
+        BMap<BString, Object> http1Settings = (BMap<BString, Object>) endpointConfig.get(HttpConstants.HTTP1_SETTINGS);
+        listenerConfiguration.setPipeliningLimit(http1Settings.getIntValue(HttpConstants.PIPELINING_REQUEST_LIMIT));
+        String keepAlive = http1Settings.getStringValue(HttpConstants.ENDPOINT_CONFIG_KEEP_ALIVE).getValue();
+        listenerConfiguration.setKeepAliveConfig(HttpUtil.getKeepAliveConfig(keepAlive));
 
         // Set Request validation limits.
         BMap<BString, Object> requestLimits =
@@ -1583,6 +1582,9 @@ public class HttpUtil {
 
         if (port == 0) {
             throw new BallerinaConnectorException("Listener port is not defined!");
+        }
+        if (port < 0 || port > 65535) {
+            throw new BallerinaConnectorException("Listener port must be between 1 and 65535, but was " + port);
         }
         listenerConfiguration.setPort(Math.toIntExact(port));
 
@@ -1613,30 +1615,61 @@ public class HttpUtil {
             setServerSocketConfig(serverSocketConfig, listenerConfiguration);
         }
 
-        listenerConfiguration.setHttp2MaxConcurrentStreams(
-                endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS).intValue());
-
-        if (sslConfig != null) {
-            return setSslConfig(sslConfig, listenerConfiguration);
+        // The HTTP/2 settings are validated and applied only when the listener serves HTTP/2.
+        if (HTTP_2_0_VERSION.equals(httpVersion)) {
+            long http2MaxActiveStreams = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_MAX_ACTIVE_STREAMS);
+            if (http2MaxActiveStreams <= 0 || http2MaxActiveStreams > Integer.MAX_VALUE) {
+                throw new BallerinaConnectorException("http2MaxActiveStreams must be a positive 32-bit integer");
+            }
+            listenerConfiguration.setHttp2MaxConcurrentStreams((int) http2MaxActiveStreams);
+            long http2InitialWindowSize = endpointConfig.getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE);
+            if (http2InitialWindowSize <= 0 || http2InitialWindowSize > Integer.MAX_VALUE) {
+                throw new BallerinaConnectorException("http2InitialWindowSize must be between 1 and 2147483647");
+            }
+            listenerConfiguration.setHttp2InitialWindowSize((int) http2InitialWindowSize);
         }
 
+        // These settings apply to cleartext and TLS listeners alike, so they are set before the secure socket.
         listenerConfiguration.setPipeliningEnabled(true); //Pipelining is enabled all the time
-        listenerConfiguration.setHttp2InitialWindowSize(endpointConfig
-                .getIntValue(ENDPOINT_CONFIG_HTTP2_INITIAL_WINDOW_SIZE).intValue());
 
         double minIdleTimeInStaleState =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_IDLE_TIME_STALE_STATE)).floatValue();
-        listenerConfiguration.setMinIdleTimeInStaleState(minIdleTimeInStaleState < -1 ? -1 :
-                (long) minIdleTimeInStaleState * 1000);
+        listenerConfiguration.setMinIdleTimeInStaleState(toMinIdleTimeInStaleStateMillis(minIdleTimeInStaleState));
 
         double timeBetweenStaleEviction =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS))
                         .floatValue();
-        if (timeBetweenStaleEviction > 0) {
-            listenerConfiguration.setTimeBetweenStaleEviction((long) timeBetweenStaleEviction * 1000);
+        long timeBetweenStaleEvictionMillis = toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction);
+        if (timeBetweenStaleEvictionMillis > 0) {
+            listenerConfiguration.setTimeBetweenStaleEviction(timeBetweenStaleEvictionMillis);
         }
 
+        if (sslConfig != null) {
+            return setSslConfig(sslConfig, listenerConfiguration);
+        }
         return listenerConfiguration;
+    }
+
+    /**
+     * Converts minIdleTimeInStaleState in seconds to milliseconds. -1 (or less) keeps a stale connection open until
+     * its streams complete and stays -1; other negative values count as 0.
+     *
+     * @param seconds the configured value in seconds
+     * @return the value in milliseconds, or -1
+     */
+    static long toMinIdleTimeInStaleStateMillis(double seconds) {
+        return seconds <= -1 ? -1 : Math.max(0L, (long) (seconds * 1000));
+    }
+
+    /**
+     * Converts timeBetweenStaleEviction in seconds to milliseconds. Returns 0 when the value is not positive after
+     * the conversion, so that the default applies (a zero period is rejected by Timer.schedule).
+     *
+     * @param seconds the configured value in seconds
+     * @return the value in milliseconds, or 0
+     */
+    static long toTimeBetweenStaleEvictionMillis(double seconds) {
+        return Math.max(0L, (long) (seconds * 1000));
     }
 
     private static void setServerSocketConfig(BMap<BString, Object> serverSocketConfig,
@@ -1765,6 +1798,7 @@ public class HttpUtil {
                                                       ListenerConfiguration listenerConfiguration) {
         List<Parameter> serverParamList = new ArrayList<>();
         listenerConfiguration.setScheme(HttpConstants.PROTOCOL_HTTPS);
+        applyDefaultNamedGroups(listenerConfiguration);
         BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
         assert key != null; // This validation happens at Ballerina level
         evaluateKeyField(key, listenerConfiguration);
@@ -1781,6 +1815,7 @@ public class HttpUtil {
         }
         BMap<BString, Object> certValidation = getBMapValueIfPresent(secureSocket, SECURESOCKET_CONFIG_CERT_VALIDATION);
         if (certValidation != null) {
+            validateListenerCertValidation(certValidation, mutualSsl != null, listenerConfiguration.getVersion());
             evaluateCertValidationField(certValidation, listenerConfiguration);
         }
         BArray ciphers = secureSocket.containsKey(HttpConstants.SECURESOCKET_CONFIG_CIPHERS) ?
@@ -1885,8 +1920,34 @@ public class HttpUtil {
         if (!sslProtocol.isBlank()) {
             sslConfiguration.setSSLProtocol(sslProtocol);
         }
+    }
+
+    private static void applyDefaultNamedGroups(SslConfiguration sslConfiguration) {
         if (System.getProperty(JAVA_CONFIG_TLS_NAMED_GROUPS) == null) {
-            System.setProperty(JAVA_CONFIG_TLS_NAMED_GROUPS, String.join(",", DEFAULT_NAMED_GROUPS));
+            sslConfiguration.setNamedGroups(DEFAULT_NAMED_GROUPS);
+        }
+    }
+
+    /**
+     * Rejects the listener certValidation combinations that cannot work: OCSP stapling is not supported on
+     * listeners, and OCSP_CRL validates the client certificate chain, so it needs mutualSsl and is applied on
+     * HTTP/1.x listeners only.
+     */
+    private static void validateListenerCertValidation(BMap<BString, Object> certValidation, boolean mutualSsl,
+                                                       String httpVersion) {
+        String type = certValidation.getStringValue(HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE)
+                .getValue();
+        if (type.equals(HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE_OCSP_STAPLING.getValue())) {
+            throw new BallerinaConnectorException("secureSocket.certValidation of type OCSP_STAPLING is not " +
+                    "supported on a listener");
+        }
+        if (!mutualSsl) {
+            throw new BallerinaConnectorException("secureSocket.certValidation of type OCSP_CRL on a listener " +
+                    "validates the client certificate, so it requires secureSocket.mutualSsl");
+        }
+        if (HTTP_2_0_VERSION.equals(httpVersion)) {
+            throw new BallerinaConnectorException("secureSocket.certValidation of type OCSP_CRL is not supported " +
+                    "on an HTTP/2 listener; set httpVersion to HTTP_1_1");
         }
     }
 
@@ -1899,8 +1960,8 @@ public class HttpUtil {
             sslConfiguration.setValidateCertEnabled(true);
         }
         long cacheSize = certValidation.getIntValue(SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE).intValue();
-        long cacheValidityPeriod = ((BDecimal) certValidation.get(
-                HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD)).intValue();
+        long cacheValidityPeriod = certValidation.getIntValue(
+                HttpConstants.SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD);
         if (cacheValidityPeriod != 0) {
             sslConfiguration.setCacheValidityPeriod(Math.toIntExact(cacheValidityPeriod));
         }

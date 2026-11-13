@@ -171,6 +171,10 @@ public class SslConfiguration {
         sslConfig.setHandshakeTimeOut(handshakeTimeOut);
     }
 
+    public void setNamedGroups(String[] namedGroups) {
+        sslConfig.setNamedGroups(namedGroups);
+    }
+
     public void setSslContext(SslContext sslContext) {
         sslConfig.setSslContext(sslContext);
     }

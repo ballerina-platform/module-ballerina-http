@@ -118,7 +118,7 @@ public class SourceHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof HttpRequest) {
             setConnectedState(false);
             inboundRequestMsg = createInboundReqCarbonMsg((HttpRequest) msg, ctx, this);
-            if (requestSet.size() > this.pipeliningLimit) {
+            if (requestSet.size() >= Math.max(1, this.pipeliningLimit)) {
                 LOG.warn("Pipelining request limit exceeded hence closing the channel {}", ctx.channel().id());
                 closeChannel(ctx);
                 return;

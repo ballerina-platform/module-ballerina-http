@@ -51,6 +51,7 @@ public class SSLConfig {
     private String[] cipherSuites;
     private String[] enableProtocols;
     private boolean enableSessionCreation = true;
+    private String[] namedGroups;
     private boolean needClientAuth;
     private boolean wantClientAuth;
     private String[] serverNames;
@@ -178,6 +179,14 @@ public class SSLConfig {
 
     public void setTLSStoreType(String tlsStoreType) {
         this.tlsStoreType = tlsStoreType;
+    }
+
+    public String[] getNamedGroups() {
+        return namedGroups == null ? null : namedGroups.clone();
+    }
+
+    public void setNamedGroups(String[] namedGroups) {
+        this.namedGroups = namedGroups == null ? null : namedGroups.clone();
     }
 
     public boolean isEnableSessionCreation() {
@@ -413,6 +422,8 @@ public class SSLConfig {
             KeyStoreException, UnrecoverableKeyException {
         sslHandlerFactory = new SSLHandlerFactory(this);
         if (isOcspStaplingEnabled()) {
+            // Loads the key and trust stores that the OpenSSL context below is built from.
+            sslHandlerFactory.createSSLContextFromKeystores(false);
             referenceCountedOpenSslContext = (ReferenceCountedOpenSslContext) sslHandlerFactory.
                     createHttp2TLSContextForClient(isOcspStaplingEnabled());
         } else if (isDisableSsl()) {

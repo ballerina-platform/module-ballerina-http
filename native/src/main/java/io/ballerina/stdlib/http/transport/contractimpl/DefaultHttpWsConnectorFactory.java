@@ -74,7 +74,7 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
     private final EventLoopGroup clientGroup;
-    private EventExecutorGroup pipeliningGroup;
+    private volatile EventExecutorGroup pipeliningGroup;
 
     private final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
@@ -123,12 +123,19 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         serverConnectorBootstrap.setPipeliningLimit(listenerConfig.getPipeliningLimit());
 
         if (listenerConfig.isPipeliningEnabled()) {
-            pipeliningGroup = new DefaultEventExecutorGroup(PIPELINING_THREAD_COUNT, new DefaultThreadFactory(
-                    PIPELINING_THREAD_POOL_NAME));
-            serverConnectorBootstrap.setPipeliningThreadGroup(pipeliningGroup);
+            serverConnectorBootstrap.setPipeliningThreadGroup(getPipeliningGroup());
         }
 
         return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort());
+    }
+
+    // One executor group is shared by all the listeners of the factory, and is shut down once with it.
+    private synchronized EventExecutorGroup getPipeliningGroup() {
+        if (pipeliningGroup == null) {
+            pipeliningGroup = new DefaultEventExecutorGroup(PIPELINING_THREAD_COUNT, new DefaultThreadFactory(
+                    PIPELINING_THREAD_POOL_NAME));
+        }
+        return pipeliningGroup;
     }
 
     private void setSslContext(ServerConnectorBootstrap serverConnectorBootstrap, SSLConfig sslConfig,

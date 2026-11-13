@@ -475,7 +475,7 @@ public final class HttpConstants {
     public static final BString SECURESOCKET_CONFIG_PROTOCOL_NAME = StringUtils.fromString("name");
     public static final BString SECURESOCKET_CONFIG_PROTOCOL_VERSIONS = StringUtils.fromString("versions");
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION = StringUtils.fromString("certValidation");
-    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE = StringUtils.fromString("cacheSize");
+    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE = StringUtils.fromString("type");
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE = StringUtils.fromString("cacheSize");
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD =
             StringUtils.fromString("cacheValidityPeriod");

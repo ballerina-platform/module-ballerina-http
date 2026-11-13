@@ -218,6 +218,8 @@
             <class name="io.ballerina.stdlib.http.transport.https.OptionalMutualSSLTest"/>
             <class name="io.ballerina.stdlib.http.transport.https.SSLProtocolsWithCertsTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2AlpnWithCertsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2NamedGroupsTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.Http2ClientOcspStoresTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.TestHttp2WithALPN"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2MutualSslTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.DisableSslTest"/>
@@ -272,6 +274,8 @@
     <test name="Ballerina Http native Tests" parallel="false">
         <classes>
             <class name="io.ballerina.stdlib.http.api.ExceptionTest"/>
+            <class name="io.ballerina.stdlib.http.api.ListenerConfigConversionTest"/>
+            <class name="io.ballerina.stdlib.http.api.HttpConnectorPortBindingListenerTest"/>
             <class name="io.ballerina.stdlib.http.api.HttpServiceTest"/>
             <class name="io.ballerina.stdlib.http.api.logging.HttpLogManagerTest"/>
             <class name="io.ballerina.stdlib.http.api.logging.util.LogUtilTest"/>
