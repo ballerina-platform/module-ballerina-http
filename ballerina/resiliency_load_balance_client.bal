@@ -16,7 +16,6 @@
 
 import ballerina/jballerina.java;
 import ballerina/mime;
-import ballerina/log;
 
 # LoadBalanceClient endpoint provides load balancing functionality over multiple HTTP clients.
 #
@@ -39,6 +38,9 @@ public client isolated class LoadBalanceClient {
     # + loadBalanceClientConfig - The configurations for the load balance client endpoint
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(*LoadBalanceClientConfiguration loadBalanceClientConfig) returns ClientError? {
+        if loadBalanceClientConfig.targets.length() == 0 {
+            return error GenericClientError("LoadBalanceClient requires at least one target");
+        }
         self.failover = loadBalanceClientConfig.failover;
         self.loadBalanceClientsArray = [];
         Client clientEp;
@@ -421,26 +423,20 @@ public client isolated class LoadBalanceClient {
         Request loadBalancerInRequest = request;
         mime:Entity requestEntity = new;
 
-        if self.failover {
-            if isMultipartRequest(loadBalancerInRequest) {
-                loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest);
-            } else {
-                // When performing passthrough scenarios using Load Balance connector,
-                // message needs to be built before trying out the load balance endpoints to keep the request message
-                // to load balance the messages in case of failure.
-                if !loadBalancerInRequest.hasMsgDataSource() {
-                    byte[]|error binaryPayload = loadBalancerInRequest.getBinaryPayload();
-                    if binaryPayload is error {
-                        log:printDebug("Error building payload for request load balance: " + binaryPayload.message());
-                    }
-                }
-                requestEntity = check loadBalancerInRequest.getEntity();
-            }
-        }
-
         int arrLength;
         lock {
             arrLength = self.loadBalanceClientsArray.length();
+        }
+        // Build the payload first, so the request can be sent to the next endpoint. A byte stream is read only if there
+        // is another endpoint to fail over to, so that it is streamed otherwise.
+        if self.failover {
+            boolean canFailover = arrLength > 1;
+            if isMultipartRequest(loadBalancerInRequest) {
+                loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest, canFailover);
+            } else {
+                check bufferRequestPayloadForResend(loadBalancerInRequest, canFailover);
+                requestEntity = check loadBalancerInRequest.getEntity();
+            }
         }
         while (loadBalanceTermination < arrLength) {
             Client|ClientError loadBalanceClient;
@@ -448,7 +444,7 @@ public client isolated class LoadBalanceClient {
                 loadBalanceClient = self.lbRule.getNextClient(self.loadBalanceClientsArray);
             }
             if loadBalanceClient is Client {
-                var serviceResponse = invokeEndpoint(path, request, requestAction, loadBalanceClient.httpClient);
+                var serviceResponse = invokeEndpoint(path, loadBalancerInRequest, requestAction, loadBalanceClient.httpClient);
                 if serviceResponse is Response {
                     return serviceResponse;
                 } else if serviceResponse is HttpFuture {
@@ -521,7 +517,8 @@ isolated function createClientEPConfigFromLoalBalanceEPConfig(LoadBalanceClientC
         cookieConfig:lbConfig.cookieConfig,
         responseLimits:lbConfig.responseLimits,
         validation:lbConfig.validation,
-        socketConfig:lbConfig.socketConfig
+        socketConfig:lbConfig.socketConfig,
+        proxy:lbConfig.proxy
     };
     return clientEPConfig;
 }

@@ -27,5 +27,10 @@ const int foClientWithoutStatusCodeTestPort2 = 9572;
 
 const int http2RetryFunctionTestPort = 9706;
 
+const int retryStreamFailureTestPort = 9790;
+const int lbMultipartStreamPartTestPort = 9791;
+const int flakyBackendTestPort = 9793;
+const int fakeProxyTestPort = 9794;
+
 const int passthroughTestPort1 = 9543;
 const int passthroughTestPort2 = 9544;

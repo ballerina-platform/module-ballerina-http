@@ -15,7 +15,6 @@
 // under the License.
 
 import ballerina/lang.runtime as runtime;
-import ballerina/log;
 
 # Derived set of configurations from the `RetryConfig`.
 #
@@ -301,17 +300,13 @@ isolated function performRetryAction(string path, Request request, HttpOperation
     AllRetryAttemptsFailed retryFailedError = error AllRetryAttemptsFailed("All the retry attempts failed.");
     ClientError httpConnectorErr = retryFailedError;
     Request inRequest = request;
-    // When performing passthrough scenarios using retry client, message needs to be built before sending out the
-    // to keep the request message to retry.
-    if !inRequest.hasMsgDataSource() {
-        byte[]|error binaryPayload = inRequest.getBinaryPayload();
-        if binaryPayload is error {
-            log:printDebug("Error building payload for request retry: " + binaryPayload.message());
-        }
-    }
+    // Read the payload into memory before the first attempt so it can be resent. A byte stream is read only when a
+    // retry can happen, so that it is streamed otherwise.
+    boolean canRetry = retryCount > 0;
+    check bufferRequestPayloadForResend(inRequest, canRetry);
 
     while (currentRetryCount < (retryCount + 1)) {
-        inRequest = check populateMultipartRequest(inRequest);
+        inRequest = check populateMultipartRequest(inRequest, canRetry);
         var backendResponse = invokeEndpoint(path, inRequest, requestAction, httpClient, verb = verb);
         if backendResponse is Response {
             int responseStatusCode = backendResponse.statusCode;
@@ -348,7 +343,10 @@ isolated function performRetryAction(string path, Request request, HttpOperation
         } else {
             panic error ClientError("invalid response type received");
         }
-        runtime:sleep(interval);
+        // Wait only if another attempt remains.
+        if currentRetryCount <= retryCount {
+            runtime:sleep(interval);
+        }
     }
     return httpConnectorErr;
 }

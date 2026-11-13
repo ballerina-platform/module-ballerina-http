@@ -316,16 +316,12 @@ client isolated class RedirectClient {
 
         Request inRequest = request;
         if !(httpOperation is safeHttpOperation) {
-            // When performing redirect operation for non-safe method, message needs to be built before sending out the
-            // to keep the request message to subsequent redirect.
-            if !inRequest.hasMsgDataSource() {
-                byte[]|error binaryPayload = inRequest.getBinaryPayload();
-                if binaryPayload is error {
-                    log:printDebug("Error building datasource for request redirect: " + binaryPayload.message());
-                }
-            }
-            // Build message for for multipart requests
-            inRequest = check populateMultipartRequest(inRequest);
+            // For a non-safe method, the message (including multipart requests) is built before sending, to keep it
+            // for a subsequent redirect. A byte stream is read only when a redirect is allowed, so that it is
+            // streamed otherwise.
+            boolean canRedirect = self.redirectConfig.maxCount > 0;
+            check bufferRequestPayloadForResend(inRequest, canRedirect);
+            inRequest = check populateMultipartRequest(inRequest, canRedirect);
         }
         HttpResponse|ClientError result = invokeEndpoint(path, inRequest, httpOperation, self.httpClient);
         return self.checkRedirectEligibility(result, originalUrl, httpOperation, inRequest);
