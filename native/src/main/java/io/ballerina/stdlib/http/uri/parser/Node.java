@@ -73,7 +73,31 @@ public abstract class Node<DataType, InboundMsgType> {
             return false;
         }
         if (matchLength == uriFragment.length()) {
-            return dataElement.getData(inboundMsg, dataReturnAgent);
+            if (dataElement.getData(inboundMsg, dataReturnAgent)) {
+                return true;
+            }
+            // A node whose own resource handles the method keeps its rejection (415, 406).
+            if (dataElement.hasData() && dataElement.handlesRequestMethod(inboundMsg)) {
+                return false;
+            }
+            // When the node has a resource that rejected only the method, its 405 stays if the rest child fails.
+            DataReturnAgent<DataType> restAgent = dataElement.hasData() ? new DataReturnAgent<>() : dataReturnAgent;
+            Node<DataType, InboundMsgType> restChild = findRestChild();
+            if (restChild == null) {
+                return false;
+            }
+            boolean found = restChild.matchAll("", variables, 0, inboundMsg, restAgent);
+            if (found) {
+                setUriPostFix(variables, "");
+                if (restAgent != dataReturnAgent) {
+                    dataReturnAgent.setData(restAgent.getData());
+                }
+            } else if (restAgent != dataReturnAgent && restAgent.getError() != null
+                    && restChild.dataElement.hasData() && restChild.dataElement.handlesRequestMethod(inboundMsg)) {
+                // The rest child handles the method but rejected the request (415, 406): keep that error over 405.
+                dataReturnAgent.setError(restAgent.getError());
+            }
+            return found;
         }
         if (matchLength >= uriFragment.length()) {
             return false;
@@ -97,7 +121,7 @@ public abstract class Node<DataType, InboundMsgType> {
         for (Node<DataType, InboundMsgType> childNode : childNodesList) {
             if (childNode instanceof Literal) {
                 String regex = childNode.getToken();
-                if (regex.equals("*")) {
+                if (isRestNode(childNode)) {
                     regex = "." + regex;
                     if (!subPath.matches(regex)) {
                         continue;
@@ -127,6 +151,19 @@ public abstract class Node<DataType, InboundMsgType> {
             }
         }
         return false;
+    }
+
+    private Node<DataType, InboundMsgType> findRestChild() {
+        for (Node<DataType, InboundMsgType> childNode : childNodesList) {
+            if (isRestNode(childNode)) {
+                return childNode;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isRestNode(Node<?, ?> node) {
+        return node instanceof Literal && "*".equals(node.getToken());
     }
 
     private void setUriPostFix(HttpResourceArguments variables, String subUriFragment) {

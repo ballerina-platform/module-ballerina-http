@@ -41,6 +41,17 @@ public interface DataElement<DataType, InboundMsgType> {
     boolean hasData();
 
     /**
+     * Check whether the stored data handles the request method. A request that fails this check was rejected only
+     * because of its method, so a rest parameter child may still serve it.
+     *
+     * @param inboundMessage the inbound message
+     * @return true if the stored data handles the request method
+     */
+    default boolean handlesRequestMethod(InboundMsgType inboundMessage) {
+        return true;
+    }
+
+    /**
      * Get the stored data.
      *
      * @param inboundMessage Checker for extra checks of the item.

@@ -21,7 +21,6 @@ package io.ballerina.stdlib.http.uri.parser;
 
 import io.ballerina.stdlib.http.uri.URITemplateException;
 
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -77,10 +76,6 @@ public abstract class Expression<DataType, InboundMsgType> extends Node<DataType
 
     protected String encodeValue(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
-    }
-
-    protected String decodeValue(String value) {
-        return URLDecoder.decode(value, StandardCharsets.UTF_8);
     }
 
     public int getExpressionIndex() {

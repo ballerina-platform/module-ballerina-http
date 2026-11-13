@@ -115,6 +115,20 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         }
     }
 
+    @Override
+    public boolean handlesRequestMethod(HttpCarbonMessage carbonMessage) {
+        if (this.resource == null) {
+            return false;
+        }
+        String httpMethod = carbonMessage.getHttpMethod();
+        for (Resource resourceInfo : this.resource) {
+            if (resourceInfo.getMethods() == null || DispatcherUtil.isMatchingMethodExist(resourceInfo, httpMethod)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean isOptionsRequest(HttpCarbonMessage inboundMessage) {
         //Return true to break the resource searching loop, only if the ALLOW header is set in message for
         //OPTIONS request.

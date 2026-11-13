@@ -35,6 +35,7 @@ import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
+import io.ballerina.stdlib.http.uri.MalformedPercentEncodingException;
 import io.ballerina.stdlib.http.uri.URIUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -285,7 +286,8 @@ public class ParamHandler {
             String queryParamName = getQueryParamName(paramName, annotations);
             paramName = queryParamName.isBlank() ? paramName : queryParamName;
         }
-        paramName = HttpUtil.unescapeAndEncodeValue(paramName);
+        // The query string names are percent-decoded, so the declared name is matched unencoded.
+        paramName = HttpUtil.unescapeValue(paramName);
         QueryParam queryParam = new QueryParam(originalType, paramName, index, parameter.isDefault,
                 constraintValidation);
         this.queryParams.add(queryParam);
@@ -319,9 +321,11 @@ public class ParamHandler {
         if (rawQueryString != null) {
             try {
                 URIUtil.populateQueryParamMap((String) rawQueryString, queryParams);
+            } catch (MalformedPercentEncodingException e) {
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_QUERY_PARAM_BINDING_ERROR,
+                        "malformed percent-encoding in the query string");
             } catch (UnsupportedEncodingException e) {
-                throw HttpUtil.createHttpError("error while retrieving query param from message: " + e.getMessage(),
-                        HttpErrorType.GENERIC_LISTENER_ERROR);
+                throw new IllegalStateException(e);
             }
         }
         return queryParams;

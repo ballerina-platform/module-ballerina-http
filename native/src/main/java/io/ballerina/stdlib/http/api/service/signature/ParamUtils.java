@@ -74,7 +74,7 @@ public class ParamUtils {
                 case FLOAT_TAG:
                     return Double.parseDouble(argValue);
                 case BOOLEAN_TAG:
-                    return Boolean.parseBoolean(argValue);
+                    return parseBoolean(argValue);
                 case DECIMAL_TAG:
                     return ValueCreator.createDecimalValue(argValue);
                 case MAP_TAG:
@@ -90,6 +90,30 @@ public class ParamUtils {
             }
             throw ErrorCreator.createError(StringUtils.fromString(errorMessage));
         }
+    }
+
+    /**
+     * Parses a boolean strictly: only {@code true} and {@code false}, in any case.
+     *
+     * @param value the text to parse
+     * @return the parsed value
+     * @throws IllegalArgumentException if the text is neither {@code true} nor {@code false}
+     */
+    public static boolean parseBoolean(String value) {
+        // ASCII-only, case-insensitive comparison (equalsIgnoreCase also folds some non-ASCII characters).
+        if (isAscii(value)) {
+            if ("true".equalsIgnoreCase(value)) {
+                return true;
+            }
+            if ("false".equalsIgnoreCase(value)) {
+                return false;
+            }
+        }
+        throw new IllegalArgumentException("'" + value + "' is not a valid boolean value");
+    }
+
+    private static boolean isAscii(String value) {
+        return value.chars().allMatch(c -> c < 128);
     }
 
     public static BArray castParamArray(Type elementType, String[] argValueArr) {
@@ -138,7 +162,7 @@ public class ParamUtils {
                     arrayValue.add(index++, Double.parseDouble(element));
                     break;
                 case BOOLEAN_TAG:
-                    arrayValue.add(index++, Boolean.parseBoolean(element));
+                    arrayValue.add(index++, parseBoolean(element));
                     break;
                 case DECIMAL_TAG:
                     arrayValue.add(index++, ValueCreator.createDecimalValue(element));

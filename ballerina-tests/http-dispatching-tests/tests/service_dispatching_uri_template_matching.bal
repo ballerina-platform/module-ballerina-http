@@ -483,7 +483,7 @@ function testMostSpecificWithPathParam() {
 
     response = utmClient->get("/hello/echo2/shafreen+anfar");
     if response is http:Response {
-        common:assertJsonValue(response.getJsonPayload(), "echo3", "shafreen anfar");
+        common:assertJsonValue(response.getJsonPayload(), "echo3", "shafreen+anfar");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
@@ -494,7 +494,7 @@ function testMostSpecificWithPathParam() {
 function testSubPathEndsWithBar() {
     http:Response|error response = utmClient->get("/hello/echo2/shafreen+anfar/bar");
     if response is http:Response {
-        common:assertJsonValue(response.getJsonPayload(), "first", "shafreen anfar");
+        common:assertJsonValue(response.getJsonPayload(), "first", "shafreen+anfar");
         common:assertJsonValue(response.getJsonPayload(), "echo4", "echo4");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
@@ -516,7 +516,7 @@ function testLeastSpecificURITemplate() {
 function testParamDefaultValues() {
     http:Response|error response = utmClient->get("/hello/echo3/shafreen+anfar?foo=bar");
     if response is http:Response {
-        common:assertJsonValue(response.getJsonPayload(), "first", "shafreen anfar");
+        common:assertJsonValue(response.getJsonPayload(), "first", "shafreen+anfar");
         common:assertJsonValue(response.getJsonPayload(), "second", "bar");
         common:assertJsonValue(response.getJsonPayload(), "echo9", "echo9");
     } else {
@@ -878,14 +878,14 @@ function testDefaultResourceSupport() {
 
     response = utmClient->get("/echo55/foo");
     if response is http:Response {
-        common:assertJsonValue(response.getJsonPayload(), "echo55", "default");
+        common:assertJsonValue(response.getJsonPayload(), "echo55", "/foo/*");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }
 
     response = utmClient->get("/echo55/foo/");
     if response is http:Response {
-        common:assertJsonValue(response.getJsonPayload(), "echo55", "default");
+        common:assertJsonValue(response.getJsonPayload(), "echo55", "/foo/*");
     } else {
         test:assertFail(msg = "Found unexpected output type: " + response.message());
     }

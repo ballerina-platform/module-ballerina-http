@@ -54,7 +54,6 @@ public final class HttpConstants {
     public static final String DEFAULT_INTERFACE = "0.0.0.0:8080";
     public static final String DEFAULT_BASE_PATH = "/";
     public static final String DEFAULT_SUB_PATH = "/*";
-    public static final String QUERY_STRING_SEPARATOR = "\\?";
 
     public static final String PROTOCOL_HTTP = "http";
     public static final String HTTP_MOCK_SERVER_ENDPOINT_NAME = "Tballerina/http:MockListener;";
@@ -625,10 +624,6 @@ public final class HttpConstants {
     public static final String DOLLAR = "$";
     public static final String SINGLE_SLASH = "/";
     public static final String QUESTION_MARK = "?";
-    public static final String PLUS_SIGN = "\\+";
-    public static final String PLUS_SIGN_ENCODED = "%2B";
-    public static final String PERCENTAGE = "%";
-    public static final String PERCENTAGE_ENCODED = "%25";
     public static final String AND_SIGN = "&";
     public static final String EQUAL_SIGN = "=";
     public static final String EMPTY = "";
