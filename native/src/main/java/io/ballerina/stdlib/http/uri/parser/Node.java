@@ -74,6 +74,18 @@ public abstract class Node<DataType, InboundMsgType> {
         }
         if (matchLength == uriFragment.length()) {
             if (dataElement.getData(inboundMsg, dataReturnAgent)) {
+                if (dataReturnAgent.getData() == null) {
+                    // Only the automatic OPTIONS response matched here; an explicit resource in the rest child wins.
+                    Node<DataType, InboundMsgType> optionsRestChild = findRestChild();
+                    if (optionsRestChild != null) {
+                        DataReturnAgent<DataType> optionsAgent = new DataReturnAgent<>();
+                        if (optionsRestChild.matchAll("", variables, 0, inboundMsg, optionsAgent)
+                                && optionsAgent.getData() != null) {
+                            setUriPostFix(variables, "");
+                            dataReturnAgent.setData(optionsAgent.getData());
+                        }
+                    }
+                }
                 return true;
             }
             // A node whose own resource handles the method keeps its rejection (415, 406).

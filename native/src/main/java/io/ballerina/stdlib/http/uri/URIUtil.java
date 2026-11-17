@@ -312,7 +312,7 @@ public final class URIUtil {
         String pathToMatrixParam = "";
         for (String pathSegment : pathSegments) {
             String[] splitPathSegment = pathSegment.split(";");
-            if (splitPathSegment.length == 0) {
+            if (splitPathSegment.length == 0 || (splitPathSegment[0].isEmpty() && splitPathSegment.length > 1)) {
                 // A segment made only of ';' has no segment name.
                 String message = String.format("found a segment without a name in path '%s'", path);
                 throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_BAD_MATRIX_PARAMS_ERROR, message);

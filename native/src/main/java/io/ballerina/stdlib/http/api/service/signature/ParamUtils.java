@@ -113,7 +113,12 @@ public class ParamUtils {
     }
 
     private static boolean isAscii(String value) {
-        return value.chars().allMatch(c -> c < 128);
+        for (int i = 0; i < value.length(); i++) {
+            if (value.charAt(i) >= 128) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static BArray castParamArray(Type elementType, String[] argValueArr) {
