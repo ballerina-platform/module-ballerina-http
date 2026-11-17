@@ -588,6 +588,41 @@ function testPreFlightReqwithWildCardResourceConfigsOverride() {
     }
 }
 
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["http://www.m3.com"],
+        allowCredentials: true,
+        allowHeaders: ["X-PINGOTHER"]
+    }
+}
+service /restCors on corsConfigEP {
+
+    resource function get files() returns string {
+        return "get";
+    }
+
+    resource function post files/[string... tail]() returns string {
+        return "post";
+    }
+}
+
+// A preflight for a path whose rest child has a different method keeps the parent's resource and its CORS headers
+@test:Config {}
+function testPreFlightReqWithRestChildOfDifferentMethod() {
+    var headers = {
+        [common:ORIGIN] : "http://www.m3.com",
+        [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_GET],
+        [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PINGOTHER"
+    };
+    http:Response|error response = corsClient->options("/restCors/files", headers);
+    if response is http:Response {
+        assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_GET,
+            "-1");
+    } else {
+        test:assertFail(msg = "Found unexpected output type: " + response.message());
+    }
+}
+
 function assertEqualsCorsResponse(http:Response response, int statusCode, string origin, string credentials,
         string headers, string methods, string maxAge) {
     test:assertEquals(response.statusCode, statusCode, msg = "Found unexpected statusCode");

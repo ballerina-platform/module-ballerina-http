@@ -149,11 +149,13 @@ public abstract class Node<DataType, InboundMsgType> {
         // The node's own 405 (or its automatic OPTIONS response) stays if the rest child finds nothing better.
         boolean keepOwnOutcome = ownMatched || dataElement.hasData();
         DataReturnAgent<DataType> restAgent = keepOwnOutcome ? new DataReturnAgent<>() : dataReturnAgent;
+        Runnable restoreOwnState = keepOwnOutcome ? dataElement.saveState(inboundMsg) : () -> { };
         boolean found = restChild.matchAll("", variables, 0, inboundMsg, restAgent);
         if (found) {
             if (restAgent != dataReturnAgent) {
                 if (ownMatched && restAgent.getData() == null) {
-                    // Only the automatic OPTIONS response matched in the rest child too.
+                    // Only the automatic OPTIONS response matched in the rest child too; keep this node's own.
+                    restoreOwnState.run();
                     return true;
                 }
                 dataReturnAgent.setData(restAgent.getData());
@@ -161,6 +163,7 @@ public abstract class Node<DataType, InboundMsgType> {
             setUriPostFix(variables, "");
             return true;
         }
+        restoreOwnState.run();
         if (ownMatched) {
             return true;
         }

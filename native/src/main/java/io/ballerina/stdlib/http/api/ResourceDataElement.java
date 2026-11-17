@@ -120,6 +120,24 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         return this.resource != null && findResourceForMethod(this.resource, carbonMessage.getHttpMethod()) != null;
     }
 
+    @Override
+    public Runnable saveState(HttpCarbonMessage carbonMessage) {
+        String allow = carbonMessage.getHeader(HttpHeaderNames.ALLOW.toString());
+        Object preflightResources = carbonMessage.getProperty(HttpConstants.PREFLIGHT_RESOURCES);
+        return () -> {
+            if (allow == null) {
+                carbonMessage.removeHeader(HttpHeaderNames.ALLOW.toString());
+            } else {
+                carbonMessage.setHeader(HttpHeaderNames.ALLOW.toString(), allow);
+            }
+            if (preflightResources == null) {
+                carbonMessage.removeProperty(HttpConstants.PREFLIGHT_RESOURCES);
+            } else {
+                carbonMessage.setProperty(HttpConstants.PREFLIGHT_RESOURCES, preflightResources);
+            }
+        };
+    }
+
     /**
      * Finds the resource that handles the method: one with a matching accessor, else a default-verb one.
      */

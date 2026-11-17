@@ -52,6 +52,17 @@ public interface DataElement<DataType, InboundMsgType> {
     }
 
     /**
+     * Captures the state that {@link #getData} records on the inbound message, such as an automatic OPTIONS
+     * response, so that a speculative lookup in another node can be undone.
+     *
+     * @param inboundMessage the inbound message
+     * @return an action that restores the captured state
+     */
+    default Runnable saveState(InboundMsgType inboundMessage) {
+        return () -> { };
+    }
+
+    /**
      * Get the stored data.
      *
      * @param inboundMessage Checker for extra checks of the item.
