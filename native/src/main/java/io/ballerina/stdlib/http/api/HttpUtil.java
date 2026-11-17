@@ -1444,6 +1444,7 @@ public class HttpUtil {
                                                 BMap<BString, Object> secureSocket) {
         List<Parameter> clientParamList = new ArrayList<>();
         boolean enable = secureSocket.getBooleanValue(HttpConstants.SECURESOCKET_CONFIG_DISABLE_SSL);
+        applyDefaultNamedGroups(senderConfiguration);
         if (!enable) {
             senderConfiguration.disableSsl();
             BMap<BString, Object> key = getBMapValueIfPresent(secureSocket, HttpConstants.SECURESOCKET_CONFIG_KEY);
@@ -1452,7 +1453,6 @@ public class HttpUtil {
             }
             return;
         }
-        applyDefaultNamedGroups(senderConfiguration);
         Object cert = secureSocket.get(HttpConstants.SECURESOCKET_CONFIG_CERT);
         if (cert == null) {
             senderConfiguration.useJavaDefaults();

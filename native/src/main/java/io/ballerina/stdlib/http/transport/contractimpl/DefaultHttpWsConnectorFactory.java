@@ -129,10 +129,12 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
         return serverConnectorBootstrap.getServerConnector(listenerConfig.getHost(), listenerConfig.getPort());
     }
 
-    // One executor group is shared by all the listeners of the factory, and is shut down once with it.
+    // One executor group is shared by all the listeners of the factory, and is shut down once with it. It is sized
+    // for the process (at least PIPELINING_THREAD_COUNT) as all the listeners share it.
     private synchronized EventExecutorGroup getPipeliningGroup() {
         if (pipeliningGroup == null) {
-            pipeliningGroup = new DefaultEventExecutorGroup(PIPELINING_THREAD_COUNT, new DefaultThreadFactory(
+            int threadCount = Math.max(PIPELINING_THREAD_COUNT, Runtime.getRuntime().availableProcessors());
+            pipeliningGroup = new DefaultEventExecutorGroup(threadCount, new DefaultThreadFactory(
                     PIPELINING_THREAD_POOL_NAME));
         }
         return pipeliningGroup;

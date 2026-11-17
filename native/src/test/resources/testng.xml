@@ -215,7 +215,7 @@
             <class name="io.ballerina.stdlib.http.transport.certificatevalidation.ListCertificateListFromCertChain"/>
             <class name="io.ballerina.stdlib.http.transport.https.MutualSSLwithCertsTest"/>
             <class name="io.ballerina.stdlib.http.transport.https.CipherSuiteswithCertsTest"/>
-            <class name="io.ballerina.stdlib.http.transport.https.OptionalMutualSSLTest"/>
+            <class name="io.ballerina.stdlib.http.transport.https.OptionalMutualSSLTest"/>            <class name="io.ballerina.stdlib.http.transport.contractimpl.sender.CertificateValidationHandlerTest"/>
             <class name="io.ballerina.stdlib.http.transport.https.SSLProtocolsWithCertsTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2AlpnWithCertsTest"/>
             <class name="io.ballerina.stdlib.http.transport.http2.ssl.Http2NamedGroupsTest"/>

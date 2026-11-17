@@ -58,7 +58,8 @@ public isolated class Listener {
     # Stops the service listener gracefully. It stops accepting new connections, waits for the configured
     # `gracefulStopTimeout` and then closes all the remaining connections. Requests that are still in flight at that
     # point are terminated without a response. With the default `gracefulStopTimeout` of `0`, in-flight requests are
-    # terminated immediately.
+    # terminated immediately. HTTP/2 connections are closed gracefully, so they wait up to `gracefulStopTimeout` for
+    # their active streams to finish.
     #
     # + return - An `error` if an error occurred during the listener stopping process
     public isolated function gracefulStop() returns error? = @java:Method {
@@ -66,7 +67,8 @@ public isolated class Listener {
     } external;
 
     # Stops the service listener immediately. It stops accepting new connections and closes all the connections
-    # immediately.
+    # without waiting for `gracefulStopTimeout`. HTTP/2 connections are closed gracefully, so they can still wait up
+    # to `gracefulStopTimeout` for their active streams to finish.
     #
     # + return - An `error` if an error occurred during the listener stop process
     public isolated function immediateStop() returns error? = @java:Method {
@@ -238,7 +240,9 @@ public type RequestLimitConfigs record {|
 # + protocol - SSL/TLS protocol related options
 # + certValidation - Validation of the client certificate against OCSP_CRL. It needs `mutualSsl` and an `HTTP_1_1`
 #                    listener. `OCSP_STAPLING` and the HTTP/2 listener are not supported, and the listener
-#                    initialization fails with a `ListenerError` for them
+#                    initialization fails with a `ListenerError` for them. With `verifyClient` set to `OPTIONAL`, a client
+#                    that sends no certificate is accepted without validation, and a certificate that is sent is
+#                    always validated
 # + ciphers - List of ciphers to be used
 #             eg: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 # + shareSession - Setting `shareSession` to `false` does not prevent TLS handshakes. It asks for sessions not to be
@@ -256,7 +260,7 @@ public type ListenerSecureSocket record {|
         string[] versions = [];
     |} protocol?;
     record {|
-        CertValidationType 'type = OCSP_STAPLING;
+        CertValidationType 'type = OCSP_CRL;
         int cacheSize;
         int cacheValidityPeriod;
     |} certValidation?;

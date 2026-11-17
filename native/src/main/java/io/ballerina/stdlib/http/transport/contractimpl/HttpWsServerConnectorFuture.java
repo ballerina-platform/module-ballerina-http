@@ -122,7 +122,7 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     }
 
     @Override
-    public void setPortBindingEventListener(PortBindingEventListener portBindingEventListener) {
+    public synchronized void setPortBindingEventListener(PortBindingEventListener portBindingEventListener) {
         this.portBindingEventListener = portBindingEventListener;
         if (openingServerConnectorId != null) {
             notifyPortBindingEvent(openingServerConnectorId, isOpeningSCHttps);
@@ -141,7 +141,7 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     }
 
     @Override
-    public void notifyPortBindingEvent(String serverConnectorId, boolean isHttps) {
+    public synchronized void notifyPortBindingEvent(String serverConnectorId, boolean isHttps) {
         if (portBindingEventListener == null) {
             this.openingServerConnectorId = serverConnectorId;
             this.isOpeningSCHttps = isHttps;
@@ -151,7 +151,7 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     }
 
     @Override
-    public void notifyPortUnbindingEvent(String serverConnectorId, boolean isHttps) {
+    public synchronized void notifyPortUnbindingEvent(String serverConnectorId, boolean isHttps) {
         if (portBindingEventListener == null) {
             this.closingServerConnectorId = serverConnectorId;
             this.isClosingSCHttps = isHttps;
@@ -161,7 +161,7 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     }
 
     @Override
-    public void notifyPortBindingError(Throwable throwable) {
+    public synchronized void notifyPortBindingError(Throwable throwable) {
         if (portBindingEventListener == null) {
             this.connectorInitException = throwable;
         } else {
