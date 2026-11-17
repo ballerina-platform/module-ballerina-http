@@ -309,7 +309,7 @@ isolated function populateRequestFields (Request originalRequest, Request newReq
 
 // Builds the message of a multipart request. Byte stream parts are read into memory only if `bufferStreams` is set;
 // otherwise, they are left to be streamed.
-isolated function populateMultipartRequest(Request inRequest, boolean bufferStreams = true) returns Request|ClientError {
+isolated function populateMultipartRequest(Request inRequest, boolean bufferStreams) returns Request|ClientError {
     if isMultipartRequest(inRequest) {
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
         bodyParts = check bufferBodyParts(bodyParts, bufferStreams);
@@ -367,8 +367,8 @@ isolated function readEntityByteStream(mime:Entity entity) returns byte[]|Client
         return error GenericClientError("Error reading the byte stream of the payload: " + result.message(), result);
     }
     if closeResult is error {
-        return error GenericClientError("Error closing the byte stream of the payload: " + closeResult.message(),
-            closeResult);
+        // The whole stream is already in memory, so a failure to release it does not stop the request from being sent.
+        log:printDebug("Error closing the byte stream of the payload: " + closeResult.message());
     }
     return content;
 }
@@ -397,7 +397,7 @@ isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns mime:En
 // Builds the payload of a non-multipart request so that it can be sent more than once. A byte stream is read into
 // memory (once) only if `bufferStreams` is set; otherwise, it is left to be streamed. The whole stream is held in
 // memory; there is no size limit (ballerina-library#9652).
-isolated function bufferRequestPayloadForResend(Request request, boolean bufferStreams = true) returns ClientError? {
+isolated function bufferRequestPayloadForResend(Request request, boolean bufferStreams) returns ClientError? {
     if isMultipartRequest(request) {
         return;
     }
@@ -415,10 +415,20 @@ isolated function bufferRequestPayloadForResend(Request request, boolean bufferS
         }
         return;
     }
-    byte[]|error binaryPayload = request.getBinaryPayload();
+    byte[]|error binaryPayload = externGetByteArray(entity);
     if binaryPayload is error {
         log:printDebug("Error building payload for request resend: " + binaryPayload.message());
     }
+}
+
+// Prepares a request of any kind so that it can be sent more than once. Byte streams are read into memory only if
+// `bufferStreams` is set; otherwise, they are left to be streamed.
+isolated function prepareRequestForResend(Request request, boolean bufferStreams) returns Request|ClientError {
+    if isMultipartRequest(request) {
+        return populateMultipartRequest(request, bufferStreams);
+    }
+    check bufferRequestPayloadForResend(request, bufferStreams);
+    return request;
 }
 
 isolated function isMultipartRequest(Request request) returns boolean {
@@ -433,7 +443,7 @@ isolated function isNestedEntity(mime:Entity entity) returns boolean {
 
 isolated function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
     if isMultipartRequest(request) {
-        return populateMultipartRequest(request);
+        return populateMultipartRequest(request, true);
     } else {
         Request newOutRequest = new;
         populateRequestFields(request, newOutRequest);

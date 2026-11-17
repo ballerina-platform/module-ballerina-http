@@ -527,10 +527,8 @@ public client isolated class FailoverClient {
         // Build the payload first, so the request can be sent to the next endpoint. A byte stream is read only if there
         // is another endpoint to fail over to, so that it is streamed otherwise.
         boolean canFailover = noOfEndpoints > 1;
-        if isMultipartRequest(failoverRequest) {
-            failoverRequest = check populateMultipartRequest(failoverRequest, canFailover);
-        } else {
-            check bufferRequestPayloadForResend(failoverRequest, canFailover);
+        failoverRequest = check prepareRequestForResend(failoverRequest, canFailover);
+        if !isMultipartRequest(failoverRequest) {
             requestEntity = check failoverRequest.getEntity();
         }
         while (startIndex != currentIndex) {

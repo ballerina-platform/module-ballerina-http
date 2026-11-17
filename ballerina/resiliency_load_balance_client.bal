@@ -431,10 +431,8 @@ public client isolated class LoadBalanceClient {
         // is another endpoint to fail over to, so that it is streamed otherwise.
         if self.failover {
             boolean canFailover = arrLength > 1;
-            if isMultipartRequest(loadBalancerInRequest) {
-                loadBalancerInRequest = check populateMultipartRequest(loadBalancerInRequest, canFailover);
-            } else {
-                check bufferRequestPayloadForResend(loadBalancerInRequest, canFailover);
+            loadBalancerInRequest = check prepareRequestForResend(loadBalancerInRequest, canFailover);
+            if !isMultipartRequest(loadBalancerInRequest) {
                 requestEntity = check loadBalancerInRequest.getEntity();
             }
         }

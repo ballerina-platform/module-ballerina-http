@@ -320,8 +320,7 @@ client isolated class RedirectClient {
             // for a subsequent redirect. A byte stream is read only when a redirect is allowed, so that it is
             // streamed otherwise.
             boolean canRedirect = self.redirectConfig.maxCount > 0;
-            check bufferRequestPayloadForResend(inRequest, canRedirect);
-            inRequest = check populateMultipartRequest(inRequest, canRedirect);
+            inRequest = check prepareRequestForResend(inRequest, canRedirect);
         }
         HttpResponse|ClientError result = invokeEndpoint(path, inRequest, httpOperation, self.httpClient);
         return self.checkRedirectEligibility(result, originalUrl, httpOperation, inRequest);

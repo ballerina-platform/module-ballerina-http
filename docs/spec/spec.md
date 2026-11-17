@@ -1410,9 +1410,9 @@ http:Client clientEP = check new ("http://localhost:9090",
 ```
 
 The following behaviours also apply to the retry client:
-- The client `timeout` applies to each attempt separately. The worst-case duration of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times. The client does not wait after the last attempt.
+- The client `timeout` applies to each attempt separately. The worst-case duration of the attempts of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times. This excludes the time to build the request payload (see below), which has no time limit. The client does not wait after the last attempt.
 - Requests are retried regardless of the HTTP method, including non-idempotent methods such as `POST` and `PATCH`. Configure retrying only when the remote service can safely handle duplicate requests.
-- The request payload is built in memory before the first attempt so that it can be resent. This applies to streaming and passthrough payloads as well. A failure while reading a streamed payload fails the call with a `ClientError`. The payload is not buffered when `count` is `0`. The whole payload is held in memory, there is no size limit.
+- The request payload is built in memory before the first attempt so that it can be resent. This applies to streaming and passthrough payloads as well. A failure while reading a streamed payload fails the call with a `ClientError`. When `count` is `0`, a byte-stream payload is streamed instead of being read into memory; other payloads are still built in memory. A multipart payload set as a pre-encoded byte stream is not buffered, so it cannot be resent. The whole payload is held in memory, there is no size limit.
 - When `circuitBreaker` is also configured, the circuit breaker wraps the retry client. Therefore, a call and all of its retries are counted as a single request by the circuit breaker.
 - When `followRedirects` is enabled, the redirect client wraps the retry client. The request to each redirect location is retried independently.
 
