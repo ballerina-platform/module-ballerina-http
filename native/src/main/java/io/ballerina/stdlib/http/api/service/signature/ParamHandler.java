@@ -320,7 +320,7 @@ public class ParamHandler {
 
         if (rawQueryString != null) {
             try {
-                URIUtil.populateQueryParamMap((String) rawQueryString, queryParams);
+                URIUtil.populateQueryParamMap((String) rawQueryString, queryParams, true);
             } catch (MalformedPercentEncodingException e) {
                 throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_QUERY_PARAM_BINDING_ERROR,
                         "malformed percent-encoding in the query string");

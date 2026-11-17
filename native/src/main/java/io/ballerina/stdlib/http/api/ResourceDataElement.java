@@ -117,16 +117,19 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
 
     @Override
     public boolean handlesRequestMethod(HttpCarbonMessage carbonMessage) {
-        if (this.resource == null) {
-            return false;
-        }
-        String httpMethod = carbonMessage.getHttpMethod();
-        for (Resource resourceInfo : this.resource) {
-            if (resourceInfo.getMethods() == null || DispatcherUtil.isMatchingMethodExist(resourceInfo, httpMethod)) {
-                return true;
+        return this.resource != null && findResourceForMethod(this.resource, carbonMessage.getHttpMethod()) != null;
+    }
+
+    /**
+     * Finds the resource that handles the method: one with a matching accessor, else a default-verb one.
+     */
+    private Resource findResourceForMethod(List<Resource> resources, String httpMethod) {
+        for (Resource resourceInfo : resources) {
+            if (DispatcherUtil.isMatchingMethodExist(resourceInfo, httpMethod)) {
+                return resourceInfo;
             }
         }
-        return false;
+        return tryMatchingToDefaultVerb(resources);
     }
 
     private boolean isOptionsRequest(HttpCarbonMessage inboundMessage) {
@@ -136,18 +139,9 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
     }
 
     private Resource validateHTTPMethod(List<Resource> resources, HttpCarbonMessage carbonMessage) {
-        Resource httpResource = null;
         boolean isOptionsRequest = false;
         String httpMethod = carbonMessage.getHttpMethod();
-        for (Resource resourceInfo : resources) {
-            if (DispatcherUtil.isMatchingMethodExist(resourceInfo, httpMethod)) {
-                httpResource = resourceInfo;
-                break;
-            }
-        }
-        if (httpResource == null) {
-            httpResource = tryMatchingToDefaultVerb(resources);
-        }
+        Resource httpResource = findResourceForMethod(resources, httpMethod);
         if (httpResource == null) {
             isOptionsRequest = setAllowHeadersIfOPTIONS(resources, httpMethod, carbonMessage);
         }

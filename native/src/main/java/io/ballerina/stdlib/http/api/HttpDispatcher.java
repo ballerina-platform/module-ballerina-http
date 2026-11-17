@@ -94,7 +94,7 @@ public class HttpDispatcher {
             Map<String, Map<String, String>> matrixParams = new HashMap<>();
             String uriWithoutMatrixParams = URIUtil.extractMatrixParams(rawUri, matrixParams, inboundReqMsg);
 
-            String[] rawPathAndQuery = extractRawPathAndQuery(uriWithoutMatrixParams);
+            String[] rawPathAndQuery = URIUtil.splitPathAndQuery(uriWithoutMatrixParams);
 
             String basePath = servicesRegistry.findTheMostSpecificBasePath(rawPathAndQuery[0],
                                                                            servicesOnInterface, sortedServiceURIs);
@@ -170,7 +170,7 @@ public class HttpDispatcher {
             inboundReqMsg.setProperty(HttpConstants.TO, uriWithoutMatrixParams);
             inboundReqMsg.setProperty(HttpConstants.MATRIX_PARAMS, matrixParams);
 
-            String[] rawPathAndQuery = extractRawPathAndQuery(uriWithoutMatrixParams);
+            String[] rawPathAndQuery = URIUtil.splitPathAndQuery(uriWithoutMatrixParams);
 
             String basePath = servicesRegistry.findTheMostSpecificBasePath(rawPathAndQuery[0],
                                                                            servicesOnInterface, sortedServiceURIs);
@@ -191,20 +191,6 @@ public class HttpDispatcher {
             }
             throw e;
         }
-    }
-
-    private static String[] extractRawPathAndQuery(String uriWithoutMatrixParams) {
-        String[] rawPathAndQuery = new String[2];
-        // The request target is split at the first '?'. A later '?' is part of the query.
-        int queryIndex = uriWithoutMatrixParams.indexOf('?');
-        if (queryIndex < 0) {
-            rawPathAndQuery[0] = uriWithoutMatrixParams;
-        } else {
-            rawPathAndQuery[0] = uriWithoutMatrixParams.substring(0, queryIndex);
-            String query = uriWithoutMatrixParams.substring(queryIndex + 1);
-            rawPathAndQuery[1] = query.isEmpty() ? null : query;
-        }
-        return rawPathAndQuery;
     }
 
     private static void setInboundReqProperties(HttpCarbonMessage inboundReqMsg, String rawPath,

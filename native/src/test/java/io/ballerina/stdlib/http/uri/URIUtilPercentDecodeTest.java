@@ -57,16 +57,26 @@ public class URIUtilPercentDecodeTest {
         assertTrue(map.containsKey(StringUtils.fromString("p q")));
     }
 
+    @Test(description = "The lenient query parameter decoding never throws")
+    public void testLenientQueryParameterDecoding() throws Exception {
+        BMap<BString, Object> map = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("x=%FF&a%zz=1&k=100%&lone%", map);
+        assertEquals(map.getArrayValue(StringUtils.fromString("x")).getBString(0).getValue(), "\uFFFD");
+        assertEquals(map.getArrayValue(StringUtils.fromString("a%zz")).getBString(0).getValue(), "1");
+        assertEquals(map.getArrayValue(StringUtils.fromString("k")).getBString(0).getValue(), "100%");
+        assertTrue(map.containsKey(StringUtils.fromString("lone%")));
+    }
+
     @Test(expectedExceptions = MalformedPercentEncodingException.class,
             description = "A malformed escape in a query parameter name is rejected")
     public void testMalformedQueryParameterName() throws Exception {
-        URIUtil.populateQueryParamMap("x%zz=1", ValueCreator.createMapValue());
+        URIUtil.populateQueryParamMap("x%zz=1", ValueCreator.createMapValue(), true);
     }
 
     @Test(expectedExceptions = MalformedPercentEncodingException.class,
             description = "A malformed escape in a value-less query key is rejected")
     public void testMalformedValueLessQueryKey() throws Exception {
-        URIUtil.populateQueryParamMap("x%", ValueCreator.createMapValue());
+        URIUtil.populateQueryParamMap("x%", ValueCreator.createMapValue(), true);
     }
 
     @DataProvider(name = "malformed")

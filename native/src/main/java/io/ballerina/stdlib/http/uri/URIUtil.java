@@ -189,6 +189,22 @@ public final class URIUtil {
      *                                           decode to invalid UTF-8
      */
     public static String percentDecode(String value, boolean plusAsSpace) {
+        return decode(value, plusAsSpace, true);
+    }
+
+    /**
+     * Percent-decodes the value leniently: a malformed escape leaves the value as it is, and escapes that decode to
+     * invalid UTF-8 produce the replacement character. It never throws.
+     */
+    private static String percentDecodeLenient(String value, boolean plusAsSpace) {
+        try {
+            return decode(value, plusAsSpace, false);
+        } catch (MalformedPercentEncodingException e) {
+            return value;
+        }
+    }
+
+    private static String decode(String value, boolean plusAsSpace, boolean strict) {
         if (value.indexOf('%') < 0 && (!plusAsSpace || value.indexOf('+') < 0)) {
             return value;
         }
@@ -212,6 +228,9 @@ public final class URIUtil {
                 }
                 i += Character.charCount(codePoint);
             }
+        }
+        if (!strict) {
+            return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
         }
         try {
             return StandardCharsets.UTF_8.newDecoder()
@@ -237,32 +256,47 @@ public final class URIUtil {
     }
 
     /**
-     * Populates the map with the decoded query parameters.
+     * Populates the map with the leniently decoded query parameters: a malformed escape keeps the name or value
+     * raw, and invalid UTF-8 becomes the replacement character. It does not throw on malformed input.
      *
      * @param queryParamString the raw query string
      * @param queryParamsMap   the map to populate
      * @throws UnsupportedEncodingException never thrown; declared because other modules catch it
      */
-    @SuppressWarnings("unchecked")
     public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap)
             throws UnsupportedEncodingException {
+        populateQueryParamMap(queryParamString, queryParamsMap, false);
+    }
+
+    /**
+     * Populates the map with the decoded query parameters.
+     *
+     * @param queryParamString the raw query string
+     * @param queryParamsMap   the map to populate
+     * @param strict           whether a malformed escape or invalid UTF-8 throws
+     *                         {@link MalformedPercentEncodingException} instead of being tolerated
+     * @throws UnsupportedEncodingException never thrown; declared because other modules catch it
+     */
+    @SuppressWarnings("unchecked")
+    public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap,
+                                             boolean strict) throws UnsupportedEncodingException {
         Map<String, List<String>> tempParamMap = new HashMap<>();
         String[] queryParamVals = queryParamString.split("&");
         for (String queryParam : queryParamVals) {
             int index = queryParam.indexOf('=');
             if (index == -1) {
-                String decodedName = percentDecode(queryParam, true);
+                String decodedName = decodeQueryPart(queryParam, strict);
                 if (!tempParamMap.containsKey(decodedName)) {
                     tempParamMap.put(decodedName, null);
                 }
                 continue;
             }
-            String queryParamName = percentDecode(queryParam.substring(0, index).trim(), true);
+            String queryParamName = decodeQueryPart(queryParam.substring(0, index).trim(), strict);
             String queryParamValue = queryParam.substring(index + 1).trim();
             List<String> values = new ArrayList<>();
             Set<String> uniqueValues = new HashSet<>();
             for (String val : queryParamValue.split(",")) {
-                String decodedValue = percentDecode(val, true);
+                String decodedValue = decodeQueryPart(val, strict);
                 if (uniqueValues.add(decodedValue)) {
                     values.add(decodedValue);
                 }
@@ -286,6 +320,10 @@ public final class URIUtil {
         }
     }
 
+    private static String decodeQueryPart(String part, boolean strict) {
+        return strict ? percentDecode(part, true) : percentDecodeLenient(part, true);
+    }
+
     @SuppressWarnings("unchecked")
     public static BMap<BString, Object> getMatrixParamsMap(String path, HttpCarbonMessage carbonMessage) {
         BMap<BString, Object> matrixParamsBMap = ValueCreator.createMapValue();
@@ -302,12 +340,28 @@ public final class URIUtil {
     }
 
 
+    /**
+     * Splits a request target at the first {@code ?}. A later {@code ?} is part of the query, and an empty query
+     * is dropped.
+     *
+     * @param target the request target
+     * @return the raw path at index 0 and the raw query at index 1, which is {@code null} when there is none
+     */
+    public static String[] splitPathAndQuery(String target) {
+        int queryIndex = target.indexOf('?');
+        if (queryIndex < 0) {
+            return new String[]{target, null};
+        }
+        String query = target.substring(queryIndex + 1);
+        return new String[]{target.substring(0, queryIndex), query.isEmpty() ? null : query};
+    }
+
     public static String extractMatrixParams(String path, Map<String, Map<String, String>> matrixParams,
                                              HttpCarbonMessage inboundReqMsg) {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
-        String[] pathSplits = path.split("\\?", 2);
+        String[] pathSplits = splitPathAndQuery(path);
         String[] pathSegments = pathSplits[0].split("/");
         String pathToMatrixParam = "";
         for (String pathSegment : pathSegments) {
@@ -331,8 +385,7 @@ public final class URIUtil {
             matrixParams.put(pathToMatrixParam, segmentMatrixParams);
         }
 
-        // An empty query ("/base?") is dropped, as before.
-        if (pathSplits.length > 1 && !pathSplits[1].isEmpty()) {
+        if (pathSplits[1] != null) {
             pathToMatrixParam = pathToMatrixParam.concat("?").concat(pathSplits[1]);
         }
         return pathToMatrixParam;

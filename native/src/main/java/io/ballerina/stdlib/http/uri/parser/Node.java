@@ -73,43 +73,7 @@ public abstract class Node<DataType, InboundMsgType> {
             return false;
         }
         if (matchLength == uriFragment.length()) {
-            if (dataElement.getData(inboundMsg, dataReturnAgent)) {
-                if (dataReturnAgent.getData() == null) {
-                    // Only the automatic OPTIONS response matched here; an explicit resource in the rest child wins.
-                    Node<DataType, InboundMsgType> optionsRestChild = findRestChild();
-                    if (optionsRestChild != null) {
-                        DataReturnAgent<DataType> optionsAgent = new DataReturnAgent<>();
-                        if (optionsRestChild.matchAll("", variables, 0, inboundMsg, optionsAgent)
-                                && optionsAgent.getData() != null) {
-                            setUriPostFix(variables, "");
-                            dataReturnAgent.setData(optionsAgent.getData());
-                        }
-                    }
-                }
-                return true;
-            }
-            // A node whose own resource handles the method keeps its rejection (415, 406).
-            if (dataElement.hasData() && dataElement.handlesRequestMethod(inboundMsg)) {
-                return false;
-            }
-            // When the node has a resource that rejected only the method, its 405 stays if the rest child fails.
-            DataReturnAgent<DataType> restAgent = dataElement.hasData() ? new DataReturnAgent<>() : dataReturnAgent;
-            Node<DataType, InboundMsgType> restChild = findRestChild();
-            if (restChild == null) {
-                return false;
-            }
-            boolean found = restChild.matchAll("", variables, 0, inboundMsg, restAgent);
-            if (found) {
-                setUriPostFix(variables, "");
-                if (restAgent != dataReturnAgent) {
-                    dataReturnAgent.setData(restAgent.getData());
-                }
-            } else if (restAgent != dataReturnAgent && restAgent.getError() != null
-                    && restChild.dataElement.hasData() && restChild.dataElement.handlesRequestMethod(inboundMsg)) {
-                // The rest child handles the method but rejected the request (415, 406): keep that error over 405.
-                dataReturnAgent.setError(restAgent.getError());
-            }
-            return found;
+            return matchFullyConsumed(variables, inboundMsg, dataReturnAgent);
         }
         if (matchLength >= uriFragment.length()) {
             return false;
@@ -161,6 +125,49 @@ public abstract class Node<DataType, InboundMsgType> {
             if (isFound) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    /**
+     * Handles a request that ends at this node: the node's own resource first, then the zero-segment rest child.
+     */
+    private boolean matchFullyConsumed(HttpResourceArguments variables, InboundMsgType inboundMsg,
+                                       DataReturnAgent<DataType> dataReturnAgent) {
+        boolean ownMatched = dataElement.getData(inboundMsg, dataReturnAgent);
+        if (ownMatched && dataReturnAgent.getData() != null) {
+            return true;
+        }
+        // A node whose own resource handles the method keeps its rejection (415, 406).
+        if (!ownMatched && dataElement.hasData() && dataElement.handlesRequestMethod(inboundMsg)) {
+            return false;
+        }
+        Node<DataType, InboundMsgType> restChild = findRestChild();
+        if (restChild == null) {
+            return ownMatched;
+        }
+        // The node's own 405 (or its automatic OPTIONS response) stays if the rest child finds nothing better.
+        boolean keepOwnOutcome = ownMatched || dataElement.hasData();
+        DataReturnAgent<DataType> restAgent = keepOwnOutcome ? new DataReturnAgent<>() : dataReturnAgent;
+        boolean found = restChild.matchAll("", variables, 0, inboundMsg, restAgent);
+        if (found) {
+            if (restAgent != dataReturnAgent) {
+                if (ownMatched && restAgent.getData() == null) {
+                    // Only the automatic OPTIONS response matched in the rest child too.
+                    return true;
+                }
+                dataReturnAgent.setData(restAgent.getData());
+            }
+            setUriPostFix(variables, "");
+            return true;
+        }
+        if (ownMatched) {
+            return true;
+        }
+        if (restAgent != dataReturnAgent && restAgent.getError() != null
+                && restChild.dataElement.hasData() && restChild.dataElement.handlesRequestMethod(inboundMsg)) {
+            // The rest child handles the method but rejected the request (415, 406): keep that error over 405.
+            dataReturnAgent.setError(restAgent.getError());
         }
         return false;
     }
