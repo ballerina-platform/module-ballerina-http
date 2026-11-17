@@ -50,7 +50,7 @@ public class SSLConfig {
     private String tlsStoreType;
     private String[] cipherSuites;
     private String[] enableProtocols;
-    private boolean enableSessionCreation = true;
+    private boolean shareSession = true;
     private String[] namedGroups;
     private boolean needClientAuth;
     private boolean wantClientAuth;
@@ -189,15 +189,15 @@ public class SSLConfig {
         this.namedGroups = namedGroups == null ? null : namedGroups.clone();
     }
 
-    public boolean isEnableSessionCreation() {
-        return enableSessionCreation;
+    public boolean isShareSession() {
+        return shareSession;
     }
 
-    public void setEnableSessionCreation(boolean enableSessionCreation) {
+    public void setShareSession(boolean shareSession) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Enable Session Creation {}", enableSessionCreation);
+            LOG.debug("Share Session {}", shareSession);
         }
-        this.enableSessionCreation = enableSessionCreation;
+        this.shareSession = shareSession;
     }
 
     public void setSniHostName(String sniHostName) {

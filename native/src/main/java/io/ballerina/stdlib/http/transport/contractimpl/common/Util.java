@@ -1130,7 +1130,7 @@ public class Util {
         if (handshakeTimeout > 0) {
             sslHandler.setHandshakeTimeout(handshakeTimeout, TimeUnit.SECONDS);
         }
-        if (!sslConfig.isEnableSessionCreation()) {
+        if (!sslConfig.isShareSession()) {
             // shareSession=false: invalidate the session after the handshake (best-effort, tickets can still resume).
             sslHandler.handshakeFuture().addListener(future -> {
                 if (future.isSuccess()) {

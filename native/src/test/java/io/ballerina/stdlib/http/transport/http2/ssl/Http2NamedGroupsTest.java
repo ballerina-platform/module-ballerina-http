@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -50,12 +50,13 @@ public class Http2NamedGroupsTest {
     private ServerConnector serverConnector;
     private HttpClientConnector httpClientConnector;
     private HttpWsConnectorFactory connectorFactory;
+    private HttpWsConnectorFactory serverFactory;
 
     @BeforeClass
     public void setup() throws Exception {
 
-        HttpWsConnectorFactory factory = new DefaultHttpWsConnectorFactory();
-        serverConnector = factory
+        serverFactory = new DefaultHttpWsConnectorFactory();
+        serverConnector = serverFactory
                 .createServerConnector(TestUtil.getDefaultServerBootstrapConfig(), getListenerConfigs());
         ServerConnectorFuture future = serverConnector.start();
         future.setHttpConnectorListener(new EchoMessageListener());
@@ -104,6 +105,7 @@ public class Http2NamedGroupsTest {
         serverConnector.stop();
         try {
             connectorFactory.shutdown();
+            serverFactory.shutdown();
         } catch (InterruptedException e) {
             LOG.error("Interrupted while waiting for HttpWsFactory to shutdown", e);
         }

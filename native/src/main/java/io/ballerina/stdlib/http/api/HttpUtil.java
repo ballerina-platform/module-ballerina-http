@@ -1402,12 +1402,13 @@ public class HttpUtil {
 
         double minEvictableIdleTime =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_EVICTABLE_IDLE_TIME)).floatValue();
-        poolConfiguration.setMinEvictableIdleTime(minEvictableIdleTime < 0 ? 0 : (long) (minEvictableIdleTime * 1000));
+        poolConfiguration.setMinEvictableIdleTime(toNonNegativeMillis(minEvictableIdleTime));
 
         double timeBetweenEvictionRuns =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_EVICTION_RUNS)).floatValue();
-        if (toTimeBetweenStaleEvictionMillis(timeBetweenEvictionRuns) > 0) {
-            poolConfiguration.setTimeBetweenEvictionRuns(toTimeBetweenStaleEvictionMillis(timeBetweenEvictionRuns));
+        long timeBetweenEvictionRunsMillis = toNonNegativeMillis(timeBetweenEvictionRuns);
+        if (timeBetweenEvictionRunsMillis > 0) {
+            poolConfiguration.setTimeBetweenEvictionRuns(timeBetweenEvictionRunsMillis);
         }
 
         double minIdleTimeInStaleState =
@@ -1417,8 +1418,9 @@ public class HttpUtil {
         double timeBetweenStaleEviction =
                 ((BDecimal) poolRecord.get(HttpConstants.CONNECTION_POOLING_TIME_BETWEEN_STALE_CHECK_RUNS))
                         .floatValue();
-        if (toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction) > 0) {
-            poolConfiguration.setTimeBetweenStaleEviction(toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction));
+        long timeBetweenStaleEvictionMillis = toNonNegativeMillis(timeBetweenStaleEviction);
+        if (timeBetweenStaleEvictionMillis > 0) {
+            poolConfiguration.setTimeBetweenStaleEviction(timeBetweenStaleEvictionMillis);
         }
     }
 
@@ -1644,7 +1646,7 @@ public class HttpUtil {
         double timeBetweenStaleEviction =
                 ((BDecimal) endpointConfig.get(HttpConstants.ENDPOINT_CONFIG_TIME_BETWEEN_STALE_CHECK_RUNS))
                         .floatValue();
-        long timeBetweenStaleEvictionMillis = toTimeBetweenStaleEvictionMillis(timeBetweenStaleEviction);
+        long timeBetweenStaleEvictionMillis = toNonNegativeMillis(timeBetweenStaleEviction);
         if (timeBetweenStaleEvictionMillis > 0) {
             listenerConfiguration.setTimeBetweenStaleEviction(timeBetweenStaleEvictionMillis);
         }
@@ -1673,7 +1675,7 @@ public class HttpUtil {
      * @param seconds the configured value in seconds
      * @return the value in milliseconds, or 0
      */
-    static long toTimeBetweenStaleEvictionMillis(double seconds) {
+    static long toNonNegativeMillis(double seconds) {
         return Math.max(0L, (long) (seconds * 1000));
     }
 

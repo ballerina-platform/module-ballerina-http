@@ -37,10 +37,6 @@ public class HttpConnectorPortBindingListener implements PortBindingEventListene
 
     private final BObject serviceEndpoint;
 
-    public HttpConnectorPortBindingListener() {
-        this(null);
-    }
-
     /**
      * Creates a listener that marks the service endpoint as started as soon as its port is bound, so that a
      * stop() can release the port even when start() did not get to finish, for example after an interrupt.
@@ -53,9 +49,7 @@ public class HttpConnectorPortBindingListener implements PortBindingEventListene
 
     @Override
     public void onOpen(String serverConnectorId, boolean isHttps) {
-        if (serviceEndpoint != null) {
-            serviceEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, true);
-        }
+        serviceEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, true);
         if (log.isDebugEnabled()) {
             String message = isHttps ? HttpConstants.HTTPS_ENDPOINT_STARTED : HttpConstants.HTTP_ENDPOINT_STARTED;
             log.debug(message + serverConnectorId);

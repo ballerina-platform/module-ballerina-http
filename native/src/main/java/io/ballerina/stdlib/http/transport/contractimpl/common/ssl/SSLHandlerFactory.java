@@ -209,7 +209,7 @@ public class SSLHandlerFactory {
         if (sessionTimeout > 0) {
             sessionContext.setSessionTimeout(sessionTimeout);
         }
-        if (!sslConfig.isEnableSessionCreation() && sessionContext instanceof OpenSslSessionContext) {
+        if (!sslConfig.isShareSession() && sessionContext instanceof OpenSslSessionContext) {
             ((OpenSslSessionContext) sessionContext).setSessionCacheEnabled(false);
         }
     }

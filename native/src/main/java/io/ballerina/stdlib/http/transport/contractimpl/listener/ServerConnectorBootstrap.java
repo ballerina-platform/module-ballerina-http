@@ -241,12 +241,8 @@ public class ServerConnectorBootstrap {
 
         @Override
         public ServerConnectorFuture start() {
-            Channel previousServerChannel = serverChannel;
-            ServerConnectorFuture previousServerConnectorFuture = serverConnectorFuture;
             ChannelFuture channelFuture = bindInterface();
-            serverChannel = channelFuture.channel();
             HttpWsServerConnectorFuture startedFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
-            serverConnectorFuture = startedFuture;
             CountDownLatch handover = new CountDownLatch(1);
             startedFuture.setHandoverLatch(handover);
             channelFuture.addListener(future -> {
@@ -255,13 +251,14 @@ public class ServerConnectorBootstrap {
                         if (log.isDebugEnabled()) {
                             log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
                         }
+                        // Switch to the new channel and future only once the port is bound, so that a concurrent
+                        // stop() of the listener that owns the port never sees a bind that is about to fail.
+                        serverChannel = channelFuture.channel();
+                        serverConnectorFuture = startedFuture;
                         // Hand over dispatching only once the port is bound.
                         httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
                         startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
                     } else {
-                        // Roll back to the state before this start.
-                        serverChannel = previousServerChannel;
-                        serverConnectorFuture = previousServerConnectorFuture;
                         startedFuture.notifyPortBindingError(future.cause());
                     }
                 } finally {
