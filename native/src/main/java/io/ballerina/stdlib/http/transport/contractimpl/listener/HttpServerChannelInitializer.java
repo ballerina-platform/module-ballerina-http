@@ -23,7 +23,6 @@ import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureAwareIdleStateHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
-import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.http2.Http2ExceptionHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLHandlerFactory;
@@ -47,21 +46,14 @@ import io.netty.handler.codec.http2.Http2CodecUtil;
 import io.netty.handler.codec.http2.Http2ServerUpgradeCodec;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
-import io.netty.handler.ssl.OpenSsl;
-import io.netty.handler.ssl.ReferenceCountedOpenSslContext;
-import io.netty.handler.ssl.ReferenceCountedOpenSslEngine;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.concurrent.EventExecutorGroup;
-import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.cert.CertificateException;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -108,7 +100,6 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
     private int cacheSize;
     private ChannelGroup allChannels;
     private ChannelGroup listenerChannels;
-    private boolean ocspStaplingEnabled = false;
     private boolean pipeliningEnabled;
     private long pipeliningLimit;
     private EventExecutorGroup pipeliningGroup;
@@ -130,24 +121,11 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
 
         if (http2Enabled) {
             if (sslHandlerFactory != null) {
-                if (ocspStaplingEnabled) {
-                    OCSPResp response = getOcspResponse();
-
-                    ReferenceCountedOpenSslContext context = (ReferenceCountedOpenSslContext) keystoreHttp2SslContext;
-                    SslHandler sslHandler = context.newHandler(ch.alloc());
-
-                    ReferenceCountedOpenSslEngine engine = (ReferenceCountedOpenSslEngine) sslHandler.engine();
-                    engine.setOcspResponse(response.getEncoded());
-                    configureSslHandler(sslConfig, sslHandler);
-                    ch.pipeline()
-                            .addLast(sslHandler, new Http2PipelineConfiguratorForServer(this, sslHandler.engine()));
-                } else {
-                    SslHandler sslHandler = keystoreHttp2SslContext.newHandler(ch.alloc());
-                    configureSslHandler(sslConfig, sslHandler);
-                    serverPipeline
-                            .addLast(sslHandler, new Http2PipelineConfiguratorForServer(this, sslHandler.engine()));
-                    serverPipeline.addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler());
-                }
+                SslHandler sslHandler = keystoreHttp2SslContext.newHandler(ch.alloc());
+                configureSslHandler(sslConfig, sslHandler);
+                serverPipeline
+                        .addLast(sslHandler, new Http2PipelineConfiguratorForServer(this, sslHandler.engine()));
+                serverPipeline.addLast(Constants.HTTP2_EXCEPTION_HANDLER, new Http2ExceptionHandler());
             } else {
                 configureH2cPipeline(serverPipeline);
             }
@@ -161,51 +139,23 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         }
     }
 
-    private OCSPResp getOcspResponse()
-            throws IOException, KeyStoreException, CertificateVerificationException, CertificateException {
-        OCSPResp response = OCSPResponseBuilder.generateOcspResponse(sslConfig, cacheSize, cacheDelay);
-        if (!OpenSsl.isAvailable()) {
-            throw new IllegalStateException("OpenSSL is not available!");
-        }
-        if (!OpenSsl.isOcspSupported()) {
-            throw new IllegalStateException("OCSP is not supported!");
-        }
-        return response;
-    }
-
-    private void configureSslForHttp(ChannelPipeline serverPipeline, SocketChannel ch)
-            throws CertificateVerificationException, KeyStoreException, IOException, CertificateException {
+    private void configureSslForHttp(ChannelPipeline serverPipeline, SocketChannel ch) {
         SSLEngine sslEngine;
         SslHandler sslHandler;
-        if (ocspStaplingEnabled) {
-            OCSPResp response = getOcspResponse();
-
-            ReferenceCountedOpenSslContext context = sslHandlerFactory
-                    .getServerReferenceCountedOpenSslContext(ocspStaplingEnabled);
-            sslHandler = context.newHandler(ch.alloc());
+        if (sslConfig.getServerKeyFile() != null) {
+            sslHandler = certAndKeySslContext.newHandler(ch.alloc());
             sslEngine = sslHandler.engine();
-            Util.setAlpnProtocols(sslEngine);
-
-            ReferenceCountedOpenSslEngine engine = (ReferenceCountedOpenSslEngine) sslEngine;
-            engine.setOcspResponse(response.getEncoded());
-            configureSslHandler(sslConfig, sslHandler);
-            ch.pipeline().addLast(sslHandler);
+            sslHandlerFactory.addCommonConfigs(sslEngine);
         } else {
-            if (sslConfig.getServerKeyFile() != null) {
-                sslHandler = certAndKeySslContext.newHandler(ch.alloc());
-                sslEngine = sslHandler.engine();
-                sslHandlerFactory.addCommonConfigs(sslEngine);
-            } else {
-                sslEngine = sslHandlerFactory.buildServerSSLEngine(keystoreSslContext);
-            }
-            Util.setAlpnProtocols(sslEngine);
-            sslHandler = new SslHandler(sslEngine);
-            configureSslHandler(sslConfig, sslHandler);
-            serverPipeline.addLast(Constants.SSL_HANDLER, sslHandler);
-            if (validateCertEnabled) {
-                serverPipeline.addLast(Constants.HTTP_CERT_VALIDATION_HANDLER,
-                        new CertificateValidationHandler(sslEngine, cacheDelay, cacheSize));
-            }
+            sslEngine = sslHandlerFactory.buildServerSSLEngine(keystoreSslContext);
+        }
+        Util.setAlpnProtocols(sslEngine);
+        sslHandler = new SslHandler(sslEngine);
+        configureSslHandler(sslConfig, sslHandler);
+        serverPipeline.addLast(Constants.SSL_HANDLER, sslHandler);
+        if (validateCertEnabled) {
+            serverPipeline.addLast(Constants.HTTP_CERT_VALIDATION_HANDLER,
+                    new CertificateValidationHandler(sslEngine, cacheDelay, cacheSize));
         }
         serverPipeline.addLast(Constants.SSL_COMPLETION_HANDLER,
                 new SslHandshakeCompletionHandlerForServer(this, serverPipeline, sslEngine));
@@ -400,9 +350,6 @@ public class HttpServerChannelInitializer extends ChannelInitializer<SocketChann
         this.serverName = serverName;
     }
 
-    void setOcspStaplingEnabled(boolean ocspStaplingEnabled) {
-        this.ocspStaplingEnabled = ocspStaplingEnabled;
-    }
 
     /**
      * Sets whether HTTP/2.0 is enabled for the connection.

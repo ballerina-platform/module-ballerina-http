@@ -151,32 +151,6 @@ public class SSLHandlerFactory {
     }
 
     /**
-     * This used to create the open ssl context when ocsp stapling is enabled for server.
-     *
-     * @param enableOcsp true/false for enabling ocsp stapling.
-     * @return ReferenceCountedOpenSslContext.
-     * @throws SSLException if any error occurs while creating the ReferenceCountedOpenSslContext.
-     */
-    public ReferenceCountedOpenSslContext getServerReferenceCountedOpenSslContext(boolean enableOcsp)
-            throws SSLException {
-        if (sslConfig.getKeyStore() != null) {
-            sslContextBuilder = serverContextBuilderWithKs(SslProvider.OPENSSL);
-        } else {
-            sslContextBuilder = serverContextBuilderWithCerts(SslProvider.OPENSSL);
-        }
-        setOcspStapling(sslContextBuilder, enableOcsp);
-        if (sslConfig.getCipherSuites() != null) {
-            List<String> ciphers = Arrays.asList(sslConfig.getCipherSuites());
-            setCiphers(sslContextBuilder, ciphers);
-        }
-        setSslProtocol(sslContextBuilder);
-        ReferenceCountedOpenSslContext referenceCountedOpenSslCtx = (ReferenceCountedOpenSslContext) sslContextBuilder
-                .build();
-        applySessionSettings(referenceCountedOpenSslCtx.sessionContext());
-        return referenceCountedOpenSslCtx;
-    }
-
-    /**
      * This used to create the open ssl context when ocsp stapling is enabled for client.
      *
      * @return ReferenceCountedOpenSslContext.

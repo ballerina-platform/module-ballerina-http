@@ -165,10 +165,6 @@ public class ServerConnectorBootstrap {
         httpServerChannelInitializer.setCacheSize(cacheSize);
     }
 
-    public void addOcspStapling(boolean ocspStapling) {
-        httpServerChannelInitializer.setOcspStaplingEnabled(ocspStapling);
-    }
-
     public void addChunkingBehaviour(ChunkConfig chunkConfig) {
         httpServerChannelInitializer.setChunkingConfig(chunkConfig);
     }

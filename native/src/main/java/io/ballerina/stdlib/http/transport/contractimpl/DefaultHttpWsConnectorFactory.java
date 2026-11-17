@@ -147,7 +147,6 @@ public class DefaultHttpWsConnectorFactory implements HttpWsConnectorFactory {
             serverConnectorBootstrap.addcertificateRevocationVerifier(sslConfig.isValidateCertEnabled());
             serverConnectorBootstrap.addCacheDelay(sslConfig.getCacheValidityPeriod());
             serverConnectorBootstrap.addCacheSize(sslConfig.getCacheSize());
-            serverConnectorBootstrap.addOcspStapling(sslConfig.isOcspStaplingEnabled());
             serverConnectorBootstrap.addSslHandlerFactory(sslHandlerFactory);
             if (sslConfig.getKeyStore() != null) {
                 if (Constants.HTTP_2_0.equals(listenerConfig.getVersion())) {
