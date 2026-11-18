@@ -87,7 +87,7 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         if (state != null) {
             return state;
         }
-        InboundReadState newState = new InboundReadState();
+        InboundReadState newState = new InboundReadState(channel);
         InboundReadState existingState = attribute.setIfAbsent(newState);
         state = existingState != null ? existingState : newState;
         return state;
@@ -116,7 +116,7 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         InboundReadState state = ctx.channel().attr(INBOUND_READ_STATE).get();
         if (state != null && isCausedByBackPressure(state)) {
             long stallStart = state.recordStall();
-            if (isWithinBackPressureStallLimit(stallStart)) {
+            if (isWithinBackPressureStallLimit(stallStart, state.now())) {
                 scheduleStallLimitRecheck(ctx, evt, state, stallStart);
                 LOG.debug("Idle timeout not triggered on {}, inbound reads are held up by application "
                                   + "back-pressure", ctx.channel().id());
@@ -134,7 +134,7 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
     private void scheduleStallLimitRecheck(ChannelHandlerContext ctx, IdleStateEvent evt, InboundReadState state,
                                            long stallStart) {
         state.cancelStallLimitRecheck();
-        long remaining = remainingBackPressureStallNanos(stallStart);
+        long remaining = remainingBackPressureStallNanos(stallStart, state.now());
         if (remaining < 0 || remaining >= idleTimeoutNanos) {
             return;
         }
@@ -161,30 +161,44 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         // Only while a message is actually being tracked. On a connection no application back-pressure has
         // been applied to, a channelReadComplete that carried no decoded message - a partial chunk, a partial
         // TLS record, a read that returned nothing - must not excuse a timeout that is otherwise due.
-        return state.isTracking() && ticksInNanos() - state.getLastProgressTimeNanos() < idleTimeoutNanos;
+        return state.isTracking() && state.now() - state.getLastProgressTimeNanos() < idleTimeoutNanos;
     }
 
     // Per channel view of whether the transport is currently asking the socket for inbound data.
     private static final class InboundReadState {
 
+        // Every timestamp below is read from the ticker of this channel's event loop, the same clock the
+        // superclass uses for its own idle baseline, so the two cannot drift apart (and a test can drive both).
+        private final Channel channel;
         private volatile Object owner;
         private volatile BooleanSupplier readSuspended;
         // Updated only from channelReadComplete, in step with the superclass's own idle baseline - see there.
-        private volatile long lastRawReadTimeNanos = ticksInNanos();
+        private volatile long lastRawReadTimeNanos;
         // When the transport last went back to asking the peer for data after a suspension the idle check had
         // run into. Kept alongside the raw read time because such a resume leaves that one stale by
         // definition: the peer has to be given a full period to answer the read only now being reissued to it.
-        private volatile long lastResumeTimeNanos = ticksInNanos();
+        private volatile long lastResumeTimeNanos;
         private final AtomicBoolean suspensionSeen = new AtomicBoolean();
         private final AtomicLong stallStartTimeNanos = new AtomicLong();
         private final AtomicReference<ScheduledFuture<?>> stallLimitRecheckTask = new AtomicReference<>();
+
+        InboundReadState(Channel channel) {
+            this.channel = channel;
+            long now = now();
+            this.lastRawReadTimeNanos = now;
+            this.lastResumeTimeNanos = now;
+        }
+
+        long now() {
+            return ticksInNanos(channel);
+        }
 
         void track(Object newOwner, BooleanSupplier suspensionCheck) {
             owner = newOwner;
             readSuspended = suspensionCheck;
             // A newly tracked message starts on a clean stall clock. Whatever the previous one left behind on
             // this channel - it may have ended without ever untracking - is not this message's to answer for.
-            lastResumeTimeNanos = ticksInNanos();
+            lastResumeTimeNanos = now();
             suspensionSeen.set(false);
             clearStall();
         }
@@ -198,7 +212,7 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         }
 
         void recordRawRead() {
-            lastRawReadTimeNanos = ticksInNanos();
+            lastRawReadTimeNanos = now();
         }
 
         // Ignored if callerOwner is not the owner currently being tracked: a message's own progress must not
@@ -213,7 +227,7 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             // which, being recorded in the same method the superclass records its own baseline in, can never
             // run ahead of it and hand a connection nothing is holding up an undeserved reprieve.
             if (suspensionSeen.compareAndSet(true, false)) {
-                lastResumeTimeNanos = ticksInNanos();
+                lastResumeTimeNanos = now();
             }
             clearStall();
         }
@@ -232,8 +246,8 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
             // A freshly tracked message starts out counted as recently active, the same way a freshly added
             // handler does, rather than inheriting a possibly stale timestamp from whatever this channel was
             // last used for.
-            lastRawReadTimeNanos = ticksInNanos();
-            lastResumeTimeNanos = ticksInNanos();
+            lastRawReadTimeNanos = now();
+            lastResumeTimeNanos = now();
             suspensionSeen.set(false);
             clearStall();
         }
@@ -271,7 +285,7 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         // Marks the channel as stalled if it was not already, and returns when the stall began; compareAndSet
         // keeps the original start time so the allowance covers the whole stall, not just the latest check.
         long recordStall() {
-            long now = ticksInNanos();
+            long now = now();
             return stallStartTimeNanos.compareAndSet(0, now) ? now : stallStartTimeNanos.get();
         }
     }
