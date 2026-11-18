@@ -21,6 +21,11 @@ import ballerina/http_test_common as common;
 listener http:Listener HeaderBindingEP = new (headerParamBindingTestPort, httpVersion = http:HTTP_1_1);
 final http:Client headerBindingClient = check new ("http://localhost:" + headerParamBindingTestPort.toString(), httpVersion = http:HTTP_1_1);
 
+public type DefaultableHeaderRecord record {|
+    string x\-name;
+    int x\-count;
+|};
+
 service /headerparamservice on HeaderBindingEP {
 
     resource function get .(@http:Header string foo, int bar, http:Request req) returns json {
@@ -76,6 +81,16 @@ service /headerparamservice on HeaderBindingEP {
     resource function get q6(@http:Header string? foo) returns string {
         return foo ?: "empty";
     }
+    
+    resource function get q7(@http:Header string foo = "default-foo") returns string {
+        return foo;
+    }
+
+    resource function get q8(@http:Header DefaultableHeaderRecord headers = {x\-name: "default-record",
+            x\-count: 7}) returns json {
+        return {name: headers.x\-name, count: headers.x\-count};
+    }
+
 }
 
 public type RateLimitHeaders record {|
@@ -775,4 +790,32 @@ function userAgentHeaderBindingTest() returns error? {
 
     response = check headerBindingClient->get("/headerRecord/userAgentWithRequest", {"user-agent": "slbeta4"});
     common:assertJsonValue(response, "hello", "slbeta4");
+}
+
+@test:Config {}
+function testDefaultableHeaderParam() returns error? {
+    string response = check headerBindingClient->get("/headerparamservice/q7");
+    test:assertEquals(response, "default-foo");
+
+    response = check headerBindingClient->get("/headerparamservice/q7", {"foo": "custom-foo"});
+    test:assertEquals(response, "custom-foo");
+
+    response = check headerBindingClient->get("/headerparamservice/q7", {"foo": ""});
+    test:assertEquals(response, "default-foo");
+}
+
+@test:Config {}
+function testDefaultableHeaderRecord() returns error? {
+    json response = check headerBindingClient->get("/headerparamservice/q8");
+    common:assertJsonValue(response, "name", "default-record");
+    common:assertJsonValue(response, "count", 7);
+
+    response = check headerBindingClient->get("/headerparamservice/q8", {"x-name": "custom-record"});
+    common:assertJsonValue(response, "name", "default-record");
+    common:assertJsonValue(response, "count", 7);
+
+    response = check headerBindingClient->get("/headerparamservice/q8",
+        {"x-name": "custom-record", "x-count": "9"});
+    common:assertJsonValue(response, "name", "custom-record");
+    common:assertJsonValue(response, "count", 9);
 }
