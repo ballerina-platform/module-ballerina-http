@@ -584,19 +584,14 @@ service /restCors on corsConfigEP {
 
 // A preflight for a path whose rest child has a different method keeps the parent's resource and its CORS headers
 @test:Config {}
-function testPreFlightReqWithRestChildOfDifferentMethod() {
+function testPreFlightReqWithRestChildOfDifferentMethod() returns error? {
     var headers = {
         [common:ORIGIN] : "http://www.m3.com",
         [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_GET],
         [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PINGOTHER"
     };
-    http:Response|error response = corsClient->options("/restCors/files", headers);
-    if response is http:Response {
-        assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_GET,
-            "-1");
-    } else {
-        test:assertFail(msg = "Found unexpected output type: " + response.message());
-    }
+    http:Response response = check corsClient->options("/restCors/files", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_GET, "-1");
 }
 
 function assertEqualsCorsResponse(http:Response response, int statusCode, string origin, string credentials,
