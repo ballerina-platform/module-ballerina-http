@@ -564,6 +564,48 @@ function testPreFlightReqwithWildCardResourceConfigsOverride() returns error? {
         common:HTTP_METHOD_PUT, "-1");
 }
 
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["http://www.m3.com"],
+        allowCredentials: true,
+        allowHeaders: ["X-PINGOTHER"]
+    }
+}
+service /restCors on corsConfigEP {
+
+    resource function get files() returns string {
+        return "get";
+    }
+
+    resource function post files/[string... tail]() returns string {
+        return "post";
+    }
+}
+
+// A preflight for a path whose rest child has a different method keeps the parent's resource and its CORS headers
+@test:Config {}
+function testPreFlightReqWithRestChildOfDifferentMethod() returns error? {
+    var headers = {
+        [common:ORIGIN] : "http://www.m3.com",
+        [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_GET],
+        [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PINGOTHER"
+    };
+    http:Response response = check corsClient->options("/restCors/files", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_GET, "-1");
+}
+
+// A preflight for the method only the zero-segment rest child serves gets that child's CORS headers
+@test:Config {}
+function testPreFlightReqWithRestChildMethod() returns error? {
+    var headers = {
+        [common:ORIGIN] : "http://www.m3.com",
+        [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_POST],
+        [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PINGOTHER"
+    };
+    http:Response response = check corsClient->options("/restCors/files", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_POST, "-1");
+}
+
 function assertEqualsCorsResponse(http:Response response, int statusCode, string origin, string credentials,
         string headers, string methods, string maxAge) returns error? {
     test:assertEquals(response.statusCode, statusCode, msg = "Found unexpected statusCode");

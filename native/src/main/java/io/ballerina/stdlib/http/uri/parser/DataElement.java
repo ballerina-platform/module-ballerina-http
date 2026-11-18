@@ -41,6 +41,39 @@ public interface DataElement<DataType, InboundMsgType> {
     boolean hasData();
 
     /**
+     * Check whether the stored data handles the request method. A request that fails this check was rejected only
+     * because of its method, so a rest parameter child may still serve it.
+     *
+     * @param inboundMessage the inbound message
+     * @return true if the stored data handles the request method
+     */
+    default boolean handlesRequestMethod(InboundMsgType inboundMessage) {
+        return true;
+    }
+
+    /**
+     * Captures the state that {@link #getData} records on the inbound message, such as an automatic OPTIONS
+     * response, so that a speculative lookup in another node can be undone.
+     *
+     * @param inboundMessage the inbound message
+     * @return an action that restores the captured state
+     */
+    default Runnable saveState(InboundMsgType inboundMessage) {
+        return () -> { };
+    }
+
+    /**
+     * Check whether the stored data serves the method a preflight request asks for. Used to pick between this
+     * node's automatic OPTIONS state and that of its rest child; a request that names no method is served.
+     *
+     * @param inboundMessage the inbound message
+     * @return true if the stored data serves the requested method
+     */
+    default boolean servesPreflightMethod(InboundMsgType inboundMessage) {
+        return true;
+    }
+
+    /**
      * Get the stored data.
      *
      * @param inboundMessage Checker for extra checks of the item.

@@ -73,7 +73,7 @@ public abstract class Node<DataType, InboundMsgType> {
             return false;
         }
         if (matchLength == uriFragment.length()) {
-            return dataElement.getData(inboundMsg, dataReturnAgent);
+            return matchFullyConsumed(variables, inboundMsg, dataReturnAgent);
         }
         if (matchLength >= uriFragment.length()) {
             return false;
@@ -97,7 +97,7 @@ public abstract class Node<DataType, InboundMsgType> {
         for (Node<DataType, InboundMsgType> childNode : childNodesList) {
             if (childNode instanceof Literal) {
                 String regex = childNode.getToken();
-                if (regex.equals("*")) {
+                if (isRestNode(childNode)) {
                     regex = "." + regex;
                     if (!subPath.matches(regex)) {
                         continue;
@@ -127,6 +127,69 @@ public abstract class Node<DataType, InboundMsgType> {
             }
         }
         return false;
+    }
+
+    /**
+     * Handles a request that ends at this node: the node's own resource first, then the zero-segment rest child.
+     */
+    private boolean matchFullyConsumed(HttpResourceArguments variables, InboundMsgType inboundMsg,
+                                       DataReturnAgent<DataType> dataReturnAgent) {
+        boolean ownMatched = dataElement.getData(inboundMsg, dataReturnAgent);
+        if (ownMatched && dataReturnAgent.getData() != null) {
+            return true;
+        }
+        // A node whose own resource handles the method keeps its rejection (415, 406).
+        if (!ownMatched && dataElement.hasData() && dataElement.handlesRequestMethod(inboundMsg)) {
+            return false;
+        }
+        Node<DataType, InboundMsgType> restChild = findRestChild();
+        if (restChild == null) {
+            return ownMatched;
+        }
+        // The node's own 405 (or its automatic OPTIONS response) stays if the rest child finds nothing better.
+        boolean keepOwnOutcome = ownMatched || dataElement.hasData();
+        DataReturnAgent<DataType> restAgent = keepOwnOutcome ? new DataReturnAgent<>() : dataReturnAgent;
+        Runnable restoreOwnState = keepOwnOutcome ? dataElement.saveState(inboundMsg) : () -> { };
+        boolean found = restChild.matchAll("", variables, 0, inboundMsg, restAgent);
+        if (found) {
+            if (restAgent != dataReturnAgent) {
+                if (ownMatched && restAgent.getData() == null) {
+                    // Only the automatic OPTIONS response matched in the rest child too. A preflight keeps the state
+                    // of whichever of the two serves the requested method, this node winning when both do.
+                    if (dataElement.servesPreflightMethod(inboundMsg)
+                            || !restChild.dataElement.servesPreflightMethod(inboundMsg)) {
+                        restoreOwnState.run();
+                    }
+                    return true;
+                }
+                dataReturnAgent.setData(restAgent.getData());
+            }
+            setUriPostFix(variables, "");
+            return true;
+        }
+        restoreOwnState.run();
+        if (ownMatched) {
+            return true;
+        }
+        if (restAgent != dataReturnAgent && restAgent.getError() != null
+                && restChild.dataElement.hasData() && restChild.dataElement.handlesRequestMethod(inboundMsg)) {
+            // The rest child handles the method but rejected the request (415, 406): keep that error over 405.
+            dataReturnAgent.setError(restAgent.getError());
+        }
+        return false;
+    }
+
+    private Node<DataType, InboundMsgType> findRestChild() {
+        for (Node<DataType, InboundMsgType> childNode : childNodesList) {
+            if (isRestNode(childNode)) {
+                return childNode;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isRestNode(Node<?, ?> node) {
+        return node instanceof Literal && "*".equals(node.getToken());
     }
 
     private void setUriPostFix(HttpResourceArguments variables, String subUriFragment) {

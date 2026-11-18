@@ -27,8 +27,11 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -176,25 +179,124 @@ public final class URIUtil {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Percent-decodes the value exactly once, rejecting malformed escapes.
+     *
+     * @param value       the encoded value
+     * @param plusAsSpace whether {@code +} becomes a space (query values)
+     * @return the decoded value
+     * @throws MalformedPercentEncodingException if the value has a malformed percent-escape, or if the escapes
+     *                                           decode to invalid UTF-8
+     */
+    public static String percentDecode(String value, boolean plusAsSpace) {
+        return decode(value, plusAsSpace, true);
+    }
+
+    /**
+     * Percent-decodes the value leniently: a malformed escape leaves the value as it is, and escapes that decode to
+     * invalid UTF-8 produce the replacement character. It never throws.
+     */
+    private static String percentDecodeLenient(String value, boolean plusAsSpace) {
+        try {
+            return decode(value, plusAsSpace, false);
+        } catch (MalformedPercentEncodingException e) {
+            return value;
+        }
+    }
+
+    private static String decode(String value, boolean plusAsSpace, boolean strict) {
+        if (value.indexOf('%') < 0 && (!plusAsSpace || value.indexOf('+') < 0)) {
+            return value;
+        }
+        int length = value.length();
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(length);
+        int i = 0;
+        while (i < length) {
+            int codePoint = value.codePointAt(i);
+            if (codePoint == '%') {
+                bytes.write(decodeEscape(value, i));
+                i += 3;
+            } else if (codePoint == '+' && plusAsSpace) {
+                bytes.write(' ');
+                i++;
+            } else {
+                if (codePoint < 128) {
+                    bytes.write(codePoint);
+                } else {
+                    byte[] encoded = new String(Character.toChars(codePoint)).getBytes(StandardCharsets.UTF_8);
+                    bytes.write(encoded, 0, encoded.length);
+                }
+                i += Character.charCount(codePoint);
+            }
+        }
+        if (!strict) {
+            return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
+        }
+        try {
+            return StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(bytes.toByteArray())).toString();
+        } catch (CharacterCodingException e) {
+            throw new MalformedPercentEncodingException();
+        }
+    }
+
+    private static int decodeEscape(String value, int percentIndex) {
+        int high = percentIndex + 2 < value.length() ? hexValue(value.charAt(percentIndex + 1)) : -1;
+        int low = percentIndex + 2 < value.length() ? hexValue(value.charAt(percentIndex + 2)) : -1;
+        if (high < 0 || low < 0) {
+            throw new MalformedPercentEncodingException();
+        }
+        return (high << 4) | low;
+    }
+
+    private static int hexValue(char ch) {
+        return ch < 128 ? Character.digit(ch, 16) : -1;
+    }
+
+    /**
+     * Populates the map with the leniently decoded query parameters: a malformed escape keeps the name or value
+     * raw, and invalid UTF-8 becomes the replacement character. It does not throw on malformed input.
+     *
+     * @param queryParamString the raw query string
+     * @param queryParamsMap   the map to populate
+     * @throws UnsupportedEncodingException never thrown; declared because other modules catch it
+     */
     public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap)
             throws UnsupportedEncodingException {
+        populateQueryParamMap(queryParamString, queryParamsMap, false);
+    }
+
+    /**
+     * Populates the map with the decoded query parameters.
+     *
+     * @param queryParamString the raw query string
+     * @param queryParamsMap   the map to populate
+     * @param strict           whether a malformed escape or invalid UTF-8 throws
+     *                         {@link MalformedPercentEncodingException} instead of being tolerated
+     * @throws UnsupportedEncodingException never thrown; declared because other modules catch it
+     */
+    @SuppressWarnings("unchecked")
+    public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap,
+                                             boolean strict) throws UnsupportedEncodingException {
         Map<String, List<String>> tempParamMap = new HashMap<>();
         String[] queryParamVals = queryParamString.split("&");
         for (String queryParam : queryParamVals) {
             int index = queryParam.indexOf('=');
             if (index == -1) {
-                if (!tempParamMap.containsKey(queryParam)) {
-                    tempParamMap.put(queryParam, null);
+                String decodedName = decodeQueryPart(queryParam, strict);
+                if (!tempParamMap.containsKey(decodedName)) {
+                    tempParamMap.put(decodedName, null);
                 }
                 continue;
             }
-            String queryParamName = queryParam.substring(0, index).trim();
+            String queryParamName = decodeQueryPart(queryParam.substring(0, index).trim(), strict);
             String queryParamValue = queryParam.substring(index + 1).trim();
             List<String> values = new ArrayList<>();
             Set<String> uniqueValues = new HashSet<>();
             for (String val : queryParamValue.split(",")) {
-                String decodedValue = URLDecoder.decode(val, StandardCharsets.UTF_8);
+                String decodedValue = decodeQueryPart(val, strict);
                 if (uniqueValues.add(decodedValue)) {
                     values.add(decodedValue);
                 }
@@ -218,6 +320,10 @@ public final class URIUtil {
         }
     }
 
+    private static String decodeQueryPart(String part, boolean strict) {
+        return strict ? percentDecode(part, true) : percentDecodeLenient(part, true);
+    }
+
     @SuppressWarnings("unchecked")
     public static BMap<BString, Object> getMatrixParamsMap(String path, HttpCarbonMessage carbonMessage) {
         BMap<BString, Object> matrixParamsBMap = ValueCreator.createMapValue();
@@ -234,16 +340,37 @@ public final class URIUtil {
     }
 
 
+    /**
+     * Splits a request target at the first {@code ?}. A later {@code ?} is part of the query, and an empty query
+     * is dropped.
+     *
+     * @param target the request target
+     * @return the raw path at index 0 and the raw query at index 1, which is {@code null} when there is none
+     */
+    public static String[] splitPathAndQuery(String target) {
+        int queryIndex = target.indexOf('?');
+        if (queryIndex < 0) {
+            return new String[]{target, null};
+        }
+        String query = target.substring(queryIndex + 1);
+        return new String[]{target.substring(0, queryIndex), query.isEmpty() ? null : query};
+    }
+
     public static String extractMatrixParams(String path, Map<String, Map<String, String>> matrixParams,
                                              HttpCarbonMessage inboundReqMsg) {
         if (path.startsWith("/")) {
             path = path.substring(1);
         }
-        String[] pathSplits = path.split("\\?");
+        String[] pathSplits = splitPathAndQuery(path);
         String[] pathSegments = pathSplits[0].split("/");
         String pathToMatrixParam = "";
         for (String pathSegment : pathSegments) {
             String[] splitPathSegment = pathSegment.split(";");
+            if (splitPathSegment.length == 0 || (splitPathSegment[0].isEmpty() && splitPathSegment.length > 1)) {
+                // A segment made only of ';' has no segment name.
+                String message = String.format("found a segment without a name in path '%s'", path);
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_BAD_MATRIX_PARAMS_ERROR, message);
+            }
             pathToMatrixParam = pathToMatrixParam.concat("/" + splitPathSegment[0]);
             Map<String, String> segmentMatrixParams = new HashMap<>();
             for (int i = 1; i < splitPathSegment.length; i++) {
@@ -258,8 +385,8 @@ public final class URIUtil {
             matrixParams.put(pathToMatrixParam, segmentMatrixParams);
         }
 
-        for (int i = 1; i < pathSplits.length; i++) {
-            pathToMatrixParam = pathToMatrixParam.concat("?").concat(pathSplits[i]);
+        if (pathSplits[1] != null) {
+            pathToMatrixParam = pathToMatrixParam.concat("?").concat(pathSplits[1]);
         }
         return pathToMatrixParam;
     }
