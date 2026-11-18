@@ -19,6 +19,7 @@ import ballerina/lang.value as val;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
+import ballerina/scan;
 import ballerina/time;
 import ballerina/log;
 import ballerina/lang.'string as strings;
@@ -390,6 +391,7 @@ isolated function uuid() returns string {
 # + method - http method of the request
 # + statusCode - status code of the response
 # + url - The request URL
+@scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "observe:addTagToSpan with the default span ID and observe:addTagToMetrics never return an error"}
 isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
     string statusCodeConverted = statusCode.toString();
     _ = checkpanic observe:addTagToSpan(HTTP_URL, path);

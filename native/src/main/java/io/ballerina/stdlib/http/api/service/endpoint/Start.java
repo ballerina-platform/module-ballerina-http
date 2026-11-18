@@ -20,7 +20,6 @@ package io.ballerina.stdlib.http.api.service.endpoint;
 
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.BallerinaHTTPConnectorListener;
 import io.ballerina.stdlib.http.api.HTTPServicesRegistry;
@@ -32,7 +31,6 @@ import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.SERVER_CONNECTOR_FUTURE;
-import static io.ballerina.stdlib.http.api.HttpConstants.SERVICE_ENDPOINT_CONFIG;
 
 /**
  * Start the HTTP listener instance.
@@ -71,7 +69,6 @@ public class Start extends AbstractHttpNativeFunction {
         BallerinaHTTPConnectorListener httpListener =
                 new BallerinaHTTPConnectorListener(getHttpServicesRegistry(serviceEndpoint),
                                                    getHttpInterceptorServicesRegistries(serviceEndpoint),
-                                                   (BMap) serviceEndpoint.getNativeData(SERVICE_ENDPOINT_CONFIG),
                                                    serviceEndpoint.getNativeData(HttpConstants.INTERCEPTORS));
         serviceEndpoint.addNativeData(SERVER_CONNECTOR_FUTURE, serverConnectorFuture);
         HttpConnectorPortBindingListener portBindingListener = new HttpConnectorPortBindingListener();
