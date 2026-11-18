@@ -1,0 +1,142 @@
+[
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 21,
+      "endLine": 21,
+      "startColumn": 11,
+      "endColumn": 36,
+      "startOffset": 772,
+      "length": 25
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 26,
+      "endLine": 26,
+      "startColumn": 46,
+      "endColumn": 51,
+      "startOffset": 939,
+      "length": 5
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 33,
+      "endLine": 33,
+      "startColumn": 18,
+      "endColumn": 23,
+      "startOffset": 1169,
+      "length": 5
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 39,
+      "endLine": 39,
+      "startColumn": 11,
+      "endColumn": 51,
+      "startOffset": 1327,
+      "length": 40
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 54,
+      "endLine": 54,
+      "startColumn": 37,
+      "endColumn": 52,
+      "startOffset": 1818,
+      "length": 15
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 64,
+      "endLine": 64,
+      "startColumn": 46,
+      "endColumn": 51,
+      "startOffset": 2240,
+      "length": 5
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  },
+  {
+    "location": {
+      "filePath": "cookie.bal",
+      "startLine": 71,
+      "endLine": 71,
+      "startColumn": 16,
+      "endColumn": 21,
+      "startOffset": 2455,
+      "length": 5
+    },
+    "rule": {
+      "id": "ballerina/http:9",
+      "numericId": 9,
+      "description": "A cookie is created without both the secure and httpOnly flags set.",
+      "ruleKind": "VULNERABILITY"
+    },
+    "source": "BUILT_IN",
+    "fileName": "rule9/cookie.bal",
+    "filePath": "module-ballerina-http/compiler-plugin-tests/src/test/resources/static_code_analyzer/ballerina_packages/rule9/cookie.bal"
+  }
+]

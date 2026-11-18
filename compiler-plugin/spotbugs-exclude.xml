@@ -151,4 +151,24 @@
         <Field name="functionBodyExpressions"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpConstructionRuleContext"/>
+        <Method name="construction"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpConstructionRuleContext"/>
+        <Field name="construction"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpConstructionRuleContext"/>
+        <Method name="arguments"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Record name="io.ballerina.stdlib.http.compiler.staticcodeanalyzer.HttpConstructionRuleContext"/>
+        <Field name="arguments"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>
