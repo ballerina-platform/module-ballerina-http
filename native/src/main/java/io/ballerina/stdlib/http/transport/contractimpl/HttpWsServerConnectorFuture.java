@@ -28,8 +28,11 @@ import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.group.ChannelGroup;
+import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.internal.PlatformDependent;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Server connector future implementation.
@@ -49,6 +52,8 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     private volatile boolean isClosingSCHttps;
     private volatile Throwable connectorInitException;
     private volatile CountDownLatch handoverLatch;
+    private final AtomicBoolean handoverClaimed = new AtomicBoolean();
+    private volatile Throwable handoverFailure;
 
     public HttpWsServerConnectorFuture() {
     }
@@ -101,12 +106,49 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
         this.handoverLatch = handoverLatch;
     }
 
+    /**
+     * Claims the right to run the bind callback. Either the bind callback or the termination of the event loop gets
+     * it, never both, so the handover latch is counted down exactly once.
+     *
+     * @return true if the caller owns the handover
+     */
+    public boolean claimHandover() {
+        return handoverClaimed.compareAndSet(false, true);
+    }
+
+    /**
+     * Fails the start if the event loop terminates before the bind callback has run. Netty does not run a callback
+     * that is rejected by a shut down event loop, so without this {@link #sync()} would wait for it forever.
+     *
+     * @param executor the event loop that runs the bind callback
+     */
+    public void failHandoverOnTermination(EventExecutor executor) {
+        executor.terminationFuture().addListener(terminated -> {
+            if (claimHandover()) {
+                try {
+                    handoverFailure = new ServerConnectorException("The event loop was shut down before the " +
+                            "listener finished starting");
+                    notifyPortBindingError(handoverFailure);
+                } finally {
+                    CountDownLatch latch = this.handoverLatch;
+                    if (latch != null) {
+                        latch.countDown();
+                    }
+                }
+            }
+        });
+    }
+
     @Override
     public void sync() throws InterruptedException {
         ChannelFuture bindFuture = nettyBindFuture.sync();
         CountDownLatch latch = this.handoverLatch;
         if (latch != null) {
             latch.await();
+        }
+        Throwable failure = this.handoverFailure;
+        if (failure != null) {
+            PlatformDependent.throwException(failure);
         }
         if (this.allChannels != null && bindFuture.channel() != null) {
             this.allChannels.add(bindFuture.channel());

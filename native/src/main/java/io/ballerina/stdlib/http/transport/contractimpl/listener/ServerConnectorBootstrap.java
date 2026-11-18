@@ -242,6 +242,9 @@ public class ServerConnectorBootstrap {
             CountDownLatch handover = new CountDownLatch(1);
             startedFuture.setHandoverLatch(handover);
             channelFuture.addListener(future -> {
+                if (!startedFuture.claimHandover()) {
+                    return;
+                }
                 try {
                     if (future.isSuccess()) {
                         if (log.isDebugEnabled()) {
@@ -261,6 +264,9 @@ public class ServerConnectorBootstrap {
                     handover.countDown();
                 }
             });
+            // A callback that Netty rejects because the event loop is already shut down never runs, so fail the
+            // start when the event loop terminates instead of leaving sync() waiting for the handover.
+            startedFuture.failHandoverOnTermination(channelFuture.channel().eventLoop());
             return startedFuture;
         }
 
