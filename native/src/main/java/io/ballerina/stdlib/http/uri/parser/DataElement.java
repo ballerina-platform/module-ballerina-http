@@ -63,6 +63,17 @@ public interface DataElement<DataType, InboundMsgType> {
     }
 
     /**
+     * Check whether the stored data serves the method a preflight request asks for. Used to pick between this
+     * node's automatic OPTIONS state and that of its rest child; a request that names no method is served.
+     *
+     * @param inboundMessage the inbound message
+     * @return true if the stored data serves the requested method
+     */
+    default boolean servesPreflightMethod(InboundMsgType inboundMessage) {
+        return true;
+    }
+
+    /**
      * Get the stored data.
      *
      * @param inboundMessage Checker for extra checks of the item.

@@ -154,8 +154,12 @@ public abstract class Node<DataType, InboundMsgType> {
         if (found) {
             if (restAgent != dataReturnAgent) {
                 if (ownMatched && restAgent.getData() == null) {
-                    // Only the automatic OPTIONS response matched in the rest child too; keep this node's own.
-                    restoreOwnState.run();
+                    // Only the automatic OPTIONS response matched in the rest child too. A preflight keeps the state
+                    // of whichever of the two serves the requested method, this node winning when both do.
+                    if (dataElement.servesPreflightMethod(inboundMsg)
+                            || !restChild.dataElement.servesPreflightMethod(inboundMsg)) {
+                        restoreOwnState.run();
+                    }
                     return true;
                 }
                 dataReturnAgent.setData(restAgent.getData());

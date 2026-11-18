@@ -138,6 +138,15 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         };
     }
 
+    @Override
+    public boolean servesPreflightMethod(HttpCarbonMessage carbonMessage) {
+        String requestedMethod = carbonMessage.getHeader(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD.toString());
+        if (requestedMethod == null || this.resource == null) {
+            return true;
+        }
+        return findResourceForMethod(this.resource, requestedMethod) != null;
+    }
+
     /**
      * Finds the resource that handles the method: one with a matching accessor, else a default-verb one.
      */

@@ -594,6 +594,18 @@ function testPreFlightReqWithRestChildOfDifferentMethod() returns error? {
     check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_GET, "-1");
 }
 
+// A preflight for the method only the zero-segment rest child serves gets that child's CORS headers
+@test:Config {}
+function testPreFlightReqWithRestChildMethod() returns error? {
+    var headers = {
+        [common:ORIGIN] : "http://www.m3.com",
+        [common:ACCESS_CONTROL_REQUEST_METHOD] : [common:HTTP_METHOD_POST],
+        [common:ACCESS_CONTROL_REQUEST_HEADERS] : "X-PINGOTHER"
+    };
+    http:Response response = check corsClient->options("/restCors/files", headers);
+    check assertEqualsCorsResponse(response, 204, "http://www.m3.com", "true", "X-PINGOTHER", common:HTTP_METHOD_POST, "-1");
+}
+
 function assertEqualsCorsResponse(http:Response response, int statusCode, string origin, string credentials,
         string headers, string methods, string maxAge) returns error? {
     test:assertEquals(response.statusCode, statusCode, msg = "Found unexpected statusCode");
