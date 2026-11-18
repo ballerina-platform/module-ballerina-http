@@ -33,7 +33,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
@@ -62,15 +64,26 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     @Test
     private void testRSTStreamFrameForMultipleStreams() {
         try {
-            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
+            CountDownLatch latch1 = new CountDownLatch(1);
+            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1,
+                    h2ClientWithPriorKnowledge);
             writeSemaphore.release();
             readSemaphore.acquire();
-            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
+            CountDownLatch latch2 = new CountDownLatch(1);
+            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch2,
+                    h2ClientWithPriorKnowledge);
             writeSemaphore.release();
             readSemaphore.acquire();
-            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
+            CountDownLatch latch3 = new CountDownLatch(1);
+            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(latch3,
+                    h2ClientWithPriorKnowledge);
             writeSemaphore.release();
             readSemaphore.acquire();
+            // The listener callbacks are invoked asynchronously by the client's event loop, so wait for each of them
+            // (this also guarantees the visibility of the results) before reading the results.
+            latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
+            latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
+            latch3.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
             assertEquals(getErrorResponseMessage(msgListener1),
                     Constants.REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
             assertEquals(getResponseMessage(msgListener2), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05);
