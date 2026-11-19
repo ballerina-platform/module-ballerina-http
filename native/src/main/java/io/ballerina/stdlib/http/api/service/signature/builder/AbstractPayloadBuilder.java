@@ -70,7 +70,7 @@ public abstract class AbstractPayloadBuilder {
         contentType = contentType.toLowerCase(Locale.getDefault()).trim();
         String baseType = HeaderUtil.getHeaderValue(contentType);
         if (baseType.matches(XML_PATTERN)) {
-            return new XmlPayloadBuilder(payloadType);
+            return new XmlPayloadBuilder(payloadType, laxDataBinding);
         } else if (baseType.matches(TEXT_PATTERN)) {
             return new StringPayloadBuilder(payloadType);
         } else if (baseType.matches(URL_ENCODED_PATTERN)) {
@@ -89,7 +89,7 @@ public abstract class AbstractPayloadBuilder {
             case STRING_TAG:
                 return new StringPayloadBuilder(payloadType);
             case XML_TAG:
-                return new XmlPayloadBuilder(payloadType);
+                return new XmlPayloadBuilder(payloadType, laxDataBinding);
             case ARRAY_TAG:
                 return new ArrayBuilder(payloadType, laxDataBinding);
             default:

@@ -86,6 +86,7 @@ subprojects {
         ballerinaStdLibs "io.ballerina.stdlib:file-ballerina:${stdlibFileVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:observe-ballerina:${observeVersion}"
         ballerinaStdLibs "io.ballerina.lib:data.jsondata-ballerina:${stdlibDataJsonDataVersion}"
+        ballerinaStdLibs "io.ballerina.lib:data.xmldata-ballerina:${stdlibDataXmlDataVersion}"
         ballerinaStdLibs "io.ballerina:observe-ballerina:${observeInternalVersion}"
         ballerinaStdLibs "io.ballerina.lib:scan-ballerina:${stdlibScanVersion}"
 

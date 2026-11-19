@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.api.service.signature.converter.XmlToRecordConverter;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 
 import java.util.Arrays;
@@ -36,12 +37,14 @@ import java.util.List;
  */
 public class XmlPayloadBuilder extends AbstractPayloadBuilder {
     private final Type payloadType;
+    private final boolean laxDataBinding;
     private static final List<Integer> allowedList = Arrays.asList(
             TypeTags.XML_TAG, TypeTags.XML_ELEMENT_TAG, TypeTags.XML_COMMENT_TAG, TypeTags.XML_PI_TAG,
             TypeTags.XML_TEXT_TAG);
 
-    public XmlPayloadBuilder(Type payloadType) {
+    public XmlPayloadBuilder(Type payloadType, boolean laxDataBinding) {
         this.payloadType = payloadType;
+        this.laxDataBinding = laxDataBinding;
     }
 
     @Override
@@ -53,6 +56,11 @@ public class XmlPayloadBuilder extends AbstractPayloadBuilder {
                 bxml.freezeDirect();
             }
             return bxml;
+        }
+        if (XmlToRecordConverter.isBindableType(payloadType)) {
+            BXml bxml = EntityBodyHandler.constructXmlDataSource(entity);
+            EntityBodyHandler.addMessageDataSource(entity, bxml);
+            return XmlToRecordConverter.convert(payloadType, bxml, laxDataBinding, readonly);
         }
         String message = "incompatible type found: '" + payloadType.toString() + "'";
         throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR, message);

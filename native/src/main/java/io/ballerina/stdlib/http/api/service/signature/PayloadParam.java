@@ -27,11 +27,13 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder;
 import io.ballerina.stdlib.http.api.service.signature.converter.JsonToRecordConverter;
+import io.ballerina.stdlib.http.api.service.signature.converter.XmlToRecordConverter;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import io.ballerina.stdlib.mime.util.MimeConstants;
@@ -146,6 +148,11 @@ public class PayloadParam implements Parameter {
     private void populateFeedWithAlreadyBuiltPayload(Object[] paramFeed, BObject inRequestEntity, int index,
                                                     Type payloadType, Object dataSource) {
         try {
+            if (dataSource instanceof BXml xmlDataSource && XmlToRecordConverter.isBindableType(payloadType)) {
+                paramFeed[index] = validateConstraints(
+                        XmlToRecordConverter.convert(payloadType, xmlDataSource, laxDataBinding, readonly));
+                return;
+            }
             switch (payloadType.getTag()) {
                 case TypeTags.ARRAY_TAG:
                     int actualTypeTag = TypeUtils.getReferredType(((ArrayType) payloadType).getElementType()).getTag();
