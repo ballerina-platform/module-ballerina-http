@@ -916,7 +916,9 @@ resource function post 'order(Order payload) returns string {
 - If the payload was already read as `xml` before the data binding (for example, by an interceptor), the read `xml`
   value is used for the binding.
 - A payload with a non-standard (vendor) media type that is not matched by the patterns above is not bound as XML.
-  The binding type is inferred by the parameter type itself, and a record type is bound as JSON.
+  The binding type is inferred by the parameter type itself, and a record type is bound as JSON. Vendor media types
+  are intentionally out of scope: bind such payloads to `xml` and convert them explicitly with `xmldata:parseAsType`.
+  Returning or sending an array of records with an XML media type is not supported and is serialized as JSON.
 
 ##### 2.3.4.5. Header parameter
 
