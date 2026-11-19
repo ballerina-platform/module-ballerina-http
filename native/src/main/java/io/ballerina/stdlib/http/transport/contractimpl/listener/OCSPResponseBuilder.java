@@ -19,7 +19,6 @@
 package io.ballerina.stdlib.http.transport.contractimpl.listener;
 
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.CertificateVerificationException;
-import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.ocsp.OCSPCache;
 import io.ballerina.stdlib.http.transport.contractimpl.common.certificatevalidation.ocsp.OCSPVerifier;
 import io.ballerina.stdlib.http.transport.contractimpl.common.ssl.SSLConfig;
@@ -45,7 +44,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -56,78 +54,6 @@ public class OCSPResponseBuilder {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(OCSPResponseBuilder.class);
-    private static List<X509Certificate> certList = new ArrayList<>();
-    private static X509Certificate userCertificate = null;
-    private static X509Certificate issuer = null;
-
-    static OCSPResp generateOcspResponse(SSLConfig sslConfig, int cacheAllocatedSize, int cacheDelay)
-            throws IOException, KeyStoreException, CertificateVerificationException, CertificateException {
-
-        int cacheSize = Constants.CACHE_DEFAULT_ALLOCATED_SIZE;
-        int cacheDelayMins = Constants.CACHE_DEFAULT_DELAY_MINS;
-
-        if (cacheAllocatedSize != 0 && cacheAllocatedSize > Constants.CACHE_MIN_ALLOCATED_SIZE
-                && cacheAllocatedSize < Constants.CACHE_MAX_ALLOCATED_SIZE) {
-            cacheSize = cacheAllocatedSize;
-        }
-        if (cacheDelay != 0 && cacheDelay > Constants.CACHE_MIN_DELAY_MINS
-                && cacheDelay < Constants.CACHE_MAX_DELAY_MINS) {
-            cacheDelayMins = cacheDelay;
-        }
-
-        OCSPCache ocspCache = OCSPCache.getCache();
-        ocspCache.init(cacheSize, cacheDelayMins);
-
-        if (sslConfig.getKeyStore() != null) {
-            KeyStore keyStore = getKeyStore(sslConfig.getKeyStore(), sslConfig.getKeyStorePass(),
-                    sslConfig.getTLSStoreType());
-            if (keyStore != null) {
-                getUserCerAndIssuer(keyStore);
-            }
-        } else {
-            certList = getCertInfo(sslConfig);
-            userCertificate = certList.get(0);
-            issuer = certList.get(1);
-        }
-        List<String> locations;
-        if (userCertificate == null) {
-            throw new CertificateVerificationException("Could not get revocation status from OCSP.");
-        } else {
-            //Check whether the ocsp response is still there in the cache.
-            // If it is there, we don't need to get it from CA.
-            if (ocspCache.getOCSPCacheValue(userCertificate.getSerialNumber()) != null) {
-                return ocspCache.getOCSPCacheValue(userCertificate.getSerialNumber());
-            } else {
-                OCSPReq request;
-                request = OCSPVerifier.generateOCSPRequest(issuer, userCertificate.getSerialNumber());
-                locations = getAIALocations(userCertificate);
-                return getOCSPResponse(locations, request, userCertificate, ocspCache);
-            }
-        }
-    }
-
-    private static void getUserCerAndIssuer(KeyStore keyStore) throws KeyStoreException {
-        Certificate[] certificateChain;
-        //Get own certificate and the issuer certificate.
-        Enumeration<String> aliases = keyStore.aliases();
-        String alias = "";
-        boolean isAliasWithPrivateKey = false;
-        while (aliases.hasMoreElements()) {
-            alias = aliases.nextElement();
-            isAliasWithPrivateKey = keyStore.isKeyEntry(alias);
-            if (isAliasWithPrivateKey) {
-                break;
-            }
-        }
-        if (isAliasWithPrivateKey) {
-            // Load certificate chain
-            certificateChain = keyStore.getCertificateChain(alias);
-            //user certificate is there in the 0 th position of a certificate chain.
-            userCertificate = (X509Certificate) certificateChain[0];
-            //issuer certificate is in the last position of a certificate chain.
-            issuer = (X509Certificate) certificateChain[certificateChain.length - 1];
-        }
-    }
 
     /**
      * Method to create a keystore and return.
@@ -221,6 +147,7 @@ public class OCSPResponseBuilder {
 
     public static List<X509Certificate> getCertInfo(SSLConfig sslConfig) throws CertificateException, IOException {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X509");
+        List<X509Certificate> certList = new ArrayList<>();
         try (FileInputStream certInputStream = new FileInputStream(sslConfig.getServerCertificates())) {
             while (certInputStream.available() > 1) {
                 Certificate cert = certificateFactory.generateCertificate(certInputStream);

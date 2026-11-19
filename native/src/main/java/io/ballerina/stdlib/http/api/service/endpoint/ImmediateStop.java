@@ -31,7 +31,11 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 public class ImmediateStop extends AbstractHttpNativeFunction {
     public static Object immediateStop(BObject serverEndpoint) {
         try {
-            getServerConnector(serverEndpoint).immediateStop();
+            // A listener whose start() failed (for example on a port another listener already uses) shares the
+            // connector of the listener that owns the port, so it must not stop that connector.
+            if (isConnectorStarted(serverEndpoint)) {
+                getServerConnector(serverEndpoint).immediateStop();
+            }
             serverEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, false);
             resetRegistry(serverEndpoint);
         } catch (Exception ex) {

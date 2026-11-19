@@ -50,7 +50,8 @@ public class SSLConfig {
     private String tlsStoreType;
     private String[] cipherSuites;
     private String[] enableProtocols;
-    private boolean enableSessionCreation = true;
+    private boolean shareSession = true;
+    private String[] namedGroups;
     private boolean needClientAuth;
     private boolean wantClientAuth;
     private String[] serverNames;
@@ -180,15 +181,23 @@ public class SSLConfig {
         this.tlsStoreType = tlsStoreType;
     }
 
-    public boolean isEnableSessionCreation() {
-        return enableSessionCreation;
+    public String[] getNamedGroups() {
+        return namedGroups == null ? null : namedGroups.clone();
     }
 
-    public void setEnableSessionCreation(boolean enableSessionCreation) {
+    public void setNamedGroups(String[] namedGroups) {
+        this.namedGroups = namedGroups == null ? null : namedGroups.clone();
+    }
+
+    public boolean isShareSession() {
+        return shareSession;
+    }
+
+    public void setShareSession(boolean shareSession) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Enable Session Creation {}", enableSessionCreation);
+            LOG.debug("Share Session {}", shareSession);
         }
-        this.enableSessionCreation = enableSessionCreation;
+        this.shareSession = shareSession;
     }
 
     public void setSniHostName(String sniHostName) {
@@ -413,6 +422,8 @@ public class SSLConfig {
             KeyStoreException, UnrecoverableKeyException {
         sslHandlerFactory = new SSLHandlerFactory(this);
         if (isOcspStaplingEnabled()) {
+            // Loads the key and trust stores that the OpenSSL context below is built from.
+            sslHandlerFactory.createSSLContextFromKeystores(false);
             referenceCountedOpenSslContext = (ReferenceCountedOpenSslContext) sslHandlerFactory.
                     createHttp2TLSContextForClient(isOcspStaplingEnabled());
         } else if (isDisableSsl()) {

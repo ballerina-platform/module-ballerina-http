@@ -26,8 +26,11 @@ import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.cert.Certificate;
+
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLPeerUnverifiedException;
 
 /**
  * A handler to validate certificates in certificate revocation process.
@@ -55,7 +58,10 @@ public class CertificateValidationHandler extends ChannelInboundHandlerAdapter {
 
             SslHandshakeCompletionEvent event = (SslHandshakeCompletionEvent) evt;
 
-            if (event.isSuccess() && revocationVerifier
+            if (event.isSuccess() && !hasPeerCertificates()) {
+                // verifyClient: OPTIONAL and the client sent no certificate, so there is nothing to validate.
+                ctx.fireChannelRead(evt);
+            } else if (event.isSuccess() && revocationVerifier
                     .verifyRevocationStatus(sslEngine.getSession().getPeerCertificates())) {
                 ctx.fireChannelRead(evt);
             } else {
@@ -63,6 +69,15 @@ public class CertificateValidationHandler extends ChannelInboundHandlerAdapter {
                 throw new SSLException("Certificate Chain Validation failed. Hence closing the channel");
             }
             ctx.fireUserEventTriggered(evt);
+        }
+    }
+
+    private boolean hasPeerCertificates() {
+        try {
+            Certificate[] certificates = sslEngine.getSession().getPeerCertificates();
+            return certificates != null && certificates.length > 0;
+        } catch (SSLPeerUnverifiedException e) {
+            return false;
         }
     }
 

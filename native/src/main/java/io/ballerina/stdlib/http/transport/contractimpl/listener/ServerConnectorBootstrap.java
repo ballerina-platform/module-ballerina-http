@@ -46,7 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 
 import javax.net.ssl.SSLContext;
 
@@ -165,10 +165,6 @@ public class ServerConnectorBootstrap {
         httpServerChannelInitializer.setCacheSize(cacheSize);
     }
 
-    public void addOcspStapling(boolean ocspStapling) {
-        httpServerChannelInitializer.setOcspStaplingEnabled(ocspStapling);
-    }
-
     public void addChunkingBehaviour(ChunkConfig chunkConfig) {
         httpServerChannelInitializer.setChunkingConfig(chunkConfig);
     }
@@ -226,11 +222,11 @@ public class ServerConnectorBootstrap {
 
        private final Logger log = LoggerFactory.getLogger(HttpServerConnector.class);
 
-        private ServerConnectorFuture serverConnectorFuture;
+        private volatile ServerConnectorFuture serverConnectorFuture;
         private String host;
         private int port;
         private String connectorID;
-        private Channel serverChannel;
+        private volatile Channel serverChannel;
 
         HttpServerConnector(String id, String host, int port) {
             this.host = host;
@@ -242,30 +238,48 @@ public class ServerConnectorBootstrap {
         @Override
         public ServerConnectorFuture start() {
             ChannelFuture channelFuture = bindInterface();
-            if (Objects.nonNull(channelFuture)) {
-                serverChannel = channelFuture.channel();
-            }
-            serverConnectorFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
+            HttpWsServerConnectorFuture startedFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
+            CountDownLatch handover = new CountDownLatch(1);
+            startedFuture.setHandoverLatch(handover);
             channelFuture.addListener(future -> {
-                if (future.isSuccess()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
+                if (!startedFuture.claimHandover()) {
+                    return;
+                }
+                try {
+                    if (future.isSuccess()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
+                        }
+                        // Switch to the new channel and future only once the port is bound, so that a concurrent
+                        // stop() of the listener that owns the port never sees a bind that is about to fail.
+                        serverChannel = channelFuture.channel();
+                        serverConnectorFuture = startedFuture;
+                        // Hand over dispatching only once the port is bound.
+                        httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
+                        startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
+                    } else {
+                        startedFuture.notifyPortBindingError(future.cause());
                     }
-                    serverConnectorFuture.notifyPortBindingEvent(this.connectorID, isHttps);
-                } else {
-                    serverConnectorFuture.notifyPortBindingError(future.cause());
+                } finally {
+                    handover.countDown();
                 }
             });
-            httpServerChannelInitializer.setServerConnectorFuture(serverConnectorFuture);
-            return serverConnectorFuture;
+            // A callback that Netty rejects because the event loop is already shut down never runs, so fail the
+            // start when the event loop terminates instead of leaving sync() waiting for the handover.
+            startedFuture.failHandoverOnTermination(channelFuture.channel().eventLoop());
+            return startedFuture;
         }
 
         @Override
         public boolean stop() {
+            return stop(gracefulStopTimeout);
+        }
+
+        private boolean stop(int stopTimeout) {
             boolean connectorStopped = false;
 
             try {
-                connectorStopped = unBindInterface();
+                connectorStopped = unBindInterface(stopTimeout);
                 if (connectorStopped) {
                     serverConnectorFuture.notifyPortUnbindingEvent(this.connectorID, isHttps);
                 }
@@ -281,8 +295,8 @@ public class ServerConnectorBootstrap {
 
         @Override
         public boolean immediateStop() {
-            setGracefulStopTimeout(0);
-            return this.stop();
+            // The zero timeout applies to this stop only; the configured gracefulStopTimeout is left untouched.
+            return stop(0);
         }
 
         @Override
@@ -315,7 +329,7 @@ public class ServerConnectorBootstrap {
             return serverBootstrap.bind(new InetSocketAddress(getHost(), getPort()));
         }
 
-        private boolean unBindInterface() throws InterruptedException {
+        private boolean unBindInterface(int stopTimeout) throws InterruptedException {
             if (!initialized) {
                 log.error("ServerConnectorBootstrap is not initialized");
                 return false;
@@ -328,7 +342,7 @@ public class ServerConnectorBootstrap {
                     //Close will stop accepting new connections.
                     listenerChannel.close().sync();
                     try {
-                        Thread.sleep(gracefulStopTimeout);
+                        Thread.sleep(stopTimeout);
                     } catch (InterruptedException e) {
                         log.warn("Couldn't complete the graceful time period");
                     }
