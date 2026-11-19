@@ -88,7 +88,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.18.2"
+version = "2.18.3"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -110,6 +110,7 @@ dependencies = [
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "oauth2"},
 	{org = "ballerina", name = "observe"},
+	{org = "ballerina", name = "scan"},
 	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "url"}
 ]
@@ -314,6 +315,14 @@ version = "1.10.3"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"}
+]
+
+[[package]]
+org = "ballerina"
+name = "scan"
+version = "1.0.0"
+modules = [
+	{org = "ballerina", packageName = "scan", moduleName = "scan"}
 ]
 
 [[package]]

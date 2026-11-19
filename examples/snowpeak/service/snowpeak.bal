@@ -15,12 +15,14 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/scan;
 import 'service.representations as rep;
 import 'service.mock;
 
 configurable int port = 9090;
 
 # A fake mountain resort
+@scan:Suppress {rules: ["ballerina/http:2"], reason: "Sample API meant to be called from a frontend served on any local origin"}
 @http:ServiceConfig { mediaTypeSubtypePrefix: "vnd.snowpeak.resort", cors: { allowOrigins: ["*"] }}
 service /snowpeak on new http:Listener(port) {
 

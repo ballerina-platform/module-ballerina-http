@@ -15,11 +15,13 @@
 // under the License.
 
 import ballerina/jballerina.java;
+import ballerina/scan;
 
 # Represents an HTTP/2 `PUSH_PROMISE` frame.
 #
 # + path - The resource path
 # + method - The HTTP method
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_CLASS], reason: "Has public mutable fields; making it isolated would break the public API"}
 public class PushPromise {
 
     public string path;

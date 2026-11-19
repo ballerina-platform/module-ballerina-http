@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/log;
+import ballerina/scan;
 import ballerina/time;
 
 isolated function getValidationResponse(HttpClient httpClient, Request req, Response cachedResponse, HttpCache cache,
@@ -70,6 +71,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
 }
 
 // Based https://tools.ietf.org/html/rfc7234#section-4.3.1
+@scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "Each header is read only after hasHeader confirms it is present"}
 isolated function sendValidationRequest(HttpClient httpClient, string httpMethod, string path, Request originalRequest,
         Response cachedResponse) returns Response|ClientError {
     // Set the precondition headers only if the user hasn't explicitly set them.

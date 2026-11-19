@@ -25,7 +25,7 @@ configurable int proxyPort = 1080;
 // authentication, so these are sent to the proxy during the handshake.
 // (SOCKS4 does not support password authentication.)
 configurable string proxyUser = "ballerina";
-configurable string proxyPassword = "ballerina";
+configurable string proxyPassword = ?;
 
 public function main() returns error? {
 

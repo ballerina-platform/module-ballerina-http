@@ -1,0 +1,4 @@
+# ballerina/http:3 reports the calls of the generated persist client, such as `self.dbClient->/owners.get()`, which are database calls, not HTTP requests.
+# Remove this once a release with the fix for https://github.com/ballerina-platform/ballerina-library/issues/9650 is out.
+[rule]
+exclude = ["ballerina/http:3"]

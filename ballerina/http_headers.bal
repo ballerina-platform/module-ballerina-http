@@ -14,7 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/scan;
+
 # Represents the headers of the inbound request.
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_CLASS], reason: "Wraps a mutable Request; making it isolated would break the public API"}
 public class Headers {
 
     private Request? request = ();

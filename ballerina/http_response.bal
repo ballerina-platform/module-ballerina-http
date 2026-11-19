@@ -18,6 +18,7 @@ import ballerina/io;
 import ballerina/lang.'string as strings;
 import ballerina/mime;
 import ballerina/crypto;
+import ballerina/scan;
 import ballerina/time;
 import ballerina/jballerina.java;
 import ballerina/log;
@@ -42,6 +43,7 @@ public type StatusCodeRecord record {|
 # + cacheControl - The cache-control directives for the response. This needs to be explicitly initialized if
 #                  intending on utilizing HTTP caching. For incoming responses, this will already be populated
 #                  if the response was sent with cache-control directives
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_CLASS], reason: "Has public mutable fields; making it isolated would break the public API"}
 public class Response {
 
     public int statusCode = 200;
@@ -476,17 +478,6 @@ public class Response {
     public isolated function setFileAsPayload(string filePath, string? contentType = ()) {
         mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
         setFile(entity, filePath, self.getContentType(), contentType);
-        self.setEntityAndUpdateContentTypeHeader(entity);
-    }
-
-    # Sets a `ByteChannel` as the payload.
-    #
-    # + payload - A `ByteChannel` through which the message payload can be read
-    # + contentType - The content type of the payload. Set this to override the default `content-type`
-    #                 header value
-    isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
-        mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        // entity.setByteChannel(payload, contentType);
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
