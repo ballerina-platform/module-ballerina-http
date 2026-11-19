@@ -305,7 +305,9 @@ isolated function addLinksToJsonPayload(map<anydata> message, map<Link> links) {
 }
 
 isolated function setPayload(anydata message, Response response, string? mediaType = (), boolean setETag = false, map<Link>? links = ()) {
-    [boolean, anydata] [isLinksAddedToPayload, payload] = addLinksToPayload(message, links);
+    // The links are not added to the payload when the media type is XML, they are only added to the `Link` header
+    [boolean, anydata] [isLinksAddedToPayload, payload] = message is map<anydata> && isXmlMediaType(mediaType) ? [false, message] :
+        addLinksToPayload(message, links);
     if !isLinksAddedToPayload {
         addLinkHeader(response, links);
     }
@@ -335,6 +337,10 @@ isolated function setPayload(anydata message, Response response, string? mediaTy
 }
 
 isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
+    if mediaType is string && payload is map<anydata> && isXmlMediaType(mediaType) {
+        setXmlRecordPayload(response, payload, mediaType, setETag);
+        return;
+    }
     match mediaType {
         mime:APPLICATION_FORM_URLENCODED => {
             map<string>|error pairs = val:cloneWithType(payload);
@@ -367,6 +373,17 @@ isolated function retrieveUrlEncodedData(map<string> message) returns string|err
         messageParams.push(entry);
     }
     return strings:'join("&", ...messageParams);
+}
+
+isolated function setXmlRecordPayload(Response response, map<anydata> payload, string mediaType, boolean setETag) {
+    xml|ClientError result = processXmlContent(payload);
+    if result is ClientError {
+        panic error InitializingOutboundResponseError(string `anydata to xml conversion error: ${result.message()}`, result);
+    }
+    response.setXmlPayload(result, mediaType);
+    if setETag {
+        response.setETag(result);
+    }
 }
 
 isolated function setJsonPayload(Response response, anydata payload, boolean setETag) {

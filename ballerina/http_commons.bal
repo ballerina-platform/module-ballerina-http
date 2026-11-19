@@ -25,6 +25,7 @@ import ballerina/log;
 import ballerina/lang.'string as strings;
 import ballerina/url;
 import ballerina/data.jsondata;
+import ballerina/data.xmldata;
 
 final boolean observabilityEnabled = observe:isObservabilityEnabled();
 
@@ -112,6 +113,14 @@ isolated function buildRequest(RequestMessage message, string? mediaType) return
     } else if message is mime:Entity[] {
         request.setBodyParts(message);
     } else if message is anydata {
+        if message is map<anydata> && isXmlMediaType(mediaType) {
+            xml|ClientError payload = processXmlContent(message);
+            if payload is ClientError {
+                return payload;
+            }
+            request.setXmlPayload(payload, mediaType);
+            return request;
+        }
         match mediaType {
             mime:APPLICATION_FORM_URLENCODED => {
                 map<string>|error pairs = val:cloneWithType(message);
@@ -145,6 +154,23 @@ isolated function processUrlEncodedContent(map<string> message) returns string|C
     } on fail var e {
         return error InitializingOutboundRequestError("content encoding error: " + e.message(), e);
     }
+}
+
+isolated function isXmlMediaType(string? mediaType) returns boolean {
+    if mediaType is () {
+        return false;
+    }
+    int? paramIndex = mediaType.indexOf(";");
+    string baseType = (paramIndex is int ? mediaType.substring(0, paramIndex) : mediaType).trim().toLowerAscii();
+    return XML_PATTERN.isFullMatch(baseType);
+}
+
+isolated function processXmlContent(map<anydata> message) returns xml|ClientError {
+    xml|error result = trap xmldata:toXml(message);
+    if result is error {
+        return error InitializingOutboundRequestError("xml conversion error: " + result.message(), result);
+    }
+    return result;
 }
 
 isolated function processJsonContent(anydata message) returns json|ClientError {

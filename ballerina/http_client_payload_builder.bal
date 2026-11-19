@@ -31,7 +31,7 @@ isolated function performDataBinding(Response response, TargetType targetType, b
         return getBuilderFromType(response, targetType, requireLaxDataBinding);
     }
     if XML_PATTERN.isFullMatch(contentType) {
-        return xmlPayloadBuilder(response, targetType);
+        return xmlPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else if TEXT_PATTERN.isFullMatch(contentType) {
         return textPayloadBuilder(response, targetType);
     } else if URL_ENCODED_PATTERN.isFullMatch(contentType) {
@@ -71,15 +71,30 @@ isolated function getBuilderFromType(Response response, TargetType targetType, b
     }
 }
 
-isolated function xmlPayloadBuilder(Response response, TargetType targetType) returns xml|ClientError? {
+isolated function xmlPayloadBuilder(Response response, TargetType targetType, boolean requireLaxDataBinding) returns anydata|ClientError {
     if targetType is typedesc<xml> {
         return response.getXmlPayload();
     } else if matchingType(targetType, xmlType) {
         xml|ClientError payload = response.getXmlPayload();
         return payload is NoContentError ? (matchingType(targetType, nilType) ? () : payload) : payload;
+    } else if isXmlBindableType(targetType) {
+        return xmlRecordPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else {
         return getCommonError(response, targetType);
     }
+}
+
+isolated function xmlRecordPayloadBuilder(Response response, typedesc targetType, boolean requireLaxDataBinding)
+        returns anydata|ClientError {
+    xml|ClientError payload = response.getXmlPayload();
+    if payload is NoContentError {
+        return matchingType(targetType, nilType) ? () : payload;
+    }
+    if payload is ClientError {
+        return payload;
+    }
+    anydata|error result = convertXmlToRecord(payload, targetType, requireLaxDataBinding);
+    return result is error ? createPayloadBindingError(result) : result;
 }
 
 isolated function textPayloadBuilder(Response response, TargetType targetType) returns string|byte[]|ClientError? {
@@ -210,4 +225,15 @@ isolated function performDataValidation(anydata payload, typedesc<anydata> targe
 
 isolated function matchingType(typedesc unionType, any targetType) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder"
+} external;
+
+isolated function isXmlBindableType(typedesc targetType) returns boolean = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.service.signature.converter.XmlToRecordConverter",
+    name: "isXmlBindableType"
+} external;
+
+isolated function convertXmlToRecord(xml payload, typedesc targetType, boolean requireLaxDataBinding)
+        returns anydata|error = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.service.signature.converter.XmlToRecordConverter",
+    name: "convertXmlToRecord"
 } external;

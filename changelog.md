@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.18.3] - 2026-11-05
 
+### Added
+
+- [Add support for binding XML payloads to record types, arrays of records and unions of records in the services and the clients, and for serializing record payloads as XML when the media type is XML, using the `ballerina/data.xmldata` package](https://github.com/ballerina-platform/ballerina-library/issues/9527)
+
 ### Fixed
 
 - [Serve the embedded OpenAPI definition when the listener port cannot be resolved at compile time](https://github.com/ballerina-platform/ballerina-library/issues/9436)

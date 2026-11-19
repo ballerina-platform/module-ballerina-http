@@ -457,8 +457,12 @@ service /backend on clientDBBackendListener {
         return {body: b};
     }
 
-    resource function 'default getErrorResponseWithErrorContentType() returns http:BadRequest {
-        return {body: {name: "hello", age: 15}, mediaType: "application/xml"};
+    resource function 'default getErrorResponseWithErrorContentType() returns http:Response {
+        // A JSON payload with an XML content type, which cannot be extracted as XML
+        http:Response res = new;
+        res.statusCode = 400;
+        res.setTextPayload("{\"name\":\"hello\",\"age\":15}", "application/xml");
+        return res;
     }
 
     resource function get getFormData1() returns http:Ok|error {
