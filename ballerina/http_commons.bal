@@ -369,6 +369,41 @@ isolated function createErrorForNoPayload(mime:Error err) returns ClientError {
     return error NoContentError("No content", err);
 }
 
+// The messages that the call's total timeout and a cancel by the caller fail a body that is still being read with
+const string CALL_TIMEOUT_EXCEEDED_MESSAGE = "Call timeout exceeded";
+const string CALL_CANCELLED_MESSAGE = "Call cancelled by the caller";
+
+// The error of a body that could not be read. A body that failed because its call ran out of time, or was cancelled,
+// fails with the error of that, which is distinct from the idle timeout, and not with a generic one.
+isolated function createBodyReadError(string message, error cause) returns ClientError {
+    CallTimeoutError|CallCancelledError? callAbortError = findCallAbortError(cause);
+    if callAbortError is error {
+        return callAbortError;
+    }
+    return error GenericClientError(message, cause);
+}
+
+// Finds the failure of a call that ran out of time, or was cancelled, in the chain of causes of an error.
+isolated function findCallAbortError(error err) returns CallTimeoutError|CallCancelledError? {
+    error? current = err;
+    while current is error {
+        if current is CallTimeoutError|CallCancelledError {
+            return current;
+        }
+        string message = current.message();
+        int? timeoutAt = message.indexOf(CALL_TIMEOUT_EXCEEDED_MESSAGE);
+        if timeoutAt is int {
+            return error CallTimeoutError(message.substring(timeoutAt), err);
+        }
+        int? cancelAt = message.indexOf(CALL_CANCELLED_MESSAGE);
+        if cancelAt is int {
+            return error CallCancelledError(message.substring(cancelAt), err);
+        }
+        current = current.cause();
+    }
+    return;
+}
+
 isolated function getStatusCodeRange(string statusCode) returns string {
     return statusCode.substring(0, 1) + STATUS_CODE_GROUP_SUFFIX;
 }

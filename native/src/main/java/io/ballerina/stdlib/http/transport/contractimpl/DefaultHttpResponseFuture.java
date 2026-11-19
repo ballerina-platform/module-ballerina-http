@@ -22,6 +22,7 @@ package io.ballerina.stdlib.http.transport.contractimpl;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.CallAbortedException;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
 import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -125,6 +126,11 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     public void notifyHttpListener(Throwable throwable) {
         responseLock.lock();
         try {
+            // The closure that follows an abort must not replace the reason the call was aborted for, but the reason
+            // itself is delivered again when a listener is set after it was reported
+            if (returnError instanceof CallAbortedException && returnError != throwable) {
+                return;
+            }
             // For HTTP1.1 we have the listener attached to BackPressureObservable inside the BackPressureHandler.
             // Whereas for HTTP2 we have the listener attached to BackPressureObservable inside the OutboundMsgHolder.
             if (backPressureObservable != null) {

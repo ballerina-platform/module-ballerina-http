@@ -335,12 +335,19 @@ isolated function performRetryAction(string path, Request request, HttpOperation
                     return backendResponse;
                 }
             } else {
+                if response is CallTimeoutError|CallCancelledError {
+                    return response;
+                }
                 [interval, currentRetryCount] =
                                 calculateEffectiveIntervalAndRetryCount(currentRetryCount, interval,
                                 backOffFactor, maxWaitInterval);
                 httpConnectorErr = response;
             }
         } else if backendResponse is ClientError {
+            // The call has run out of time, or the caller gave up on it, so another attempt is of no use
+            if backendResponse is CallTimeoutError|CallCancelledError {
+                return backendResponse;
+            }
             [interval, currentRetryCount] =
                             calculateEffectiveIntervalAndRetryCount(currentRetryCount, interval,
                             backOffFactor, maxWaitInterval);
@@ -348,9 +355,18 @@ isolated function performRetryAction(string path, Request request, HttpOperation
         } else {
             panic error ClientError("invalid response type received");
         }
-        runtime:sleep(interval);
+        runtime:sleep(boundByCallDeadline(inRequest, interval));
     }
     return httpConnectorErr;
+}
+
+// The wait between the attempts is part of the call, so it never goes past the total time of the call
+isolated function boundByCallDeadline(Request request, decimal interval) returns decimal {
+    decimal remaining = externRemainingCallTime(request);
+    if remaining >= 0d && remaining < interval {
+        return remaining;
+    }
+    return interval;
 }
 
 isolated function calculateEffectiveIntervalAndRetryCount(int currentRetryCount, decimal currentDelay,

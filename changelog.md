@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.18.3] - 2026-11-05
 
+### Added
+
+- [Add a total timeout for a client call, with the `callTimeout` client configuration and `Client.withDeadline()` to set it per call. It covers waiting for a connection, connecting, writing the request and reading the whole response, including the body read after the `http:Response` is returned, and the retries and redirects of a call share it. When it runs out, the HTTP/1.1 connection is closed and dropped from the pool, or the HTTP/2 stream is reset with `CANCEL`, and the call fails with the new `http:CallTimeoutError`](https://github.com/ballerina-platform/ballerina-library/issues/9438)
+- [Add `Client.cancel()`, which aborts a request started by `submit` by closing its HTTP/1.1 connection or resetting its HTTP/2 stream, and fails the call with the new `http:CallCancelledError`, which the circuit breaker does not count as a failure of the remote endpoint](https://github.com/ballerina-platform/ballerina-library/issues/9438)
+
 ### Fixed
 
 - [Serve the embedded OpenAPI definition when the listener port cannot be resolved at compile time](https://github.com/ballerina-platform/ballerina-library/issues/9436)
@@ -31,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Reset an HTTP/2 client stream with `CANCEL` instead of `STREAM_CLOSED` when the client gives up on it, that is on an idle timeout or when its request body fails part-way, as RFC 9113 defines `STREAM_CLOSED` for a frame received on a half-closed stream](https://github.com/ballerina-platform/ballerina-library/issues/9244)
 - [Abort a passthrough response whose backend body fails part-way, by closing the HTTP/1.1 connection or resetting the HTTP/2 stream, instead of ending the truncated body as if it were complete](https://github.com/ballerina-platform/ballerina-library/issues/9349)
 - [Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read](https://github.com/ballerina-platform/ballerina-library/issues/9267)
+- [Document which phase of a call the `timeout`, `socketConfig.connectTimeOut`, `poolConfig.waitTime` and `callTimeout` cover, and state that `timeout` is an inactivity timeout that every read and write restarts](https://github.com/ballerina-platform/ballerina-library/issues/9438)
 
 ## [2.18.1] - 2026-10-16
 

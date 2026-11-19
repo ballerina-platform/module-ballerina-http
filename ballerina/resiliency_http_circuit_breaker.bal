@@ -324,7 +324,7 @@ client isolated class CircuitBreakerClient {
                 if result is error {
                     log:printDebug("Error receiving response for circuit breaker submit operation: " + result.message());
                 }
-            } else {
+            } else if !(serviceFuture is CallCancelledError) {
                 self.updateCircuitHealthFailure();
             }
             return serviceFuture;
@@ -466,6 +466,9 @@ client isolated class CircuitBreakerClient {
             } else {
                 self.updateCircuitHealthSuccess();
             }
+            return serviceResponse;
+        } else if serviceResponse is CallCancelledError {
+            // The caller gave up on the call, which says nothing about the health of the remote endpoint
             return serviceResponse;
         } else {
             self.updateCircuitHealthFailure();

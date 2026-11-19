@@ -20,6 +20,7 @@
 package io.ballerina.stdlib.http.transport.contractimpl;
 
 import io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogMessage;
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
@@ -38,6 +39,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.sender.ConnectionAvailabi
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.BootstrapConfiguration;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2CallAborter;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientTimeoutHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ConnectionManager;
@@ -66,6 +68,13 @@ import java.security.UnrecoverableKeyException;
 import java.util.Calendar;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST;
@@ -76,6 +85,13 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 public class DefaultHttpClientConnector implements HttpClientConnector {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientConnector.class);
+    private static final AtomicInteger POOL_BORROW_THREAD_COUNT = new AtomicInteger();
+    private static final ExecutorService POOL_BORROW_EXECUTOR = Executors.newCachedThreadPool(runnable -> {
+        Thread thread = new Thread(runnable,
+                                   "ballerina-http-pool-borrow-" + POOL_BORROW_THREAD_COUNT.incrementAndGet());
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private ConnectionManager connectionManager;
     private Http2ConnectionManager http2ConnectionManager;
@@ -165,6 +181,13 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
         final HttpResponseFuture httpResponseFuture;
 
+        final CallExchange callExchange = CallExchange.begin(httpOutboundRequest,
+                                                             outboundMsgHolder.getResponseFuture());
+        if (callExchange != null && callExchange.isAborted()) {
+            // The total timeout of the call ran out before this attempt started, and the future carries the failure
+            return outboundMsgHolder.getResponseFuture();
+        }
+
         Object sourceHandlerObject = httpOutboundRequest.getProperty(Constants.SRC_HANDLER);
         SourceHandler srcHandler = null;
         Http2SourceHandler http2SourceHandler = null;
@@ -200,10 +223,16 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             if (http2) {
                 // See whether an already upgraded HTTP/2 connection is available
                 Http2ClientChannel activeHttp2ClientChannel = http2ConnectionManager.fetchChannel(route,
-                                                                                                  newConnectionAttempt);
+                        newConnectionAttempt, callExchange);
 
                 if (activeHttp2ClientChannel != null) {
                     outboundMsgHolder.setHttp2ClientChannel(activeHttp2ClientChannel);
+                    if (callExchange != null && !callExchange.bind(
+                            Http2CallAborter.forStreamOf(activeHttp2ClientChannel, outboundMsgHolder))) {
+                        // Aborted in the meantime, so the stream reserved for the request is never opened
+                        activeHttp2ClientChannel.releaseReservedStream(null);
+                        return outboundMsgHolder.getResponseFuture();
+                    }
                     setHttp2ForwardedExtension(outboundMsgHolder);
                     new RequestWriteStarter(outboundMsgHolder, activeHttp2ClientChannel).startWritingContent();
                     httpResponseFuture = outboundMsgHolder.getResponseFuture();
@@ -214,7 +243,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
             // Look for the connection from http connection manager
             TargetChannel targetChannel = borrowTargetChannel(route, srcHandler, http2SourceHandler,
-                                                              newConnectionAttempt);
+                                                              newConnectionAttempt, callExchange);
             targetChannel.setNewConnectionAttempt(newConnectionAttempt.isOpener() ? newConnectionAttempt : null,
                                                   http2ConnectionManager);
             Http2ClientChannel freshHttp2ClientChannel = targetChannel.getHttp2ClientChannel();
@@ -242,9 +271,12 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                 }
 
                 private void startExecutingOutboundRequest(String protocol, ChannelFuture channelFuture) {
+                    // The call was aborted while the connection was being made. The connection is still good for
+                    // the requests that come after it, so it joins the pool without the request being sent on it.
+                    boolean abandoned = callExchange != null && callExchange.isAborted();
                     if (protocol.equalsIgnoreCase(Constants.HTTP2_CLEARTEXT_PROTOCOL)
                             || protocol.equalsIgnoreCase(Constants.HTTP2_TLS_PROTOCOL)) {
-                        prepareTargetChannelForHttp2();
+                        prepareTargetChannelForHttp2(!abandoned);
                     } else {
                         // Response for the upgrade request will arrive in stream 1,
                         // so use 1 as the stream id.
@@ -252,7 +284,14 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                             targetChannel.reportHttp2Unavailable();
                             http2 = false;
                         }
-                        prepareTargetChannelForHttp(channelFuture);
+                        if (abandoned) {
+                            targetChannel.setChannel(channelFuture.channel());
+                            connectionManager.returnChannel(targetChannel);
+                            return;
+                        }
+                        if (!prepareTargetChannelForHttp(channelFuture)) {
+                            return;
+                        }
                         if ((protocol.equalsIgnoreCase(Constants.HTTP1_CLEARTEXT_PROTOCOL) ||
                                 protocol.equalsIgnoreCase(Constants.HTTP1_TLS_PROTOCOL)) &&
                                 senderConfiguration.getProxyServerConfiguration() != null &&
@@ -266,7 +305,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     }
                 }
 
-                private void prepareTargetChannelForHttp2() {
+                private void prepareTargetChannelForHttp2(boolean sendRequest) {
                     freshHttp2ClientChannel.setSocketIdleTimeout(socketIdleTimeout);
                     connectionManager.getHttp2ConnectionManager().addHttp2ClientChannel(route, freshHttp2ClientChannel,
                                                                                         newConnectionAttempt);
@@ -275,12 +314,18 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     freshHttp2ClientChannel.addDataEventListener(
                             Constants.IDLE_STATE_HANDLER,
                             new Http2ClientTimeoutHandler(socketIdleTimeout, freshHttp2ClientChannel));
+                    if (!sendRequest || (callExchange != null && !callExchange.bind(
+                            Http2CallAborter.forStreamOf(freshHttp2ClientChannel, outboundMsgHolder)))) {
+                        // The request is not sent, so the stream the connection kept for it is never opened
+                        freshHttp2ClientChannel.releaseReservedStream(null);
+                        return;
+                    }
                     setHttp2ForwardedExtension(outboundMsgHolder);
                     new RequestWriteStarter(outboundMsgHolder, freshHttp2ClientChannel).startWritingContent();
                     httpResponseFuture.notifyResponseHandle(new ResponseHandle(outboundMsgHolder));
                 }
 
-                private void prepareTargetChannelForHttp(ChannelFuture channelFuture) {
+                private boolean prepareTargetChannelForHttp(ChannelFuture channelFuture) {
                     // Response for the upgrade request will arrive in stream 1,
                     // so use 1 as the stream id.
                     freshHttp2ClientChannel.putInFlightMessage(Http2CodecUtil.HTTP_UPGRADE_STREAM_ID,
@@ -294,6 +339,12 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                     targetChannel.setChannel(targetNettyChannel);
                     targetChannel.configTargetHandler(httpOutboundRequest, httpResponseFuture);
+                    if (callExchange != null && !targetChannel.bindExchange(callExchange)) {
+                        // Aborted just now. The connection is in the middle of being set up for the request, so it
+                        // is closed rather than handed back as it is.
+                        targetNettyChannel.close();
+                        return false;
+                    }
                     if (!targetNettyChannel.isActive()) {
                         // Closed before the handler knew its channel, so its channelInactive could not report it
                         targetChannel.reportConnectionAttemptFailed(new ClientConnectorException(
@@ -307,6 +358,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     String localAddress =
                             ((InetSocketAddress) targetNettyChannel.localAddress()).getAddress().getHostAddress();
                     Util.setForwardedExtension(forwardedExtensionConfig, localAddress, httpOutboundRequest);
+                    return true;
                 }
 
                 private void initializeSenderReqRespStateMgr(Channel targetNettyChannel) {
@@ -341,6 +393,9 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                 @Override
                 public void onFailure(ClientConnectorException cause) {
+                    if (callExchange != null) {
+                        callExchange.end();
+                    }
                     targetChannel.reportConnectionAttemptFailed(cause);
                     httpResponseFuture.notifyHttpListener(cause);
                     httpOutboundRequest
@@ -348,6 +403,9 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                 }
             });
         } catch (Exception failedCause) {
+            if (callExchange != null) {
+                callExchange.end();
+            }
             return notifyListenerAndGetErrorResponseFuture(failedCause);
         }
         return httpResponseFuture;
@@ -355,21 +413,125 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
     private TargetChannel borrowTargetChannel(HttpRoute route, SourceHandler srcHandler,
                                               Http2SourceHandler http2SourceHandler,
-                                              NewConnectionAttempt newConnectionAttempt) throws Exception {
-        try {
-            return connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler, senderConfiguration,
-                                                         bootstrapConfig, clientEventGroup);
-        } catch (Exception e) {
-            Exception failure = e;
-            if (e instanceof NoSuchElementException && "Timeout waiting for idle object".equals(e.getMessage())) {
-                failure = new NoSuchElementException(Constants.MAXIMUM_WAIT_TIME_EXCEED, e);
+                                              NewConnectionAttempt newConnectionAttempt, CallExchange callExchange)
+            throws Exception {
+        if (callExchange == null || !callExchange.hasDeadline()) {
+            try {
+                return connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler,
+                                                             senderConfiguration, bootstrapConfig, clientEventGroup);
+            } catch (Exception e) {
+                failWaitingRequests(route, newConnectionAttempt, e);
+                return null;
             }
-            // No connection will report back, so fail the requests waiting for this one with the same error
-            ClientConnectorException waiterFailure = new ClientConnectorException(null,
-                    Objects.requireNonNullElse(failure.getMessage(), failure.toString()));
-            waiterFailure.initCause(failure);
-            http2ConnectionManager.failWaitingRequests(route, newConnectionAttempt, waiterFailure);
-            throw failure;
+        }
+        return borrowTargetChannelWithinDeadline(route, srcHandler, http2SourceHandler, newConnectionAttempt,
+                                                 callExchange);
+    }
+
+    // The pool blocks the caller while it is exhausted, for as long as its wait time, so the borrow is done on a
+    // thread of its own to let the caller give up when the total timeout of the call runs out
+    private TargetChannel borrowTargetChannelWithinDeadline(HttpRoute route, SourceHandler srcHandler,
+                                                            Http2SourceHandler http2SourceHandler,
+                                                            NewConnectionAttempt newConnectionAttempt,
+                                                            CallExchange callExchange) throws Exception {
+        PoolBorrow borrow = new PoolBorrow();
+        Future<?> task = POOL_BORROW_EXECUTOR.submit(() -> {
+            TargetChannel borrowed = null;
+            Exception failure = null;
+            try {
+                borrowed = connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler,
+                        senderConfiguration, bootstrapConfig, clientEventGroup);
+            } catch (Exception e) {
+                failure = e;
+            }
+            if (!borrow.deliver(borrowed, failure)) {
+                // The caller gave up on it
+                discardBorrowed(borrowed);
+            }
+        });
+        if (!borrow.await(callExchange.remainingNanos())) {
+            if (borrow.abandon()) {
+                task.cancel(true);
+                // This request may have been picked to open the route's new connection, which it now never opens, so
+                // each request waiting for that connection opens its own
+                http2ConnectionManager.releaseWaitingRequests(route, newConnectionAttempt);
+                throw callExchange.abortOnTimeout();
+            }
+        }
+        if (borrow.getFailure() != null) {
+            failWaitingRequests(route, newConnectionAttempt, borrow.getFailure());
+        }
+        return borrow.getChannel();
+    }
+
+    private void discardBorrowed(TargetChannel borrowed) {
+        if (borrowed == null) {
+            return;
+        }
+        try {
+            connectionManager.invalidateTargetChannel(borrowed);
+        } catch (Exception e) {
+            LOG.warn("Failed to discard a connection that was borrowed after its caller gave up: {}",
+                     e.getMessage());
+        }
+    }
+
+    // Reports the failure of the borrow to the requests waiting for the connection it was to open, and throws it, with
+    // a more telling message if the pool ran out of time
+    private void failWaitingRequests(HttpRoute route, NewConnectionAttempt newConnectionAttempt, Exception e)
+            throws Exception {
+        Exception failure = e;
+        if (e instanceof NoSuchElementException && "Timeout waiting for idle object".equals(e.getMessage())) {
+            failure = new NoSuchElementException(Constants.MAXIMUM_WAIT_TIME_EXCEED, e);
+        }
+        // No connection will report back, so fail the requests waiting for this one with the same error
+        ClientConnectorException waiterFailure = new ClientConnectorException(null,
+                Objects.requireNonNullElse(failure.getMessage(), failure.toString()));
+        waiterFailure.initCause(failure);
+        http2ConnectionManager.failWaitingRequests(route, newConnectionAttempt, waiterFailure);
+        throw failure;
+    }
+
+    /**
+     * The hand-over of a connection borrowed from the pool on another thread, which either side can end first.
+     */
+    private static final class PoolBorrow {
+
+        private enum State {
+            WAITING, DELIVERED, ABANDONED
+        }
+
+        private final CountDownLatch delivered = new CountDownLatch(1);
+        private final AtomicReference<State> state = new AtomicReference<>(State.WAITING);
+        private volatile TargetChannel channel;
+        private volatile Exception failure;
+
+        // Whether the caller took it. If it did not, the borrower must give the connection back.
+        boolean deliver(TargetChannel borrowed, Exception borrowFailure) {
+            if (!state.compareAndSet(State.WAITING, State.DELIVERED)) {
+                return false;
+            }
+            channel = borrowed;
+            failure = borrowFailure;
+            delivered.countDown();
+            return true;
+        }
+
+        boolean await(long nanos) throws InterruptedException {
+            return delivered.await(Math.max(nanos, 0), TimeUnit.NANOSECONDS);
+        }
+
+        // Whether the caller gave up, which it cannot once the borrower has delivered
+        boolean abandon() {
+            return state.compareAndSet(State.WAITING, State.ABANDONED);
+        }
+
+        TargetChannel getChannel() {
+            return channel;
+        }
+
+        Exception getFailure() {
+            return failure;
         }
     }
 

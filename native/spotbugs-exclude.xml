@@ -41,6 +41,11 @@
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
+        <!-- The failures of the connection pool are whatever the pool threw, and are passed on as they are -->
+        <Class name="io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpClientConnector" />
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" />
+    </Match>
+    <Match>
         <Class name="io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ChannelPool$PerRouteConnectionPool" />
         <Bug pattern="IS2_INCONSISTENT_SYNC" />
     </Match>

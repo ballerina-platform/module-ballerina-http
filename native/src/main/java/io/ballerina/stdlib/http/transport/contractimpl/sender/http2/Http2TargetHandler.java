@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.RequestCompleted;
@@ -41,6 +42,7 @@ import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2NoMoreStreamIdsException;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,6 +166,12 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
         }
 
         void writeContent(ChannelHandlerContext ctx, HttpContent msg) throws Http2Exception {
+            CallExchange exchange = CallExchange.of(httpOutboundRequest);
+            if (exchange != null && exchange.isAborted()) {
+                // The attempt was aborted, and its stream with it, so nothing more of the request is sent
+                ReferenceCountUtil.release(msg);
+                return;
+            }
             try {
                 if (!outboundMsgHolder.isFirstContentWritten()) {
                     httpOutboundRequest.getHttp2MessageStateContext()

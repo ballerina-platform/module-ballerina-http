@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
@@ -217,7 +218,16 @@ public class Http2ClientChannel {
             outboundMsgHolder = requestStillSending;
         }
         if (outboundMsgHolder != null) {
+            endExchange(outboundMsgHolder);
             outboundMsgHolder.getBackPressureObservable().streamFinished(outboundMsgHolder);
+        }
+    }
+
+    // The stream no longer belongs to the call that opened it, so the call can no longer abort it
+    private static void endExchange(OutboundMsgHolder outboundMsgHolder) {
+        CallExchange exchange = CallExchange.of(outboundMsgHolder.getRequest());
+        if (exchange != null) {
+            exchange.end();
         }
     }
 
@@ -346,6 +356,8 @@ public class Http2ClientChannel {
         requestsStillSending.values().forEach(
                 outboundMsgHolder -> outboundMsgHolder.getBackPressureObservable().removeListener());
         handleConnectionClose();
+        inFlightMessages.values().forEach(Http2ClientChannel::endExchange);
+        requestsStillSending.values().forEach(Http2ClientChannel::endExchange);
         this.connection.removeListener(streamCloseListener);
         inFlightMessages.clear();
         requestsStillSending.clear();

@@ -29,6 +29,7 @@ public enum HttpErrorType {
     ALL_LOAD_BALANCE_ENDPOINTS_FAILED("AllLoadBalanceEndpointsFailedError"),
     ALL_RETRY_ATTEMPTS_FAILED("AllRetryAttemptsFailed"),
     IDLE_TIMEOUT_TRIGGERED("IdleTimeoutError"),
+    CALL_TIMEOUT_EXCEEDED("CallTimeoutError"),
     LISTENER_STARTUP_FAILURE("ListenerError"),
 
     // OutboundRequestError (Client)
@@ -54,6 +55,7 @@ public enum HttpErrorType {
     WRITING_100_CONTINUE_RESPONSE_FAILED("Writing100ContinueResponseError"),
 
     // Other errors
+    CALL_CANCELLED("CallCancelledError"),
     GENERIC_CLIENT_ERROR("GenericClientError"),
     GENERIC_LISTENER_ERROR("GenericListenerError"),
     UNSUPPORTED_ACTION("UnsupportedActionError"),

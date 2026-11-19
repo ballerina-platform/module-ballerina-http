@@ -223,6 +223,14 @@ public type AllRetryAttemptsFailed distinct ResiliencyError;
 # Represents the error that triggered upon a request/response idle timeout.
 public type IdleTimeoutError distinct ResiliencyError;
 
+# Represents the error that triggered when a call did not complete within its total timeout, which is set by the
+# `callTimeout` of the client or by `Client.withDeadline()`. It is distinct from the `IdleTimeoutError`, which
+# reports a remote endpoint that stopped responding.
+public type CallTimeoutError distinct ResiliencyError;
+
+# Represents the error that a call completes with when the caller cancels it by `Client.cancel()`.
+public type CallCancelledError distinct ClientError;
+
 # Represents an error occurred in an remote function of the Load Balance connector.
 public type LoadBalanceActionError distinct ResiliencyError & error<LoadBalanceActionErrorData>;
 

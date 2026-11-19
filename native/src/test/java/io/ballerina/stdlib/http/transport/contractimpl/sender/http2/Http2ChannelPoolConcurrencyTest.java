@@ -18,12 +18,18 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.CallDeadline;
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
+import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contract.exceptions.CallTimeoutException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
+import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
+import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonRequest;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -109,6 +115,28 @@ public class Http2ChannelPoolConcurrencyTest {
         assertNull(fetch(connectionManager), "The waiting request should open its own connection");
         long waitedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
         assertTrue(waitedMillis >= 150 && waitedMillis < 5000, "Waited " + waitedMillis + "ms");
+    }
+
+    @Test(timeOut = 30000, description = "The total timeout of a call must end its wait for a new connection, "
+            + "however long the pool waits")
+    public void testWaitForNewConnectionEndsWithTheTotalTimeoutOfTheCall() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(100, 60000);
+        assertNull(fetch(connectionManager), "The first request should open the connection");
+        HttpCarbonMessage request = new HttpCarbonMessage(new DefaultHttpRequest(HttpVersion.HTTP_1_1,
+                                                                                 HttpMethod.GET, "/"));
+        request.setProperty(Constants.CALL_DEADLINE, CallDeadline.startingNow(TimeUnit.MILLISECONDS.toNanos(300)));
+        CallExchange exchange = CallExchange.begin(request, new DefaultHttpResponseFuture());
+
+        long start = System.nanoTime();
+        try {
+            connectionManager.fetchChannel(ROUTE, new NewConnectionAttempt(), exchange);
+            fail("The wait for the connection should have ended with the total timeout of the call");
+        } catch (CallTimeoutException e) {
+            assertTrue(e.getMessage().startsWith(Constants.CALL_TIMEOUT_EXCEEDED), e.getMessage());
+        }
+        long waitedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+        assertTrue(waitedMillis >= 250 && waitedMillis < 10000, "Waited " + waitedMillis + "ms");
+        assertTrue(exchange.isAborted());
     }
 
     @Test(description = "A non-positive wait time must wait for the new connection instead of skipping the wait")

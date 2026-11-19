@@ -66,6 +66,7 @@ The conforming implementation of the specification is released and included in t
             * 2.4.1.10. [Relaxed data binding client](#24110-relaxed-data-binding-client)
             * 2.4.1.11. [Proxy](#24111-proxy)
             * 2.4.1.12. [Response limits](#24112-response-limits)
+            * 2.4.1.13. [Call timeout, deadline and cancellation](#24113-call-timeout-deadline-and-cancellation)
         * 2.4.2. [Client actions](#242-client-action)
             * 2.4.2.1. [Entity body methods](#2421-entity-body-methods)
             * 2.4.2.2. [Non entity body methods](#2422-non-entity-body-methods)
@@ -1299,6 +1300,7 @@ public type ClientConfiguration record {|
     ProxyConfig? proxy = ();
     boolean validation = true;
     laxDataBinding = false;
+    decimal callTimeout = 0;
 |};
 
 public type ClientHttp1Settings record {|
@@ -1410,7 +1412,7 @@ http:Client clientEP = check new ("http://localhost:9090",
 ```
 
 The following behaviours also apply to the retry client:
-- The client `timeout` applies to each attempt separately. The worst-case duration of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times. In the current implementation, when the last attempt fails with a network-level error, the client waits once more before returning the error, which adds one more wait time to this duration ([ballerina-library#9450](https://github.com/ballerina-platform/ballerina-library/issues/9450)).
+- The client `timeout` applies to each attempt separately. The worst-case duration of a single call is roughly `(count + 1) * timeout` plus the sum of the wait times. The `callTimeout` of the client, which all the attempts and the waits between them share, bounds the duration of the call as a whole (see [Call timeout, deadline and cancellation](#24113-call-timeout-deadline-and-cancellation)), and a call that runs out of it is not retried. In the current implementation, when the last attempt fails with a network-level error, the client waits once more before returning the error, which adds one more wait time to this duration ([ballerina-library#9450](https://github.com/ballerina-platform/ballerina-library/issues/9450)).
 - Requests are retried regardless of the HTTP method, including non-idempotent methods such as `POST` and `PATCH`. Configure retrying only when the remote service can safely handle duplicate requests.
 - The request payload is built in memory before the first attempt so that it can be resent. This applies to streaming and passthrough payloads as well.
 - When `circuitBreaker` is also configured, the circuit breaker wraps the retry client. Therefore, a call and all of its retries are counted as a single request by the circuit breaker.
@@ -1596,6 +1598,70 @@ The idle `timeout` of the client keeps applying while the body arrives, and each
 
 ```ballerina
 http:Client limitedClient = check new ("http://api.example.com", responseLimits = {maxEntityBodySize: 1048576});
+```
+
+##### 2.4.1.13 Call timeout, deadline and cancellation
+
+A client has four settings that limit time, and each of them covers a different phase of a call:
+
+| Setting | Phase it covers | Fails with |
+|---|---|---|
+| `poolConfig.waitTime` | Waiting for a free connection from the pool when the pool is exhausted. For HTTP/2, it is also the wait for a connection that another request is opening. Nothing else. | `http:ClientError` |
+| `socketConfig.connectTimeOut` | Making the TCP connection. It does not cover the TLS handshake, the request or the response. | `http:GenericClientError` |
+| `timeout` | **Inactivity** while a connection or a stream is in use: writing the request, waiting for the response to start and reading its body. Every read and write restarts the period, so it never limits the total time. A response whose body arrives one byte at a time, within the `timeout` of each byte, never times out. | `http:IdleTimeoutError` |
+| `callTimeout` and `Client.withDeadline()` | The whole call, from its start until its response body has been read: waiting for a connection, making it, writing the request, and reading the response, including the body bytes that are read after the `http:Response` has been returned. It does not restart on activity. | `http:CallTimeoutError` |
+
+The other three settings apply within the call timeout. The call fails with whichever of them expires first.
+
+The `callTimeout` field of the `ClientConfiguration` sets the total time in seconds of every call of the client, and `0`, the default, means no limit. A negative value fails the creation of the client.
+
+```ballerina
+http:Client orders = check new ("http://erp.example.com", callTimeout = 30);
+```
+
+`Client.withDeadline()` returns a view of the client in which every call has the given total time instead. The view shares the connection pool, the cookies and the retry, redirect and circuit breaker state of the client it was made from, and it covers the resource and the remote methods alike, so creating one per call costs nothing. A deadline of `0` removes the limit, and a negative one panics.
+
+```ballerina
+http:Client quick = orders.withDeadline(5);
+Order[] pending = check quick->/orders(status = "pending");
+
+http:Client slow = orders.withDeadline(600);
+http:Response report = check slow->get("/reports/monthly");
+```
+
+The time starts when the call starts, and the following rules apply to it:
+
+- **All the attempts of a call share it.** The retries of the retry client and the redirects of the redirect client spend the same time, and so do the waits between retries; a wait is cut short when it would go past the end of the time. A call that has run out of its time is not retried and is not redirected.
+- **It outlives the `http:Response`.** The body of a response is read lazily, so the time keeps running until the whole body has been read, or the connection goes back to the pool or the stream closes. Reading the body after the time has run out fails with an `http:CallTimeoutError`: the payload getters of the `http:Response`, such as `getTextPayload()`, and the data binding of the client methods return it as it is, not wrapped in an `http:GenericClientError` or an `http:PayloadBindingClientError`.
+- **It aborts the exchange.** When the time runs out, an HTTP/1.1 connection is closed and dropped from the pool, so the peer sees the connection close, and an HTTP/2 stream is reset with `RST_STREAM(CANCEL)`, which leaves the connection and the other streams on it alone. The call then fails with the `http:CallTimeoutError`, which is distinct from the `http:IdleTimeoutError` that reports a peer that went idle. The outcome of the request on the remote endpoint is unknown to the caller, so a non-idempotent call that timed out should not be repeated blindly.
+- **It is safe against reuse of connections.** The time is tied to the connection or the stream while the call uses it. A call that has ended can no longer close a connection that another request has since taken from the pool.
+- **The circuit breaker counts a timed out call as a failure**, as the remote endpoint was too slow to respond within it.
+
+A call that waits for a connection from a full pool stops waiting when its time runs out, however long `poolConfig.waitTime` is.
+
+The `callTimeout` of the client and `withDeadline()` apply to the `http:Client` and the `http:StatusCodeClient`; `withDeadline()` is offered by the `http:Client` only. The failover and the load balance clients do not offer them yet.
+
+###### Cancellation
+
+An asynchronous request that `submit` started can be cancelled with the `cancel` method of the `http:Client`:
+
+```ballerina
+# Cancels a previously submitted asynchronous request.
+remote isolated function cancel(HttpFuture httpFuture) returns ClientError?;
+```
+
+Cancelling aborts the exchange in the same way as the expiry of the call's time does: the HTTP/1.1 connection is closed and dropped from the pool, or the HTTP/2 stream is reset with `CANCEL`, so the connection is released at once and not when the remote endpoint responds or goes idle. The `getResponse` of the cancelled request, or the reading of the body of its response if the response had started, fails with an `http:CallCancelledError`, in the same way as an expired call fails with the `http:CallTimeoutError`. Nothing happens if the request has already completed, and the method returns an `http:ClientError` if the future is not one that a submitted request returned. The `cancel` method is not a member of the `http:ClientObject` type.
+
+A cancelled request is not counted as a failure of the remote endpoint by the circuit breaker. When the client is configured with `retryConfig` or `circuitBreaker`, `submit` returns the future only once the response has started, as it needs the response to decide whether to retry or to count the request, so such a request cannot be cancelled before that point. Cancelling a request is a different thing from cancelling the Ballerina future of a `wait` or of a worker, which does not reach the client: only `cancel` aborts the exchange.
+
+The error types are the following:
+
+```ballerina
+# Represents the error that triggered when a call did not complete within its total timeout.
+public type CallTimeoutError distinct ResiliencyError;
+
+# Represents the error that a call completes with when the caller cancels it.
+public type CallCancelledError distinct ClientError;
 ```
 
 ##### 2.4.2. Client action
@@ -1877,6 +1943,9 @@ remote isolated function submit(string httpVerb, string path, RequestMessage mes
 
 # Passes the request to actual network call.
 remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError;
+
+# Cancels a previously submitted request, aborting its exchange. Offered by the `http:Client` only.
+remote isolated function cancel(HttpFuture httpFuture) returns ClientError?;
 
 # Passes the request to actual network call.
 remote isolated function hasPromise(HttpFuture httpFuture) returns boolean;

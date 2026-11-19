@@ -214,6 +214,18 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             new ClientRemoteFlowControlListener(upgradedHttp2ClientChannel));
     }
 
+    /**
+     * Aborts the exchange this handler serves by closing its connection. The failure is kept as the reason the
+     * connection closed, so a response or a response body that has not ended yet fails with it, rather than with the
+     * connection having been closed by the remote host.
+     *
+     * @param failure the reason the exchange is aborted
+     */
+    public void abortExchange(Throwable failure) {
+        this.cause = failure;
+        closeChannel(context);
+    }
+
     public void closeChannel(ChannelHandlerContext ctx) {
         // The if condition here checks if the connection has already been closed by either the client or the backend.
         // If it was the backend which closed the connection, the channel inactive event will be triggered and

@@ -29,7 +29,9 @@ configurable decimal timeBetweenStaleEviction = 30;
 #
 # + maxActiveConnections - Max active connections per route(host:port). Default value is -1 which indicates unlimited.
 # + maxIdleConnections - Maximum number of idle connections allowed per pool.
-# + waitTime - Maximum amount of time (in seconds), the client should wait for an idle connection before it sends an error when the pool is exhausted
+# + waitTime - Maximum amount of time (in seconds), the client should wait for an idle connection before it sends an error when the pool is exhausted.
+#              It covers only that wait, and nothing else of the call. For HTTP/2, it is also how long a request waits for
+#              a connection that another request is opening
 # + maxActiveStreamsPerConnection - Maximum active streams per connection. This only applies to HTTP/2. Default value is 100
 # + minEvictableIdleTime - Minimum evictable time for an idle connection in seconds. Default value is 5 minutes
 # + timeBetweenEvictionRuns - Time between eviction runs in seconds. Default value is 30 seconds

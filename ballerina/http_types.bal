@@ -77,7 +77,12 @@ public type CommonClientConfiguration record {|
     ClientHttp1Settings http1Settings = {};
     # HTTP/2 specific settings
     ClientHttp2Settings http2Settings = {};
-    # Maximum time(in seconds) to wait for a response before the request times out
+    # Inactivity timeout in seconds. The client waits this long for the remote endpoint to respond, and fails with an
+    # `http:IdleTimeoutError` if the connection or the stream shows no activity for that long, while the request is
+    # written, before the response starts and while its body arrives. Every read and write restarts the period, so
+    # this is not a limit on how long the whole call takes: a response whose body keeps arriving, however slowly,
+    # never times out. Use `callTimeout` to bound the total time of a call. It does not cover waiting for a connection
+    # from the pool (see `poolConfig.waitTime`) or making the connection (see `socketConfig.connectTimeOut`)
     decimal timeout = 30;
     # The choice of setting `Forwarded`/`X-Forwarded-For` header, when acting as a proxy
     string forwarded = "disable";

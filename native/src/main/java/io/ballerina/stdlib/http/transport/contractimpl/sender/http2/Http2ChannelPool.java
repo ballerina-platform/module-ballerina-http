@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -88,11 +89,15 @@ class Http2ChannelPool {
          * that waits longer than a positive pool wait time gets {@code null} and opens its own connection, so a
          * connection attempt that never reports back cannot stall the route.
          *
-         * @param attempt the caller's attempt, marked as the opener if the caller is to open the new connection
+         * @param attempt  the caller's attempt, marked as the opener if the caller is to open the new connection
+         * @param exchange the exchange of the caller's request, whose total timeout also ends the wait, or
+         *                 {@code null} if the request has none
          * @return active TargetChannel, or {@code null} if the caller should open a new connection
-         * @throws ClientConnectorException the failure of the connection attempt the caller waited for
+         * @throws ClientConnectorException the failure of the connection attempt the caller waited for, or of the
+         *                                  exchange if it is aborted during the wait
          */
-        Http2ClientChannel fetchTargetChannel(NewConnectionAttempt attempt) throws ClientConnectorException {
+        Http2ClientChannel fetchTargetChannel(NewConnectionAttempt attempt, CallExchange exchange)
+                throws ClientConnectorException {
             lock.lock();
             try {
                 long remainingNanos = maxWaitTimeNanos;
@@ -108,13 +113,24 @@ class Http2ChannelPool {
                     if (opensItsOwnConnection(attempt)) {
                         return null;
                     }
+                    if (exchange != null) {
+                        throwIfAborted(exchange);
+                    }
                     if (maxWaitTimeNanos > 0 && remainingNanos <= 0) {
                         LOG.warn("Timed out waiting for a new HTTP/2 connection, opening another connection");
                         abandonOpeningAttempt(awaited, attempt);
                         return null;
                     }
                     awaited = openingAttempt;
-                    if (maxWaitTimeNanos <= 0) {  // a non-positive wait time means wait without a limit
+                    if (exchange != null && exchange.hasDeadline()) {
+                        // The wait ends with the total timeout of the call as well, whichever comes first
+                        long waitNanos = maxWaitTimeNanos <= 0 ? exchange.remainingNanos() :
+                                Math.min(remainingNanos, exchange.remainingNanos());
+                        long left = channelAvailable.awaitNanos(Math.max(waitNanos, 0));
+                        if (maxWaitTimeNanos > 0) {
+                            remainingNanos -= Math.max(waitNanos, 0) - left;
+                        }
+                    } else if (maxWaitTimeNanos <= 0) {  // a non-positive wait time means wait without a limit
                         channelAvailable.await();
                     } else {
                         remainingNanos = channelAvailable.awaitNanos(remainingNanos);
@@ -126,6 +142,14 @@ class Http2ChannelPool {
                 return null;
             } finally {
                 lock.unlock();
+            }
+        }
+
+        // Once the total timeout of the call has run out, the caller stops waiting, and if it was the one to open
+        // the route's new connection it hands that over, so the requests waiting for it do not wait for ever
+        private void throwIfAborted(CallExchange exchange) throws ClientConnectorException {
+            if (exchange.isAborted() || exchange.remainingNanos() <= 0) {
+                throw exchange.abortOnTimeout();
             }
         }
 

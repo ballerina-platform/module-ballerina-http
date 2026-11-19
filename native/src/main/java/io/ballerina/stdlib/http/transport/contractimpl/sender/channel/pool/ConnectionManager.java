@@ -173,6 +173,8 @@ public class ConnectionManager {
     }
 
     public void returnChannel(TargetChannel targetChannel) {
+        // Before the channel can be borrowed again, so no exchange outlives its use of it
+        targetChannel.releaseExchange();
         if (targetChannel.getCorrelatedSource() != null) {
             Map<String, GenericObjectPool> objectPoolMap = getTargetPoolMap(targetChannel);
             if (objectPoolMap != null) {
@@ -200,6 +202,7 @@ public class ConnectionManager {
     }
 
     public void invalidateTargetChannel(TargetChannel targetChannel) throws Exception {
+        targetChannel.releaseExchange();
         if (targetChannel.getCorrelatedSource() != null) {
             Map<String, GenericObjectPool> objectPoolMap = getTargetPoolMap(targetChannel);
             if (objectPoolMap != null) {

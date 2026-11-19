@@ -36,6 +36,7 @@ public client isolated class StatusCodeClient {
     final HttpClient httpClient;
     private final boolean requireValidation;
     private final boolean requireLaxDataBinding;
+    private final decimal callTimeout;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -45,6 +46,10 @@ public client isolated class StatusCodeClient {
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
+        if config.callTimeout < 0d {
+            return error GenericClientError("'callTimeout' must not be negative");
+        }
+        self.callTimeout = config.callTimeout;
         self.url = url;
         var cookieConfigVal = config.cookieConfig;
         if cookieConfigVal is CookieConfig {
@@ -92,6 +97,7 @@ public client isolated class StatusCodeClient {
     private isolated function processPost(string path, RequestMessage message, typedesc<StatusCodeResponse> targetType,
             string? mediaType, map<string|string[]>? headers) returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
         if observabilityEnabled && response is Response {
@@ -134,6 +140,7 @@ public client isolated class StatusCodeClient {
     private isolated function processPut(string path, RequestMessage message, typedesc<StatusCodeResponse> targetType,
             string? mediaType, map<string|string[]>? headers) returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
         if observabilityEnabled && response is Response {
@@ -176,6 +183,7 @@ public client isolated class StatusCodeClient {
     private isolated function processPatch(string path, RequestMessage message, typedesc<StatusCodeResponse> targetType,
             string? mediaType, map<string|string[]>? headers) returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
         if observabilityEnabled && response is Response {
@@ -218,6 +226,7 @@ public client isolated class StatusCodeClient {
     private isolated function processDelete(string path, RequestMessage message, typedesc<StatusCodeResponse> targetType,
             string? mediaType, map<string|string[]>? headers) returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
         if observabilityEnabled && response is Response {
@@ -245,6 +254,7 @@ public client isolated class StatusCodeClient {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function head(string path, map<string|string[]>? headers = ()) returns Response|ClientError {
         Request req = buildRequestWithHeaders(headers);
+        applyCallDeadline(req, self.callTimeout);
         Response|ClientError response = self.httpClient->head(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_HEAD, response.statusCode, self.url);
@@ -281,6 +291,7 @@ public client isolated class StatusCodeClient {
     private isolated function processGet(string path, map<string|string[]>? headers, typedesc<StatusCodeResponse> targetType)
             returns StatusCodeResponse|ClientError {
         Request req = buildRequestWithHeaders(headers);
+        applyCallDeadline(req, self.callTimeout);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
@@ -317,6 +328,7 @@ public client isolated class StatusCodeClient {
     private isolated function processOptions(string path, map<string|string[]>? headers, typedesc<StatusCodeResponse> targetType)
             returns StatusCodeResponse|ClientError {
         Request req = buildRequestWithHeaders(headers);
+        applyCallDeadline(req, self.callTimeout);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
@@ -344,6 +356,7 @@ public client isolated class StatusCodeClient {
             typedesc<StatusCodeResponse> targetType, string? mediaType, map<string|string[]>? headers)
             returns StatusCodeResponse|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if observabilityEnabled && response is Response {
@@ -366,6 +379,7 @@ public client isolated class StatusCodeClient {
 
     private isolated function processForward(string path, Request request, typedesc<StatusCodeResponse> targetType)
             returns StatusCodeResponse|ClientError {
+        applyCallDeadline(request, self.callTimeout);
         Response|ClientError response = self.httpClient->forward(path, request);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
@@ -384,6 +398,7 @@ public client isolated class StatusCodeClient {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = check buildRequest(message, ());
+        applyCallDeadline(req, self.callTimeout);
         return self.httpClient->submit(httpVerb, path, req);
     }
 
