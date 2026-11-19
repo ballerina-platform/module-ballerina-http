@@ -20,6 +20,7 @@ import ballerina/lang.'string as strings;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/jballerina.java;
+import ballerina/scan;
 import ballerina/url;
 import ballerina/data.jsondata;
 
@@ -33,6 +34,7 @@ import ballerina/data.jsondata;
 # + cacheControl - The cache-control directives for the request. This needs to be explicitly initialized if intending
 #                  on utilizing HTTP caching.
 # + mutualSslHandshake - A record providing mutual ssl handshake results.
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_CLASS], reason: "Has public mutable fields; making it isolated would break the public API"}
 public class Request {
 
     public string rawPath = "";
@@ -509,17 +511,6 @@ public class Request {
         self.setEntityAndUpdateContentTypeHeader(entity);
     }
 
-    # Sets a `ByteChannel` as the payload.
-    #
-    # + payload - A `ByteChannel` through which the message payload can be read
-    # + contentType - The content type of the payload. Set this to override the default `content-type`
-    #                 header value
-    isolated function setByteChannel(io:ReadableByteChannel payload, string contentType = "application/octet-stream") {
-        mime:Entity entity = self.getEntityWithoutBodyAndHeaders();
-        //  entity.setByteChannel(payload, contentType);
-        self.setEntityAndUpdateContentTypeHeader(entity);
-    }
-
     # Sets a `Stream` as the payload. If the content-type header is not set then this method set content-type
     # headers with the default content-type, which is `application/octet-stream`. Any existing content-type can
     # be overridden by passing the content-type as an optional parameter.
@@ -572,6 +563,7 @@ public class Request {
     }
 
     // For use within the module. Takes the Cache-Control header and parses it to a RequestCacheControl object.
+    @scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "The header is read only after hasHeader confirms it is present"}
     isolated function parseCacheControlHeader() {
         // If the request doesn't contain a cache-control header, resort to default cache control settings
         if !self.hasHeader(CACHE_CONTROL) {

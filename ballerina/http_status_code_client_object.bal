@@ -14,7 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/scan;
+
 # The representation of the http Status Code Client object type for managing resilient clients.
+@scan:Suppress {rules: [scan:NON_ISOLATED_PUBLIC_OBJECT], reason: "Implemented by users; making it isolated would force every implementation to be isolated"}
 public type StatusCodeClientObject client object {
 
     # The client resource function to send HTTP POST requests to HTTP endpoints.

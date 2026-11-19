@@ -3,10 +3,12 @@ import petclinic.db;
 import ballerina/http;
 import ballerina/log;
 import ballerina/persist;
+import ballerina/scan;
 import ballerina/sql;
 
 configurable int port = 9966;
 
+@scan:Suppress {rules: ["ballerina/http:2"], reason: "Sample API meant to be called from a frontend served on any local origin"}
 @http:ServiceConfig {
     cors: {
         allowOrigins: ["*"],

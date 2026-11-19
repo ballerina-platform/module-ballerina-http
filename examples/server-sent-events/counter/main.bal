@@ -1,8 +1,10 @@
 import ballerina/http;
 import ballerina/lang.runtime;
+import ballerina/scan;
 
 listener http:Listener counterListener = new(8080);
 
+@scan:Suppress {rules: ["ballerina/http:2"], reason: "The demo page client.html is opened from the local file system, so its origin is not fixed"}
 @http:ServiceConfig {
     cors: {
         allowOrigins: ["*"],
