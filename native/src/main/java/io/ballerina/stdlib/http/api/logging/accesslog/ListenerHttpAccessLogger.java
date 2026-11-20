@@ -35,6 +35,7 @@ import java.util.List;
 
 import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogFormatter.formatAccessLogMessage;
 import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.getHttpAccessLogMessages;
+import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.populateCustomHeaders;
 import static io.ballerina.stdlib.http.transport.contract.Constants.ACCESS_LOG;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 
@@ -111,10 +112,7 @@ public class ListenerHttpAccessLogger implements HttpAccessLogger {
                 inboundRequestArrivalTime, method, uri, protocol, statusCode, contentLength, referrer, userAgent);
         inboundMessage.setRequestBodySize(requestBodySize);
         inboundMessage.setRequestTime(requestTime);
-        // Populate custom header attributes (http_<header-name>) from the inbound request, as done for upstream calls
-        HttpAccessLogConfig.getInstance().getCustomHeaders().forEach(customHeader ->
-                inboundMessage.putCustomHeader(customHeader, headers.contains(customHeader) ?
-                        headers.get(customHeader) : "-"));
+        populateCustomHeaders(inboundMessage, headers);
 
         List<HttpAccessLogMessage> outboundMessages = getHttpAccessLogMessages(inboundRequestMsg);
 
