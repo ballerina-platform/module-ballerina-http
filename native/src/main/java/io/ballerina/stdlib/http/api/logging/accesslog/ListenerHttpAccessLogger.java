@@ -111,6 +111,10 @@ public class ListenerHttpAccessLogger implements HttpAccessLogger {
                 inboundRequestArrivalTime, method, uri, protocol, statusCode, contentLength, referrer, userAgent);
         inboundMessage.setRequestBodySize(requestBodySize);
         inboundMessage.setRequestTime(requestTime);
+        // Populate custom header attributes (http_<header-name>) from the inbound request, as done for upstream calls
+        HttpAccessLogConfig.getInstance().getCustomHeaders().forEach(customHeader ->
+                inboundMessage.putCustomHeader(customHeader, headers.contains(customHeader) ?
+                        headers.get(customHeader) : "-"));
 
         List<HttpAccessLogMessage> outboundMessages = getHttpAccessLogMessages(inboundRequestMsg);
 
