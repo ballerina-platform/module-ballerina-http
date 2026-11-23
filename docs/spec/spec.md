@@ -918,6 +918,10 @@ resource function post 'order(Order payload) returns string {
 - A payload with a non-standard (vendor) media type that is not matched by the patterns above is not bound as XML.
   The binding type is inferred by the parameter type itself, and a record type is bound as JSON. Vendor media types
   are intentionally out of scope: bind such payloads to `xml` and convert them explicitly with `xmldata:parseAsType`.
+  This applies only to the media types that are not matched by any of the built-in patterns (e.g.
+  `application/vnd.example`). A vendor media type that is matched by the text pattern (e.g. `text/vnd.example+plain`)
+  is handled as text, hence neither a record nor an `xml` parameter is accepted for it. Bind such payloads to `string`
+  and convert them explicitly, for example, with `xmldata:parseString`.
   Returning or sending an array of records with an XML media type is not supported and is serialized as JSON.
 
 ##### 2.3.4.5. Header parameter
@@ -2072,7 +2076,9 @@ is a record, an array of records, or a union of such types (optionally with `()`
 the target type with the `xmldata:parseAsType` function of the `ballerina/data.xmldata` package, with the same
 rules as the [XML payload binding of the service](#23441-xml-payload-binding-to-records). The `xml` target type is
 not affected. A binding failure results in an `http:PayloadBindingError` and the constraint validation failure
-(when the `validation` client configuration is enabled) results in an `http:PayloadValidationError`.
+(when the `validation` client configuration is enabled) results in an `http:PayloadValidationError`. The errors
+that occur while extracting the XML payload from the response (for example, a malformed XML in the response body) are
+not binding errors, and are returned as an `http:GenericClientError`, similar to the `Response.getXmlPayload()`.
 
 ```ballerina
 Order 'order = check httpClient->/orders/'1;

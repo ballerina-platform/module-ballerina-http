@@ -175,6 +175,9 @@ public class PayloadParam implements Parameter {
                     paramFeed[index] = validateConstraints(dataSource);
             }
         } catch (BError ex) {
+            if (INTERNAL_PAYLOAD_VALIDATION_LISTENER_ERROR.getErrorName().equals(ex.getType().getName())) {
+                throw ex;
+            }
             String message = "data binding failed: " + HttpUtil.getPrintableErrorMsg(ex);
             throw HttpUtil.createHttpStatusCodeError(INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR, message);
         }

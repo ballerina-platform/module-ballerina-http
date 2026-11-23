@@ -160,14 +160,22 @@ public final class XmlToRecordConverter {
 
     private static Object convertToArray(ArrayType arrayType, BXml xml, BMap<BString, Object> options) {
         Type elementType = TypeUtils.getImpliedType(arrayType.getElementType());
-        BArray array = ValueCreator.createArrayValue(arrayType);
+        List<BXml> children = getChildElements(getRootElement(xml));
+        if (arrayType.getSize() >= 0 && arrayType.getSize() != children.size()) {
+            throw createError("array size mismatch: expected " + arrayType.getSize() + " elements, found " +
+                    children.size());
+        }
+        // A read-only array cannot be populated, hence the members are added to a mutable array which is frozen
+        // afterwards.
+        ArrayType mutableArrayType = arrayType.isReadOnly() ?
+                TypeCreator.createArrayType(arrayType.getElementType(), arrayType.getSize()) : arrayType;
+        BArray array = ValueCreator.createArrayValue(mutableArrayType);
         long index = 0;
-        for (BXml child : getChildElements(getRootElement(xml))) {
+        for (BXml child : children) {
             array.add(index++, convertToRecord(elementType, child, options));
         }
-        if (arrayType.getSize() >= 0 && arrayType.getSize() != array.size()) {
-            throw createError("array size mismatch: expected " + arrayType.getSize() + " elements, found " +
-                    array.size());
+        if (arrayType.isReadOnly()) {
+            array.freezeDirect();
         }
         return array;
     }

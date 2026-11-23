@@ -30,7 +30,7 @@ isolated function performDataBinding(Response response, TargetType targetType, b
     if contentType == "" {
         return getBuilderFromType(response, targetType, requireLaxDataBinding);
     }
-    if XML_PATTERN.isFullMatch(contentType) {
+    if isXmlMediaType(contentType) {
         return xmlPayloadBuilder(response, targetType, requireLaxDataBinding);
     } else if TEXT_PATTERN.isFullMatch(contentType) {
         return textPayloadBuilder(response, targetType);

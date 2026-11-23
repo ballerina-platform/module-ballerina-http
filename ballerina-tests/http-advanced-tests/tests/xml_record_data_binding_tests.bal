@@ -105,6 +105,14 @@ service /xmlService on xmlRecordBindingEP {
         return {kind: "PurchaseOrder[]", value: string:'join(",", ...from PurchaseOrder o in payload select o.id + ":" + o.qty.toString())};
     }
 
+    resource function post readonlyOrders(PurchaseOrder[] & readonly payload) returns XmlResponseBody {
+        return {kind: "PurchaseOrder[]", value: payload.length().toString() + ":" + payload.isReadOnly().toString()};
+    }
+
+    resource function post fixedOrders(PurchaseOrder[2] payload) returns XmlResponseBody {
+        return {kind: "PurchaseOrder[2]", value: payload[0].id + "," + payload[1].id};
+    }
+
     resource function post union(PurchaseOrder|Customer payload) returns XmlResponseBody {
         if payload is PurchaseOrder {
             return {kind: "PurchaseOrder", value: payload.id};
@@ -186,6 +194,20 @@ service /xmlService on xmlRecordBindingEP {
         return xmlResponse(xml `<PurchaseOrder><id>A1</id><qty>2</qty></PurchaseOrder>`);
     }
 
+    resource function get backend/charsetOrder() returns http:Response {
+        return xmlResponse(xml `<PurchaseOrder><id>C1</id><qty>8</qty></PurchaseOrder>`, "application/xml; charset=utf-8");
+    }
+
+    resource function get backend/upperCaseOrder() returns http:Response {
+        return xmlResponse(xml `<PurchaseOrder><id>U1</id><qty>9</qty></PurchaseOrder>`, "APPLICATION/XML");
+    }
+
+    resource function get backend/malformed() returns http:Response {
+        http:Response res = new;
+        res.setTextPayload("<PurchaseOrder><id>A1</id><qty>2</qty>", "application/xml");
+        return res;
+    }
+
     resource function get backend/orders() returns http:Response {
         return xmlResponse(xml `<orders><PurchaseOrder><id>A1</id><qty>2</qty></PurchaseOrder><PurchaseOrder><id>B2</id><qty>3</qty></PurchaseOrder></orders>`);
     }
@@ -247,6 +269,10 @@ service http:InterceptableService /xmlInterceptedService on xmlRecordBindingEP {
 
     resource function post 'order(PurchaseOrder payload) returns XmlResponseBody {
         return {kind: "PurchaseOrder", value: payload.id + ":" + payload.qty.toString()};
+    }
+
+    resource function post constrained(ConstrainedOrder payload) returns XmlResponseBody {
+        return {kind: "ConstrainedOrder", value: payload.id};
     }
 }
 
@@ -332,6 +358,26 @@ function testXmlInboundNestedArrayFieldBinding() returns error? {
     http:Response res = check postXml("/xmlService/basket",
         "<Basket><owner>Bob</owner><items><id>A1</id><qty>2</qty></items><items><id>B2</id><qty>3</qty></items></Basket>");
     check assertBody(res, "Basket", "Bob:2");
+}
+
+@test:Config {}
+function testXmlInboundReadonlyArrayBinding() returns error? {
+    http:Response res = check postXml("/xmlService/readonlyOrders",
+        "<orders><PurchaseOrder><id>A1</id><qty>2</qty></PurchaseOrder><PurchaseOrder><id>B2</id><qty>3</qty></PurchaseOrder></orders>");
+    check assertBody(res, "PurchaseOrder[]", "2:true");
+}
+
+@test:Config {}
+function testXmlInboundFixedLengthArrayBinding() returns error? {
+    http:Response res = check postXml("/xmlService/fixedOrders",
+        "<orders><PurchaseOrder><id>A1</id><qty>2</qty></PurchaseOrder><PurchaseOrder><id>B2</id><qty>3</qty></PurchaseOrder></orders>");
+    check assertBody(res, "PurchaseOrder[2]", "A1,B2");
+    res = check postXml("/xmlService/fixedOrders",
+        "<orders><PurchaseOrder><id>A1</id><qty>2</qty></PurchaseOrder></orders>");
+    check assertErrorResponse(res, 400, "array size mismatch");
+    res = check postXml("/xmlService/fixedOrders",
+        "<orders><PurchaseOrder><id>A1</id><qty>2</qty></PurchaseOrder><PurchaseOrder><id>B2</id><qty>3</qty></PurchaseOrder><PurchaseOrder><id>C3</id><qty>4</qty></PurchaseOrder></orders>");
+    check assertErrorResponse(res, 400, "array size mismatch");
 }
 
 @test:Config {}
@@ -458,6 +504,16 @@ function testXmlInboundAfterInterceptorReadPayload() returns error? {
     check assertErrorResponse(res, 400, "data binding failed");
 }
 
+@test:Config {}
+function testXmlInboundConstraintValidationFailureAfterInterceptorReadPayload() returns error? {
+    http:Response res = check postXml("/xmlInterceptedService/constrained",
+        "<ConstrainedOrder><id>A1</id><qty>1</qty></ConstrainedOrder>");
+    check assertBody(res, "ConstrainedOrder", "A1");
+    res = check postXml("/xmlInterceptedService/constrained",
+        "<ConstrainedOrder><id>A1</id><qty>0</qty></ConstrainedOrder>");
+    check assertErrorResponse(res, 400, "payload validation failed");
+}
+
 // ----------------------------------------------------------------------- service outbound
 
 @test:Config {}
@@ -553,6 +609,38 @@ function testXmlClientRecordBindingTextXml() returns error? {
 function testXmlClientRecordBindingPlusXml() returns error? {
     PurchaseOrder 'order = check xmlRecordBindingClient->/xmlService/backend/vendorOrder;
     test:assertEquals('order, {id: "V1", qty: 9});
+}
+
+@test:Config {}
+function testXmlClientRecordBindingWithCharsetAndUpperCaseMediaType() returns error? {
+    PurchaseOrder 'order = check xmlRecordBindingClient->/xmlService/backend/charsetOrder;
+    test:assertEquals('order, {id: "C1", qty: 8});
+    'order = check xmlRecordBindingClient->/xmlService/backend/upperCaseOrder;
+    test:assertEquals('order, {id: "U1", qty: 9});
+}
+
+@test:Config {}
+function testXmlClientMalformedXml() {
+    PurchaseOrder|error result = xmlRecordBindingClient->/xmlService/backend/malformed;
+    test:assertTrue(result is http:GenericClientError, "unexpected result");
+    test:assertFalse(result is http:PayloadBindingError, "unexpected result");
+}
+
+@test:Config {}
+function testXmlClientReadonlyArrayBinding() returns error? {
+    PurchaseOrder[] & readonly orders = check xmlRecordBindingClient->/xmlService/backend/orders;
+    test:assertEquals(orders, [{id: "A1", qty: 2}, {id: "B2", qty: 3}]);
+    test:assertTrue(orders.isReadOnly());
+}
+
+@test:Config {}
+function testXmlClientFixedLengthArrayBinding() returns error? {
+    PurchaseOrder[2] orders = check xmlRecordBindingClient->/xmlService/backend/orders;
+    test:assertEquals(orders, [{id: "A1", qty: 2}, {id: "B2", qty: 3}]);
+    PurchaseOrder[3]|error tooMany = xmlRecordBindingClient->/xmlService/backend/orders;
+    test:assertTrue(tooMany is http:PayloadBindingError, "unexpected result");
+    PurchaseOrder[1]|error tooFew = xmlRecordBindingClient->/xmlService/backend/orders;
+    test:assertTrue(tooFew is http:PayloadBindingError, "unexpected result");
 }
 
 @test:Config {}
