@@ -128,7 +128,7 @@ public class ServiceArtifactsExtractionTest {
     public void testServiceArtifactGenerationWithCompilationErrors() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_43");
         try {
-            executeBallerinaCommand(projectDirPath, true);
+            executeBallerinaCommand(projectDirPath, true, false);
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
             Assert.assertTrue(Files.notExists(artifactDir),
                     "Artifact directory should not be generated when compilation has errors");
@@ -197,7 +197,7 @@ public class ServiceArtifactsExtractionTest {
     public void testConfigurablePortWithRequiredValue() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_51");
         try {
-            executeBallerinaCommand(projectDirPath, true);
+            executeBallerinaCommand(projectDirPath, true, false);
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
             Path endpointsYaml = artifactDir.resolve(ENDPOINTS_FILE_NAME);
             Assert.assertFalse(Files.exists(endpointsYaml),
@@ -248,7 +248,8 @@ public class ServiceArtifactsExtractionTest {
     @Test
     public void testExtractServiceNodesWithDuplicateBasePaths() {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_44");
-        BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
+        BuildOptions options = BuildOptions.builder().setOffline(true).build();
+        BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath, options);
         Package currentPackage = project.currentPackage();
         Module module = currentPackage.getDefaultModule();
         DocumentId documentId = module.documentIds().iterator().next();
@@ -474,7 +475,7 @@ public class ServiceArtifactsExtractionTest {
     public void testServiceArtifactGenerationWithSemanticErrors() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_49");
         try {
-            executeBallerinaCommand(projectDirPath, true);
+            executeBallerinaCommand(projectDirPath, true, false);
 
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
             Assert.assertTrue(Files.notExists(artifactDir),
@@ -550,7 +551,7 @@ public class ServiceArtifactsExtractionTest {
     public void testEndpointYamlSkippedWhenNoServersDefined() throws IOException, InterruptedException {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve("sample_package_51");
         try {
-            executeBallerinaCommand(projectDirPath, true);
+            executeBallerinaCommand(projectDirPath, true, false);
 
             Path artifactDir = projectDirPath.resolve("target").resolve(ARTIFACT_DIR);
             Assert.assertTrue(Files.exists(artifactDir),
@@ -758,7 +759,9 @@ public class ServiceArtifactsExtractionTest {
     }
 
     private BuildProject loadProject(Path projectDirPath, boolean exportEndpoints) {
-        BuildOptions options = BuildOptions.builder().setExportEndpoints(exportEndpoints).build();
+        // Offline mode avoids calling Ballerina Central; see
+        // https://github.com/ballerina-platform/ballerina-lang/issues/44918 for the related flakiness.
+        BuildOptions options = BuildOptions.builder().setOffline(true).setExportEndpoints(exportEndpoints).build();
         return BuildProject.load(getEnvironmentBuilder(), projectDirPath, options);
     }
 
@@ -844,6 +847,16 @@ public class ServiceArtifactsExtractionTest {
 
     public static void executeBallerinaCommand(Path projectDirPath, boolean exportEndpoints)
             throws IOException, InterruptedException {
+        executeBallerinaCommand(projectDirPath, exportEndpoints, true);
+    }
+
+    /**
+     * Runs {@code bal build}. By default the build is expected to succeed, so that a (possibly flaky) compilation
+     * error fails the test with the build output instead of surfacing later as a missing file. Pass
+     * {@code expectSuccess = false} for projects that are expected to fail to compile.
+     */
+    public static void executeBallerinaCommand(Path projectDirPath, boolean exportEndpoints, boolean expectSuccess)
+            throws IOException, InterruptedException {
         List<String> buildArgs = new ArrayList<>();
         String balFile = "bal";
         if (System.getProperty("os.name").startsWith("Windows")) {
@@ -855,13 +868,25 @@ public class ServiceArtifactsExtractionTest {
             buildArgs.add(2, "--export-endpoints");
         }
 
-        ProcessBuilder pb = new ProcessBuilder(buildArgs)
-                .redirectErrorStream(true)
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        pb.directory(projectDirPath.toFile());
-        Process process = pb.start();
-        boolean completed = process.waitFor(2, TimeUnit.MINUTES);
-        Assert.assertTrue(completed, "bal build timed out after 2 minutes");
+        Path outputFile = Files.createTempFile("bal-build-output", ".log");
+        try {
+            ProcessBuilder pb = new ProcessBuilder(buildArgs)
+                    .redirectErrorStream(true)
+                    .redirectOutput(outputFile.toFile());
+            pb.directory(projectDirPath.toFile());
+            Process process = pb.start();
+            boolean completed = process.waitFor(2, TimeUnit.MINUTES);
+            if (!completed) {
+                process.destroyForcibly();
+            }
+            String output = Files.readString(outputFile);
+            Assert.assertTrue(completed, "bal build timed out after 2 minutes. Output:\n" + output);
+            if (expectSuccess) {
+                Assert.assertEquals(process.exitValue(), 0, "bal build failed. Output:\n" + output);
+            }
+        } finally {
+            Files.deleteIfExists(outputFile);
+        }
     }
 
     public static void assertEndpointPort(Path endpointsYaml, int expectedPort) throws IOException {

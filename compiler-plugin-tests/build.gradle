@@ -95,6 +95,10 @@ compileJava {
 }
 
 test {
+    // Mitigation for https://github.com/ballerina-platform/ballerina-lang/issues/44918: Env.typeAtom can reuse an
+    // atom index after a GC, making TypeSymbol.subtypeOf nondeterministic. A larger heap makes GC less aggressive,
+    // which reduces the flakiness. Remove once the upstream fix is picked up.
+    maxHeapSize = '2g'
     useTestNG() {
         suites 'src/test/resources/testng.xml'
     }
