@@ -21,6 +21,8 @@ import ballerina/url;
 import ballerina/mime;
 import http.httpscerr;
 import ballerina/data.jsondata;
+import ballerina/data.xmldata;
+import ballerina/log;
 
 # The caller actions for responding to client requests.
 #
@@ -376,9 +378,15 @@ isolated function retrieveUrlEncodedData(map<string> message) returns string|err
 }
 
 isolated function setXmlRecordPayload(Response response, map<anydata> payload, string mediaType, boolean setETag) {
-    xml|ClientError result = processXmlContent(payload);
-    if result is ClientError {
-        panic error InitializingOutboundResponseError(string `anydata to xml conversion error: ${result.message()}`, result);
+    xml|error result = trap xmldata:toXml(payload);
+    if result is error {
+        // The payload cannot be represented as XML (e.g., a key which is not a valid XML name), hence the caller
+        // gets a 500 response instead of a body which does not match the media type.
+        string message = string `anydata to xml conversion error: ${result.message()}`;
+        log:printError(message, result);
+        response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
+        response.setTextPayload(message);
+        return;
     }
     response.setXmlPayload(result, mediaType);
     if setETag {

@@ -1213,6 +1213,11 @@ resource function get 'order() returns @http:Payload {mediaType: "application/xm
 The other `anydata` types are not affected by the XML media type. The HATEOAS links are not added to the payload of an
 XML response, they are only added to the `Link` header.
 
+Before this support, a record or a `map<anydata>` payload with an XML media type was serialized as JSON. This also
+applies to the body of an error relayed from a backend (an `http:ApplicationResponseError`) which is returned with an
+XML media type. If the payload cannot be represented as XML (for example, a map with a key that is not a valid XML
+name), the listener logs the failure and responds with a `500` status code and a text body describing the failure.
+
 
 #### 2.3.6. OpenAPI specification resources
 

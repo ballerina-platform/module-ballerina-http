@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Add support for binding XML payloads to record types, arrays of records and unions of records in the services and the clients, and for serializing record payloads as XML when the media type is XML, using the `ballerina/data.xmldata` package](https://github.com/ballerina-platform/ballerina-library/issues/9527)
 
+### Changed
+
+- [A `map<anydata>` or a record payload (including the body of an `http:StatusCodeResponse` and of an error relayed from a backend) of a response or a request with an XML media type, such as `application/xml`, is now serialized as XML instead of JSON. A payload which cannot be represented as XML, such as a map with a key that is not a valid XML name, now results in a `500` response](https://github.com/ballerina-platform/ballerina-library/issues/9527)
+
 ### Fixed
 
 - [Serve the embedded OpenAPI definition when the listener port cannot be resolved at compile time](https://github.com/ballerina-platform/ballerina-library/issues/9436)

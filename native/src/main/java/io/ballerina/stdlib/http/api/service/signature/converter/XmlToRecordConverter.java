@@ -52,7 +52,7 @@ import java.util.List;
  * the root element, where each child element is bound to one member of the array. For a union type, the member types
  * are tried in the order of their declaration and the first successful binding is returned.
  *
- * @since 2.19.0
+ * @since 2.18.3
  */
 public final class XmlToRecordConverter {
 
@@ -200,14 +200,17 @@ public final class XmlToRecordConverter {
         if (candidates.size() == 1) {
             return convert(candidates.get(0), xml, options);
         }
+        List<String> failures = new ArrayList<>();
         for (Type candidate : candidates) {
             try {
                 return convert(candidate, xml, options);
-            } catch (BError ignored) {
+            } catch (BError error) {
                 // Try the next member type
+                failures.add("'" + candidate + "': " + error.getErrorMessage().getValue());
             }
         }
-        throw createError("cannot bind the xml payload to any member of the union type '" + unionType + "'");
+        throw createError("cannot bind the xml payload to any member of the union type '" + unionType + "' (" +
+                String.join("; ", failures) + ")");
     }
 
     private static Type getMutableType(Type type) {

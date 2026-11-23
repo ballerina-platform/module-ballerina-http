@@ -63,6 +63,20 @@ public abstract class AbstractPayloadBuilder {
      */
     public abstract Object getValue(BObject inRequestEntity, boolean readonly);
 
+    /**
+     * Checks whether the content type is an XML media type, ignoring the parameters and the casing.
+     *
+     * @param contentType the content type
+     * @return true if the content type is an XML media type
+     */
+    public static boolean isXmlMediaType(String contentType) {
+        if (contentType == null || contentType.isEmpty()) {
+            return false;
+        }
+        String baseType = HeaderUtil.getHeaderValue(contentType.toLowerCase(Locale.getDefault()).trim());
+        return baseType.matches(XML_PATTERN);
+    }
+
     public static AbstractPayloadBuilder getBuilder(String contentType, Type payloadType, boolean laxDataBinding) {
         if (contentType == null || contentType.isEmpty()) {
             return getBuilderFromType(payloadType, laxDataBinding);

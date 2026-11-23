@@ -25,8 +25,11 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.utils.XmlUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpConstants;
@@ -38,6 +41,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import io.ballerina.stdlib.mime.util.MimeConstants;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -139,19 +143,44 @@ public class PayloadParam implements Parameter {
         // Check if datasource is already available from interceptor service read
         // TODO : Validate the dataSource type with payload type and populate
         if (dataSource != null) {
-            populateFeedWithAlreadyBuiltPayload(paramFeed, inRequestEntity, index, payloadType, dataSource);
+            populateFeedWithAlreadyBuiltPayload(paramFeed, inRequestEntity, index, payloadType, dataSource,
+                    HttpUtil.getContentTypeFromTransportMessage(httpCarbonMessage));
         } else {
             populateFeedWithFreshPayload(httpCarbonMessage, paramFeed, inRequestEntity, index, payloadType);
         }
     }
 
+    /**
+     * Gets the XML value of an already built payload of a request with an XML media type. A payload which is read as
+     * text or binary is parsed to XML.
+     */
+    private static BXml getXmlDataSource(String contentType, Object dataSource) {
+        if (dataSource instanceof BXml xml) {
+            return xml;
+        }
+        if (!AbstractPayloadBuilder.isXmlMediaType(contentType)) {
+            return null;
+        }
+        if (dataSource instanceof BString text) {
+            return XmlUtils.parse(text.getValue());
+        }
+        if (dataSource instanceof BArray bytes && bytes.getElementType().getTag() == TypeTags.BYTE_TAG) {
+            return XmlUtils.parse(new String(bytes.getBytes(), StandardCharsets.UTF_8));
+        }
+        return null;
+    }
+
     private void populateFeedWithAlreadyBuiltPayload(Object[] paramFeed, BObject inRequestEntity, int index,
-                                                    Type payloadType, Object dataSource) {
+                                                    Type payloadType, Object dataSource,
+                                                    String contentType) {
         try {
-            if (dataSource instanceof BXml xmlDataSource && XmlToRecordConverter.isBindableType(payloadType)) {
-                paramFeed[index] = validateConstraints(
-                        XmlToRecordConverter.convert(payloadType, xmlDataSource, laxDataBinding, readonly));
-                return;
+            if (XmlToRecordConverter.isBindableType(payloadType)) {
+                BXml xmlDataSource = getXmlDataSource(contentType, dataSource);
+                if (xmlDataSource != null) {
+                    paramFeed[index] = validateConstraints(
+                            XmlToRecordConverter.convert(payloadType, xmlDataSource, laxDataBinding, readonly));
+                    return;
+                }
             }
             switch (payloadType.getTag()) {
                 case TypeTags.ARRAY_TAG:

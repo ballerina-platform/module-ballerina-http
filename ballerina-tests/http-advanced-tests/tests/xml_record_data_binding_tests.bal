@@ -85,6 +85,16 @@ service class XmlPayloadReadInterceptor {
     }
 }
 
+service class XmlTextReadInterceptor {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req)
+            returns http:NextService|error? {
+        _ = check req.getTextPayload();
+        return ctx.next();
+    }
+}
+
 service /xmlService on xmlRecordBindingEP {
 
     // ---------------------------------------------------------------- inbound
@@ -180,6 +190,10 @@ service /xmlService on xmlRecordBindingEP {
         return {name: "Alice"};
     }
 
+    resource function get invalidXmlNameMap() returns @http:Payload {mediaType: "application/xml"} map<string> {
+        return {"first name": "Alice"};
+    }
+
     resource function get statusCodeXml() returns http:Ok {
         return {body: <PurchaseOrder>{id: "S1", qty: 7}, mediaType: "application/xml"};
     }
@@ -273,6 +287,16 @@ service http:InterceptableService /xmlInterceptedService on xmlRecordBindingEP {
 
     resource function post constrained(ConstrainedOrder payload) returns XmlResponseBody {
         return {kind: "ConstrainedOrder", value: payload.id};
+    }
+}
+
+service http:InterceptableService /xmlTextInterceptedService on xmlRecordBindingEP {
+    public function createInterceptors() returns http:RequestInterceptor[] {
+        return [new XmlTextReadInterceptor()];
+    }
+
+    resource function post 'order(PurchaseOrder payload) returns XmlResponseBody {
+        return {kind: "PurchaseOrder", value: payload.id + ":" + payload.qty.toString()};
     }
 }
 
@@ -514,7 +538,32 @@ function testXmlInboundConstraintValidationFailureAfterInterceptorReadPayload() 
     check assertErrorResponse(res, 400, "payload validation failed");
 }
 
+@test:Config {}
+function testXmlInboundAfterInterceptorReadPayloadAsText() returns error? {
+    http:Response res = check postXml("/xmlTextInterceptedService/order",
+        "<PurchaseOrder><id>T1</id><qty>8</qty></PurchaseOrder>");
+    check assertBody(res, "PurchaseOrder", "T1:8");
+    res = check postXml("/xmlTextInterceptedService/order", "<PurchaseOrder><id>T1</id></PurchaseOrder>");
+    check assertErrorResponse(res, 400, "data binding failed");
+}
+
+@test:Config {}
+function testXmlInboundUnionBindingNoMatchReportsTheMemberErrors() returns error? {
+    http:Response res = check postXml("/xmlService/union", "<PurchaseOrder><id>A1</id><qty>abc</qty></PurchaseOrder>");
+    check assertErrorResponse(res, 400, "'abc' cannot be converted to 'int'");
+}
+
 // ----------------------------------------------------------------------- service outbound
+
+@test:Config {}
+function testXmlOutboundMapWithInvalidXmlName() returns error? {
+    http:Response res = check xmlRecordBindingClient->/xmlService/invalidXmlNameMap;
+    test:assertEquals(res.statusCode, 500);
+    string message = check res.getTextPayload();
+    test:assertTrue(message.startsWith("anydata to xml conversion error:"), "unexpected message: " + message);
+    test:assertFalse(message.includes("xml conversion error: anydata"), "unexpected message: " + message);
+    test:assertEquals(message.indexOf("conversion error:"), message.lastIndexOf("conversion error:"), "doubled prefix: " + message);
+}
 
 @test:Config {}
 function testXmlOutboundRecord() returns error? {
