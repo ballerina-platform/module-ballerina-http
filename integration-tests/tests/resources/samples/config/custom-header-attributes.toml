@@ -1,0 +1,6 @@
+[ballerina.http.accessLogConfig]
+format = "flat"
+attributes = ["ip", "request", "status", "http_x-request-id"]
+
+[ballerina.http.accessLogConfig.file]
+path = "./build/tmp/output/custom-header-access.log"

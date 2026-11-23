@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2026/11/10   
+_Updated_: 2026/11/20   
 _Edition_: Swan Lake
 
 
@@ -3155,6 +3155,18 @@ This allows for tailored logging that can focus on particular details relevant t
 |    http_user_agent     |                                 User-Agent header, identifying the client software                                 |
 |  http_x_forwarded_for  |                                      Originating IP address if using a proxy                                       |
 | http_(X-Custom-Header) | Header fields. Referring to them with `http` followed by the header name. (`x-request-id` ->; `http_x-request-id`) |
+
+Custom header attributes are logged for the request received by the service and for each upstream request the
+service makes. The values of a header that is sent more than once are joined with commas, and a header that is not
+present is logged as `-`.
+
+> **Note:**
+> - A custom header attribute must use the header's actual name after `http_`, including its hyphens. For example, use
+>   `http_x-request-id` for the `x-request-id` header, not `http_x_request_id`. Header names are not case-sensitive.
+>   Only the built-in attributes, such as `http_user_agent` and `http_x_forwarded_for`, use underscores in place of
+>   hyphens.
+> - Header values are logged as they are received. Do not configure headers that carry sensitive data, such as
+>   `http_authorization` or `http_cookie`, as custom header attributes.
 
 ##### 8.2.4.1 Access log rotation
 Access log rotation helps manage log file sizes by automatically creating backup files when certain conditions are met. This prevents log files from growing indefinitely and consuming excessive disk space.
