@@ -41,6 +41,7 @@ import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMe
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 /**
@@ -81,9 +82,12 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
             readSemaphore.acquire();
             // The listener callbacks are invoked asynchronously by the client's event loop, so wait for each of them
             // (this also guarantees the visibility of the results) before reading the results.
-            latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
-            latch3.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
+            assertTrue(latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
+                    "Timed out waiting for the response of stream 3");
+            assertTrue(latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
+                    "Timed out waiting for the response of stream 5");
+            assertTrue(latch3.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
+                    "Timed out waiting for the response of stream 7");
             assertEquals(getErrorResponseMessage(msgListener1),
                     Constants.REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
             assertEquals(getResponseMessage(msgListener2), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05);
