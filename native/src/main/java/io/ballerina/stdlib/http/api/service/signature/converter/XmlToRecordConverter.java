@@ -23,6 +23,7 @@ import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeTags;
@@ -141,6 +142,15 @@ public final class XmlToRecordConverter {
     }
 
     private static Object convert(Type type, BXml xml, BMap<BString, Object> options) {
+        Type mutableType = getMutableType(type);
+        if (mutableType != type) {
+            // A read-only type cannot be populated, hence the value is bound to the mutable type and frozen
+            Object result = convert(mutableType, xml, options);
+            if (result instanceof BRefValue refValue) {
+                refValue.freezeDirect();
+            }
+            return result;
+        }
         Type impliedType = TypeUtils.getImpliedType(type);
         return switch (impliedType.getTag()) {
             case TypeTags.RECORD_TYPE_TAG -> convertToRecord(impliedType, xml, options);
@@ -198,6 +208,17 @@ public final class XmlToRecordConverter {
             }
         }
         throw createError("cannot bind the xml payload to any member of the union type '" + unionType + "'");
+    }
+
+    private static Type getMutableType(Type type) {
+        if (type instanceof IntersectionType intersectionType) {
+            for (Type constituentType : intersectionType.getConstituentTypes()) {
+                if (constituentType.getTag() != TypeTags.READONLY_TAG) {
+                    return constituentType;
+                }
+            }
+        }
+        return type;
     }
 
     private static BXml getRootElement(BXml xml) {
