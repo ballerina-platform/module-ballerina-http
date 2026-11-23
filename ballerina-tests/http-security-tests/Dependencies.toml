@@ -79,7 +79,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.18.2"
+version = "2.18.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -113,11 +113,12 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_security_tests"
-version = "2.18.2"
+version = "2.18.3"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "http_test_common"},
+	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "jwt"},
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "oauth2"},
@@ -131,7 +132,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http_test_common"
-version = "2.18.2"
+version = "2.18.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "http"},
@@ -163,6 +164,9 @@ org = "ballerina"
 name = "jballerina.java"
 version = "0.0.0"
 scope = "testOnly"
+modules = [
+	{org = "ballerina", packageName = "jballerina.java", moduleName = "jballerina.java"}
+]
 
 [[package]]
 org = "ballerina"
