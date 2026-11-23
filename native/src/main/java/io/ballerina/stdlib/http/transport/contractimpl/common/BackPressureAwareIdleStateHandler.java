@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
@@ -179,7 +178,9 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         // definition: the peer has to be given a full period to answer the read only now being reissued to it.
         private volatile long lastResumeTimeNanos;
         private final AtomicBoolean suspensionSeen = new AtomicBoolean();
-        private final AtomicLong stallStartTimeNanos = new AtomicLong();
+        // null while not stalled. Kept separate from the timestamp because a tick of 0 (or a negative one) is a
+        // perfectly valid reading of a Netty ticker, so no timestamp value can double as "no stall".
+        private final AtomicReference<Long> stallStartTimeNanos = new AtomicReference<>();
         private final AtomicReference<ScheduledFuture<?>> stallLimitRecheckTask = new AtomicReference<>();
 
         InboundReadState(Channel channel) {
@@ -253,7 +254,7 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         }
 
         private void clearStall() {
-            stallStartTimeNanos.set(0);
+            stallStartTimeNanos.set(null);
             cancelStallLimitRecheck();
         }
 
@@ -285,8 +286,13 @@ public class BackPressureAwareIdleStateHandler extends IdleStateHandler {
         // Marks the channel as stalled if it was not already, and returns when the stall began; compareAndSet
         // keeps the original start time so the allowance covers the whole stall, not just the latest check.
         long recordStall() {
-            long now = now();
-            return stallStartTimeNanos.compareAndSet(0, now) ? now : stallStartTimeNanos.get();
+            Long now = now();
+            if (stallStartTimeNanos.compareAndSet(null, now)) {
+                return now;
+            }
+            Long start = stallStartTimeNanos.get();
+            // Null only if the stall was cleared in the meantime, in which case it begins now.
+            return start != null ? start : now;
         }
     }
 }

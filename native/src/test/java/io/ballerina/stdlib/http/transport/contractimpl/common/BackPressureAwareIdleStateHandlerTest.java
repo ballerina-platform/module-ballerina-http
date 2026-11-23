@@ -252,6 +252,36 @@ public class BackPressureAwareIdleStateHandlerTest {
         }
     }
 
+    @Test(description = "A stall that begins when the ticker reads exactly 0 - a valid reading of a Netty ticker - "
+            + "must still be remembered as having begun then, not mistaken for no stall at all and restarted "
+            + "by the recheck")
+    public void testStallBeginningAtTickerZeroIsNotRestartedByTheRecheck() throws Exception {
+        Util.setMaxBackPressureStallTime(MAX_STALL_SECONDS);
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = new EmbeddedChannel();
+        channel.freezeTime();
+        // Put the ticker at -IDLE_TIMEOUT_MILLIS, so the first idle check, one idle period later, runs at 0.
+        channel.advanceTimeBy(-channel.eventLoop().ticker().nanoTime() - TimeUnit.MILLISECONDS.toNanos(
+                IDLE_TIMEOUT_MILLIS), TimeUnit.NANOSECONDS);
+        elapsedMillis = 0;
+        channel.pipeline().addLast(
+                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        try {
+            BackPressureAwareIdleStateHandler.trackInboundReads(channel, new Object(), () -> true);
+
+            pollFor(channel, IDLE_TIMEOUT_MILLIS);
+            assertTrue(channel.eventLoop().ticker().nanoTime() == 0, "The first idle check did not run at tick 0");
+            assertTrue(recorder.events.isEmpty(), "Idle event fired before the stall allowance even began");
+
+            pollFor(channel, STALL_MILLIS + MARGIN_MILLIS);
+
+            assertTrue(!recorder.events.isEmpty(),
+                       "Stall was not reclaimed - a stall that began at tick 0 was restarted by the recheck");
+        } finally {
+            channel.finishAndReleaseAll();
+        }
+    }
+
     // The channel's clock is frozen before the handler is added, so the handler and the superclass it extends read
     // the same mock ticker from the event loop from the very start, and time only moves when the test moves it.
     // That makes every timing below exact, instead of depending on how long the test thread happens to sleep.
