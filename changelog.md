@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - [Fix the access log writing `-` for the custom header (`http_<header-name>`) attributes of a listener's entry, even when the request has the header, and logging only the first value of a header that is sent more than once](https://github.com/ballerina-platform/ballerina-library/issues/9613)
 - [Update the bundled Netty libraries to 4.1.137.Final and lz4-java to 1.11.4](https://github.com/ballerina-platform/ballerina-library/issues/9645)
+- [Update the bundled Bouncy Castle libraries to 1.85 to fix CVE-2026-8763 and CVE-2026-13506](https://github.com/ballerina-platform/ballerina-library/issues/9645)
 
 ## [2.14.13] - 2026-07-27
 
