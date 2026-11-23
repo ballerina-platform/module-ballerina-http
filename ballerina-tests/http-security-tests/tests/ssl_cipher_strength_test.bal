@@ -59,7 +59,7 @@ http:ListenerConfiguration weakCipherConfig = {
                 password: "ballerina"
             }
         },
-        ciphers: ["TLS_RSA_WITH_AES_128_CBC_SHA"]
+        ciphers: ["TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"]
     }
 };
 
@@ -94,7 +94,7 @@ public function testWithStrongClientWithWeakService() returns error? {
     if resp is http:Response {
         test:assertFail(msg = "Found unexpected output: Expected an error");
     } else {
-        test:assertEquals(resp.message(), "SSL connection failed:Received fatal alert: handshake_failure localhost/127.0.0.1:9227");
+        test:assertEquals(resp.message(), "SSL connection failed:(handshake_failure) Received fatal alert: handshake_failure localhost/127.0.0.1:9227");
     }
 }
 
