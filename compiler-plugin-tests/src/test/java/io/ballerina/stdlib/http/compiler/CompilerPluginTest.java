@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.compiler;
 
+import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.CodeModifierResult;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.DocumentId;
@@ -86,7 +87,9 @@ public class CompilerPluginTest {
 
     private Package loadPackage(String path) {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve(path);
-        BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
+        // Offline mode avoids calling Ballerina Central on each in-process load, which also speeds up the tests.
+        BuildOptions options = BuildOptions.builder().setOffline(true).build();
+        BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath, options);
         return project.currentPackage();
     }
 
