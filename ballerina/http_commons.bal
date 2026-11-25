@@ -449,9 +449,16 @@ isolated function createFailoverRequest(Request request, mime:Entity requestEnti
         Request newOutRequest = new;
         populateRequestFields(request, newOutRequest);
         newOutRequest.setEntity(requestEntity);
+        newOutRequest.noEntityBody = request.noEntityBody;
+        copyHostHeaderFlag(request, newOutRequest);
         return newOutRequest;
     }
 }
+
+// Keeps a `Host` header set by the caller from being overwritten with the host of the target.
+isolated function copyHostHeaderFlag(Request originalRequest, Request newRequest) = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternHeaders"
+} external;
 
 isolated function getInvalidTypeError() returns ClientError {
     return error GenericClientError("Invalid return type found for the HTTP operation");

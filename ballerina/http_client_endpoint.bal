@@ -651,6 +651,9 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
 isolated function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var retryConfig = configuration.retryConfig;
     if retryConfig is RetryConfig {
+        if retryConfig.count < 0 {
+            return error GenericClientError("Retry 'count' value should not be negative.");
+        }
         RetryInferredConfig retryInferredConfig = {
             count: retryConfig.count,
             interval: retryConfig.interval,
