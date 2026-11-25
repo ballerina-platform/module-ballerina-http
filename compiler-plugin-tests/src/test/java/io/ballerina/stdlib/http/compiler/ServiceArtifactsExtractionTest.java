@@ -60,6 +60,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -759,8 +760,7 @@ public class ServiceArtifactsExtractionTest {
     }
 
     private BuildProject loadProject(Path projectDirPath, boolean exportEndpoints) {
-        // Offline mode avoids calling Ballerina Central; see
-        // https://github.com/ballerina-platform/ballerina-lang/issues/44918 for the related flakiness.
+        // Offline mode avoids calling Ballerina Central on each in-process load.
         BuildOptions options = BuildOptions.builder().setOffline(true).setExportEndpoints(exportEndpoints).build();
         return BuildProject.load(getEnvironmentBuilder(), projectDirPath, options);
     }
@@ -877,15 +877,37 @@ public class ServiceArtifactsExtractionTest {
             Process process = pb.start();
             boolean completed = process.waitFor(2, TimeUnit.MINUTES);
             if (!completed) {
-                process.destroyForcibly();
+                destroyProcessTree(process);
             }
-            String output = Files.readString(outputFile);
+            // Decoded leniently, so that bytes in an unexpected encoding cannot hide the real failure
+            String output = new String(Files.readAllBytes(outputFile), Charset.defaultCharset());
+            System.out.print(output);
             Assert.assertTrue(completed, "bal build timed out after 2 minutes. Output:\n" + output);
             if (expectSuccess) {
                 Assert.assertEquals(process.exitValue(), 0, "bal build failed. Output:\n" + output);
+            } else {
+                Assert.assertNotEquals(process.exitValue(), 0,
+                        "bal build was expected to fail. Output:\n" + output);
             }
         } finally {
-            Files.deleteIfExists(outputFile);
+            deleteQuietly(outputFile);
+        }
+    }
+
+    // The launcher script starts the compiler in a child process, which has to be stopped as well
+    private static void destroyProcessTree(Process process) throws InterruptedException {
+        List<ProcessHandle> descendants = process.descendants().toList();
+        process.destroyForcibly();
+        descendants.forEach(ProcessHandle::destroyForcibly);
+        process.waitFor(30, TimeUnit.SECONDS);
+    }
+
+    // A failure to delete the log must not replace the failure of the test
+    private static void deleteQuietly(Path file) {
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            file.toFile().deleteOnExit();
         }
     }
 

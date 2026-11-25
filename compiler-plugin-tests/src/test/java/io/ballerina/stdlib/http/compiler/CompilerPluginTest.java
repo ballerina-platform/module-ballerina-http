@@ -87,8 +87,7 @@ public class CompilerPluginTest {
 
     private Package loadPackage(String path) {
         Path projectDirPath = RESOURCE_DIRECTORY.resolve(path);
-        // Offline mode avoids calling Ballerina Central on each load, which also speeds up the tests. See
-        // https://github.com/ballerina-platform/ballerina-lang/issues/44918 for the related GC-dependent flakiness.
+        // Offline mode avoids calling Ballerina Central on each in-process load, which also speeds up the tests.
         BuildOptions options = BuildOptions.builder().setOffline(true).build();
         BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath, options);
         return project.currentPackage();
