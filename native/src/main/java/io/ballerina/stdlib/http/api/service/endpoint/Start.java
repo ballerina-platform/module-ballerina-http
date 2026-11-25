@@ -71,19 +71,23 @@ public class Start extends AbstractHttpNativeFunction {
                                                    getHttpInterceptorServicesRegistries(serviceEndpoint),
                                                    serviceEndpoint.getNativeData(HttpConstants.INTERCEPTORS));
         serviceEndpoint.addNativeData(SERVER_CONNECTOR_FUTURE, serverConnectorFuture);
-        HttpConnectorPortBindingListener portBindingListener = new HttpConnectorPortBindingListener();
+        HttpConnectorPortBindingListener portBindingListener = new HttpConnectorPortBindingListener(serviceEndpoint);
         serverConnectorFuture.setHttpConnectorListener(httpListener);
+        // Lets a stop that arrives while the port is being bound cancel this start
+        serviceEndpoint.addNativeData(HttpConstants.PENDING_CONNECTOR_START, serverConnectorFuture);
         serverConnectorFuture.setPortBindingEventListener(portBindingListener);
 
         try {
             serverConnectorFuture.sync();
         } catch (Exception ex) {
+            serviceEndpoint.addNativeData(HttpConstants.PENDING_CONNECTOR_START, null);
             throw HttpUtil.createHttpError("failed to start server connector '"
                     + serverConnector.getConnectorID()
                             + "': " + ex.getMessage(), HttpErrorType.LISTENER_STARTUP_FAILURE);
         }
 
         serviceEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, true);
+        serviceEndpoint.addNativeData(HttpConstants.PENDING_CONNECTOR_START, null);
         return null;
     }
 

@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 
 /**
  * Unbind the the listening port immediately and stop accepting new connection.
@@ -31,7 +32,7 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 public class GracefulStop extends AbstractHttpNativeFunction {
     public static Object gracefulStop(BObject serverEndpoint) {
         try {
-            getServerConnector(serverEndpoint).stop();
+            stopConnector(serverEndpoint, ServerConnector::stop);
             serverEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, false);
             resetRegistry(serverEndpoint);
         } catch (Exception ex) {

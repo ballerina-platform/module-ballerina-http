@@ -171,6 +171,10 @@ public class SslConfiguration {
         sslConfig.setHandshakeTimeOut(handshakeTimeOut);
     }
 
+    public void setNamedGroups(String[] namedGroups) {
+        sslConfig.setNamedGroups(namedGroups);
+    }
+
     public void setSslContext(SslContext sslContext) {
         sslConfig.setSslContext(sslContext);
     }
@@ -225,7 +229,7 @@ public class SslConfiguration {
                     sslConfig.setServerNames(parameter.getValue());
                     break;
                 case SERVER_ENABLE_SESSION_CREATION:
-                    sslConfig.setEnableSessionCreation(Boolean.parseBoolean(parameter.getValue()));
+                    sslConfig.setShareSession(Boolean.parseBoolean(parameter.getValue()));
                     break;
                 default:
                     //do nothing
@@ -285,7 +289,7 @@ public class SslConfiguration {
                         sslConfig.setEnableProtocols(parameter.getValue());
                         break;
                     case CLIENT_ENABLE_SESSION_CREATION:
-                        sslConfig.setEnableSessionCreation(Boolean.parseBoolean(parameter.getValue()));
+                        sslConfig.setShareSession(Boolean.parseBoolean(parameter.getValue()));
                         break;
                     case SNI_SERVER_NAME:
                         sslConfig.setSniHostName(parameter.getValue());

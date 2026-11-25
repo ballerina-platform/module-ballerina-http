@@ -391,6 +391,7 @@ public final class HttpConstants {
     public static final String HTTP_SERVER_CONNECTOR = "HTTP_SERVER_CONNECTOR";
     public static final String HTTP_SERVICE_REGISTRY = "HTTP_SERVICE_REGISTRY";
     public static final String CONNECTOR_STARTED = "CONNECTOR_STARTED";
+    public static final String PENDING_CONNECTOR_START = "PENDING_CONNECTOR_START";
     public static final String ABSOLUTE_RESOURCE_PATH = "ABSOLUTE_RESOURCE_PATH";
 
     //HTTP Interceptor
@@ -475,7 +476,7 @@ public final class HttpConstants {
     public static final BString SECURESOCKET_CONFIG_PROTOCOL_NAME = StringUtils.fromString("name");
     public static final BString SECURESOCKET_CONFIG_PROTOCOL_VERSIONS = StringUtils.fromString("versions");
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION = StringUtils.fromString("certValidation");
-    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE = StringUtils.fromString("cacheSize");
+    public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_TYPE = StringUtils.fromString("type");
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_SIZE = StringUtils.fromString("cacheSize");
     public static final BString SECURESOCKET_CONFIG_CERT_VALIDATION_CACHE_VALIDITY_PERIOD =
             StringUtils.fromString("cacheValidityPeriod");

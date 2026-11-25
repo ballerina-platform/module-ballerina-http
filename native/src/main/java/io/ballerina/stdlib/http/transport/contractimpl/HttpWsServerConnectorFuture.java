@@ -28,6 +28,13 @@ import io.ballerina.stdlib.http.transport.message.Http2PushPromise;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.group.ChannelGroup;
+import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.internal.PlatformDependent;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Server connector future implementation.
@@ -41,11 +48,28 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     private ChannelFuture nettyBindFuture;
     private ChannelGroup allChannels;
 
-    private String openingServerConnectorId;
-    private boolean isOpeningSCHttps;
-    private String closingServerConnectorId;
-    private boolean isClosingSCHttps;
-    private Throwable connectorInitException;
+    private volatile String openingServerConnectorId;
+    private volatile boolean isOpeningSCHttps;
+    private volatile String closingServerConnectorId;
+    private volatile boolean isClosingSCHttps;
+    private volatile Throwable connectorInitException;
+    private volatile CountDownLatch handoverLatch;
+    private final AtomicBoolean handoverClaimed = new AtomicBoolean();
+    private volatile Throwable handoverFailure;
+    private EventExecutor terminatingExecutor;
+    private GenericFutureListener<Future<Object>> terminationListener;
+    private boolean published;
+    private boolean cancelRequested;
+
+    /**
+     * The state a start was in when its cancellation was requested.
+     */
+    public enum CancelResult {
+        // The bind is still pending, and the port is closed as soon as it is bound
+        CANCELLED,
+        // The port is already bound and serving, hence the connector has to be stopped
+        PUBLISHED
+    }
 
     public HttpWsServerConnectorFuture() {
     }
@@ -89,9 +113,124 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
         httpConnectorListener.onPushPromise(pushPromise);
     }
 
+    /**
+     * Makes {@link #sync()} wait until the bind callback has handed over the request dispatching.
+     *
+     * @param handoverLatch counted down by the bind callback
+     */
+    public void setHandoverLatch(CountDownLatch handoverLatch) {
+        this.handoverLatch = handoverLatch;
+    }
+
+    /**
+     * Claims the right to run the bind callback. Either the bind callback or the termination of the event loop gets
+     * it, never both, so the handover latch is counted down exactly once.
+     *
+     * @return true if the caller owns the handover
+     */
+    public boolean claimHandover() {
+        return handoverClaimed.compareAndSet(false, true);
+    }
+
+    /**
+     * Fails the start if the event loop terminates before the bind callback has run. Netty does not run a callback
+     * that is rejected by a shut down event loop, so without this {@link #sync()} would wait for it forever.
+     * This has to be called before the bind callback is added, which releases the registration with
+     * {@link #releaseTerminationListener()}.
+     *
+     * @param executor the event loop that runs the bind callback
+     */
+    @SuppressWarnings("unchecked")
+    public void failHandoverOnTermination(EventExecutor executor) {
+        GenericFutureListener<Future<Object>> listener = terminated -> {
+            if (claimHandover()) {
+                try {
+                    handoverFailure = new ServerConnectorException("The event loop was shut down before the " +
+                            "listener finished starting");
+                    notifyPortBindingError(handoverFailure);
+                } finally {
+                    CountDownLatch latch = this.handoverLatch;
+                    if (latch != null) {
+                        latch.countDown();
+                    }
+                }
+            }
+        };
+        synchronized (this) {
+            terminatingExecutor = executor;
+            terminationListener = listener;
+        }
+        ((Future<Object>) executor.terminationFuture()).addListener(listener);
+    }
+
+    /**
+     * Removes the listener added by {@link #failHandoverOnTermination(EventExecutor)}. The event loop outlives the
+     * listeners started on it, so the registration would keep this future reachable.
+     */
+    @SuppressWarnings("unchecked")
+    public void releaseTerminationListener() {
+        EventExecutor executor;
+        GenericFutureListener<Future<Object>> listener;
+        synchronized (this) {
+            executor = terminatingExecutor;
+            listener = terminationListener;
+            terminatingExecutor = null;
+            terminationListener = null;
+        }
+        if (executor != null) {
+            ((Future<Object>) executor.terminationFuture()).removeListener(listener);
+        }
+    }
+
+    /**
+     * Runs the given action, which starts serving the bound port, unless the start has been cancelled.
+     *
+     * @param publisher the action that starts serving the port
+     * @return false if the start was cancelled, in which case the action is not run
+     */
+    public synchronized boolean publish(Runnable publisher) {
+        if (cancelRequested) {
+            return false;
+        }
+        publisher.run();
+        published = true;
+        return true;
+    }
+
+    /**
+     * Requests the cancellation of a start, for a stop that arrives while the port is being bound.
+     *
+     * @return whether the start was cancelled, or the port is already being served
+     */
+    public synchronized CancelResult cancelStart() {
+        if (published) {
+            return CancelResult.PUBLISHED;
+        }
+        cancelRequested = true;
+        return CancelResult.CANCELLED;
+    }
+
+    /**
+     * Fails the start, so that {@link #sync()} throws the given failure.
+     *
+     * @param failure the reason for the failure
+     */
+    public void failStart(Throwable failure) {
+        handoverFailure = failure;
+        notifyPortBindingError(failure);
+    }
+
     @Override
     public void sync() throws InterruptedException {
         ChannelFuture bindFuture = nettyBindFuture.sync();
+        CountDownLatch latch = this.handoverLatch;
+        if (latch != null) {
+            latch.await();
+        }
+        Throwable failure = this.handoverFailure;
+        if (failure != null) {
+            PlatformDependent.throwException(failure);
+        }
         if (this.allChannels != null && bindFuture.channel() != null) {
             this.allChannels.add(bindFuture.channel());
         }
@@ -106,7 +245,7 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     }
 
     @Override
-    public void setPortBindingEventListener(PortBindingEventListener portBindingEventListener) {
+    public synchronized void setPortBindingEventListener(PortBindingEventListener portBindingEventListener) {
         this.portBindingEventListener = portBindingEventListener;
         if (openingServerConnectorId != null) {
             notifyPortBindingEvent(openingServerConnectorId, isOpeningSCHttps);
@@ -125,7 +264,7 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     }
 
     @Override
-    public void notifyPortBindingEvent(String serverConnectorId, boolean isHttps) {
+    public synchronized void notifyPortBindingEvent(String serverConnectorId, boolean isHttps) {
         if (portBindingEventListener == null) {
             this.openingServerConnectorId = serverConnectorId;
             this.isOpeningSCHttps = isHttps;
@@ -135,7 +274,7 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     }
 
     @Override
-    public void notifyPortUnbindingEvent(String serverConnectorId, boolean isHttps) {
+    public synchronized void notifyPortUnbindingEvent(String serverConnectorId, boolean isHttps) {
         if (portBindingEventListener == null) {
             this.closingServerConnectorId = serverConnectorId;
             this.isClosingSCHttps = isHttps;
@@ -145,7 +284,7 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     }
 
     @Override
-    public void notifyPortBindingError(Throwable throwable) {
+    public synchronized void notifyPortBindingError(Throwable throwable) {
         if (portBindingEventListener == null) {
             this.connectorInitException = throwable;
         } else {

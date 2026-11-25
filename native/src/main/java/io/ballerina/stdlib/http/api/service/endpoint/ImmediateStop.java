@@ -22,6 +22,7 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
+import io.ballerina.stdlib.http.transport.contract.ServerConnector;
 
 /**
  * Immediately stop listener.
@@ -31,7 +32,7 @@ import io.ballerina.stdlib.http.api.HttpUtil;
 public class ImmediateStop extends AbstractHttpNativeFunction {
     public static Object immediateStop(BObject serverEndpoint) {
         try {
-            getServerConnector(serverEndpoint).immediateStop();
+            stopConnector(serverEndpoint, ServerConnector::immediateStop);
             serverEndpoint.addNativeData(HttpConstants.CONNECTOR_STARTED, false);
             resetRegistry(serverEndpoint);
         } catch (Exception ex) {
