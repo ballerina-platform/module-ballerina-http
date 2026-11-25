@@ -16,7 +16,6 @@
 
 import ballerina/http;
 import ballerina/io;
-import ballerina/lang.runtime;
 import ballerina/mime;
 import ballerina/test;
 import ballerina/time;
@@ -41,6 +40,18 @@ class FailingByteGenerator {
             return {value: "abc".toBytes()};
         }
         return error io:GenericError("stream source failed");
+    }
+}
+
+// Counts how often the stream is read.
+class CountingByteGenerator {
+    private int reads = 0;
+    public isolated function next() returns record {|byte[] value;|}|io:Error? {
+        self.reads += 1;
+        return error io:GenericError("stream source failed");
+    }
+    isolated function getReads() returns int {
+        return self.reads;
     }
 }
 
@@ -81,14 +92,6 @@ service /lbMultipart on new http:Listener(lbMultipartStreamPartTestPort, httpVer
         return string `${host}:${hasBodyHeaders}`;
     }
 
-    resource function post hit/[string id](http:Request req) returns string {
-        lock {
-            unbufferedHits[id] = true;
-        }
-        byte[]|error payload = req.getBinaryPayload();
-        return payload is error ? "read error" : "read";
-    }
-
     resource function post nested(http:Request req) returns string|error {
         return check flattenParts(check req.getBodyParts());
     }
@@ -96,22 +99,6 @@ service /lbMultipart on new http:Listener(lbMultipartStreamPartTestPort, httpVer
 }
 
 isolated int generatorCloseCount = 0;
-
-// The requests that reached the `hit` resource.
-isolated map<boolean> unbufferedHits = {};
-
-// A stream read in advance fails before anything is sent, so a request that reaches the backend proves it was not.
-function assertReachedBackend(string id) {
-    foreach int i in 0 ..< 100 {
-        lock {
-            if unbufferedHits.hasKey(id) {
-                return;
-            }
-        }
-        runtime:sleep(0.1);
-    }
-    test:assertFail("The request did not reach the backend: " + id);
-}
 
 function flattenParts(mime:Entity[] parts) returns string|error {
     string result = "";
@@ -194,6 +181,29 @@ service / on new http:Listener(fakeProxyTestPort, httpVersion = http:HTTP_1_1) {
         }
         return "via proxy";
     }
+}
+
+function streamRequest(CountingByteGenerator generator) returns http:Request {
+    http:Request req = new;
+    req.setByteStream(new stream<byte[], io:Error?>(generator));
+    return req;
+}
+
+function multipartRequest(CountingByteGenerator generator) returns http:Request {
+    mime:Entity part1 = new;
+    part1.setText("part-one");
+    mime:Entity part2 = new;
+    part2.setByteStream(new stream<byte[], io:Error?>(generator));
+    http:Request req = new;
+    req.setBodyParts([part1, part2]);
+    return req;
+}
+
+// A request to a target that refuses the connection is never sent, so its stream is read only if it is buffered for
+// a resend.
+function assertNotReadInAdvance(CountingByteGenerator generator, http:Response|http:ClientError res) {
+    test:assertTrue(res is http:ClientError, "The request to the unreachable target should fail");
+    test:assertEquals(generator.getReads(), 0, "The stream should not be read in advance");
 }
 
 function multipartWithStreamPart() returns http:Request {
@@ -356,23 +366,23 @@ function testRetryClientBuffersOnlyWhenRetriesAreConfigured() {
     http:Response|http:ClientError buffered = withRetry->post("/lbMultipart/body", failingStreamRequest());
     test:assertTrue(buffered is http:ClientError && buffered.message().includes(STREAM_READ_ERROR),
             "The stream should be read before sending when retries are configured");
-    http:Client noRetry = checkpanic new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 0});
-    http:Response|http:ClientError streamed = noRetry->post("/lbMultipart/hit/no-retry", failingStreamRequest());
-    test:assertFalse(streamed is http:ClientError && streamed.message().includes(STREAM_READ_ERROR),
-            "The stream should not be read in advance when no retry can happen");
-    assertReachedBackend("no-retry");
+    http:Client noRetry = checkpanic new (deadUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 0});
+    CountingByteGenerator streamedReads = new;
+    http:Response|http:ClientError streamed = noRetry->post("/lbMultipart/body",
+            streamRequest(streamedReads));
+    assertNotReadInAdvance(streamedReads, streamed);
 }
 
 @test:Config {groups: ["resiliencyGaps"]}
 function testFailoverClientBuffersOnlyWithMultipleTargets() {
     http:FailoverClient single = checkpanic new ({
         httpVersion: http:HTTP_1_1,
-        targets: [{url: lbMultipartEchoUrl}]
+        targets: [{url: deadUrl}]
     });
-    http:Response|http:ClientError streamed = single->post("/lbMultipart/hit/single-failover", failingStreamRequest());
-    test:assertFalse(streamed is http:ClientError && streamed.message().includes(STREAM_READ_ERROR),
-            "A single target request should not be read in advance");
-    assertReachedBackend("single-failover");
+    CountingByteGenerator streamedReads = new;
+    http:Response|http:ClientError streamed = single->post("/lbMultipart/body",
+            streamRequest(streamedReads));
+    assertNotReadInAdvance(streamedReads, streamed);
     http:FailoverClient multiple = checkpanic new ({
         httpVersion: http:HTTP_1_1,
         targets: [{url: lbMultipartEchoUrl}, {url: deadUrl}]
@@ -386,22 +396,21 @@ function testFailoverClientBuffersOnlyWithMultipleTargets() {
 function testLoadBalanceClientBuffersOnlyWithFailoverAndMultipleTargets() {
     http:LoadBalanceClient single = checkpanic new ({
         httpVersion: http:HTTP_1_1,
-        targets: [{url: lbMultipartEchoUrl}]
+        targets: [{url: deadUrl}]
     });
-    http:Response|http:ClientError streamed = single->post("/lbMultipart/hit/single-lb", failingStreamRequest());
-    test:assertFalse(streamed is http:ClientError && streamed.message().includes(STREAM_READ_ERROR),
-            "A single target request should not be read in advance");
-    assertReachedBackend("single-lb");
+    CountingByteGenerator streamedReads = new;
+    http:Response|http:ClientError streamed = single->post("/lbMultipart/body",
+            streamRequest(streamedReads));
+    assertNotReadInAdvance(streamedReads, streamed);
     http:LoadBalanceClient noFailover = checkpanic new ({
         httpVersion: http:HTTP_1_1,
         failover: false,
-        targets: [{url: lbMultipartEchoUrl}, {url: lbMultipartEchoUrl}]
+        targets: [{url: deadUrl}, {url: deadUrl}]
     });
-    http:Response|http:ClientError notFailedOver = noFailover->post("/lbMultipart/hit/no-failover",
-            failingStreamRequest());
-    test:assertFalse(notFailedOver is http:ClientError && notFailedOver.message().includes(STREAM_READ_ERROR),
-            "A request that cannot fail over should not be read in advance");
-    assertReachedBackend("no-failover");
+    CountingByteGenerator notFailedOverReads = new;
+    http:Response|http:ClientError notFailedOver = noFailover->post("/lbMultipart/body",
+            streamRequest(notFailedOverReads));
+    assertNotReadInAdvance(notFailedOverReads, notFailedOver);
     http:LoadBalanceClient multiple = checkpanic new ({
         httpVersion: http:HTTP_1_1,
         targets: [{url: lbMultipartEchoUrl}, {url: deadUrl}]
@@ -554,12 +563,11 @@ function testLoadBalanceClientSendsPreparedRequestAfterFailedTarget() returns er
 
 @test:Config {groups: ["resiliencyGaps"]}
 function testRetryClientDoesNotBufferMultipartStreamPartsWithoutRetries() {
-    http:Client noRetry = checkpanic new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 0});
-    http:Response|http:ClientError streamed = noRetry->post("/lbMultipart/hit/multipart-no-retry",
-            multipartWithFailingStreamPart());
-    test:assertFalse(streamed is http:ClientError && streamed.message().includes(STREAM_READ_ERROR),
-            "A multipart stream part should not be read in advance when no retry can happen");
-    assertReachedBackend("multipart-no-retry");
+    http:Client noRetry = checkpanic new (deadUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 0});
+    CountingByteGenerator streamedReads = new;
+    http:Response|http:ClientError streamed = noRetry->post("/lbMultipart/body",
+            multipartRequest(streamedReads));
+    assertNotReadInAdvance(streamedReads, streamed);
     http:Client withRetry = checkpanic new (lbMultipartEchoUrl, httpVersion = http:HTTP_1_1, retryConfig = {count: 1});
     http:Response|http:ClientError buffered = withRetry->post("/lbMultipart/echo", multipartWithFailingStreamPart());
     test:assertTrue(buffered is http:ClientError && buffered.message().includes(STREAM_READ_ERROR),
