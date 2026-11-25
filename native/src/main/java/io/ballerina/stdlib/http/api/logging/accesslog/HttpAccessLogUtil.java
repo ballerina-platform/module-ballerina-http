@@ -19,6 +19,7 @@
 package io.ballerina.stdlib.http.api.logging.accesslog;
 
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.netty.handler.codec.http.HttpHeaders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,5 +50,21 @@ public class HttpAccessLogUtil {
             return outboundAccessLogMessages;
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * Copies the headers configured as custom access log attributes ({@code http_<header-name>}) from the given
+     * headers into the access log message. The values of a header that is sent more than once are joined with commas.
+     * A header that is not present is left out, and the formatter renders it as {@code -}.
+     *
+     * @param message the access log message to populate
+     * @param headers the headers of the request being logged
+     */
+    public static void populateCustomHeaders(HttpAccessLogMessage message, HttpHeaders headers) {
+        for (String customHeader : HttpAccessLogConfig.getInstance().getCustomHeaders()) {
+            if (headers.contains(customHeader)) {
+                message.putCustomHeader(customHeader, String.join(",", headers.getAll(customHeader)));
+            }
+        }
     }
 }
