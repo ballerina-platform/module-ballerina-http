@@ -84,6 +84,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1127,6 +1128,14 @@ public class Util {
         return System.nanoTime();
     }
 
+    // The current time according to the ticker of the event loop the channel is registered to. That is the clock
+    // Netty's own timeout handlers (e.g. IdleStateHandler) use, so code reasoning alongside them stays on the same
+    // time base, and a test can drive both with a mock ticker. Falls back to Netty's system ticker, whose origin
+    // differs from that of System.nanoTime(), for a channel that is not registered to an event loop yet.
+    public static long ticksInNanos(Channel channel) {
+        return channel.isRegistered() ? channel.eventLoop().ticker().nanoTime() : Ticker.systemTicker().nanoTime();
+    }
+
     public static ScheduledFuture<?> schedule(ChannelHandlerContext ctx, Runnable task, long delay) {
         return ctx.executor().schedule(task, delay, TimeUnit.NANOSECONDS);
     }
@@ -1302,6 +1311,11 @@ public class Util {
     // True if a back-pressure stall that began at stallStartTimeNanos (from ticksInNanos()) is still within
     // its maxBackPressureStallTime allowance.
     public static boolean isWithinBackPressureStallLimit(long stallStartTimeNanos) {
+        return isWithinBackPressureStallLimit(stallStartTimeNanos, ticksInNanos());
+    }
+
+    // Same as above, with the current time, on the same time base as stallStartTimeNanos, given by the caller.
+    public static boolean isWithinBackPressureStallLimit(long stallStartTimeNanos, long nowNanos) {
         long limitNanos = maxBackPressureStallTimeNanos;
         if (limitNanos < 0) {
             return true;
@@ -1309,17 +1323,22 @@ public class Util {
         if (limitNanos == 0) {
             return false;
         }
-        return ticksInNanos() - stallStartTimeNanos < limitNanos;
+        return nowNanos - stallStartTimeNanos < limitNanos;
     }
 
     // Remaining maxBackPressureStallTime allowance in nanoseconds for a stall that began at stallStartTimeNanos,
     // or negative if the allowance is unlimited. Lets a caller reschedule its own recheck for exactly when the
     // allowance runs out instead of waiting for the next fixed idle period.
     public static long remainingBackPressureStallNanos(long stallStartTimeNanos) {
+        return remainingBackPressureStallNanos(stallStartTimeNanos, ticksInNanos());
+    }
+
+    // Same as above, with the current time, on the same time base as stallStartTimeNanos, given by the caller.
+    public static long remainingBackPressureStallNanos(long stallStartTimeNanos, long nowNanos) {
         long limitNanos = maxBackPressureStallTimeNanos;
         if (limitNanos < 0) {
             return -1L;
         }
-        return Math.max(0L, limitNanos - (ticksInNanos() - stallStartTimeNanos));
+        return Math.max(0L, limitNanos - (nowNanos - stallStartTimeNanos));
     }
 }

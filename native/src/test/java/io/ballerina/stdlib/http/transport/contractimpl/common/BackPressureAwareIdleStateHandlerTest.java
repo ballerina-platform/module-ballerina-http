@@ -21,7 +21,9 @@ package io.ballerina.stdlib.http.transport.contractimpl.common;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.concurrent.Ticker;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
@@ -30,6 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -53,6 +56,9 @@ public class BackPressureAwareIdleStateHandlerTest {
     // push either check past the boundary it is meant to land clearly on the near or far side of.
     private static final long MARGIN_MILLIS = 60;
 
+    // How far the channel's mock clock has been moved since newChannel().
+    private long elapsedMillis;
+
     @AfterMethod
     public void resetStallLimit() {
         Util.setMaxBackPressureStallTime(Util.DEFAULT_MAX_BACK_PRESSURE_STALL_TIME);
@@ -64,8 +70,7 @@ public class BackPressureAwareIdleStateHandlerTest {
     public void testStaleResumedFromPreviousOwnerDoesNotClearCurrentOwnersStall() throws Exception {
         Util.setMaxBackPressureStallTime(MAX_STALL_SECONDS);
         RecordingHandler recorder = new RecordingHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        EmbeddedChannel channel = newChannel(recorder);
         try {
             Object staleOwner = new Object();
             Object currentOwner = new Object();
@@ -97,8 +102,7 @@ public class BackPressureAwareIdleStateHandlerTest {
     public void testResumedFromCurrentOwnerRestartsTheStallClock() throws Exception {
         Util.setMaxBackPressureStallTime(MAX_STALL_SECONDS);
         RecordingHandler recorder = new RecordingHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        EmbeddedChannel channel = newChannel(recorder);
         try {
             Object currentOwner = new Object();
 
@@ -126,8 +130,7 @@ public class BackPressureAwareIdleStateHandlerTest {
             + "time without being progress the idle timeout is meant to excuse")
     public void testUntrackedChannelIsNotExcusedByAReadThatCarriedNoMessage() throws Exception {
         RecordingHandler recorder = new RecordingHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        EmbeddedChannel channel = newChannel(recorder);
         try {
             // No trackInboundReads at all: nothing on this channel has ever suspended reads.
             pollFor(channel, IDLE_TIMEOUT_MILLIS / 2);
@@ -150,9 +153,7 @@ public class BackPressureAwareIdleStateHandlerTest {
             + "must not be counted against it")
     public void testPeerGetsAFullPeriodAfterReadsResume() throws Exception {
         RecordingHandler recorder = new RecordingHandler();
-        long startNanos = System.nanoTime();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        EmbeddedChannel channel = newChannel(recorder);
         try {
             Object owner = new Object();
             AtomicBoolean suspended = new AtomicBoolean(true);
@@ -160,8 +161,7 @@ public class BackPressureAwareIdleStateHandlerTest {
 
             // Held suspended until just short of the second idle check, so the resume below lands in the worst
             // place it can: with the next check about to run and nothing having arrived from the peer yet.
-            pollUntil(channel, startNanos + TimeUnit.MILLISECONDS.toNanos(
-                    2 * IDLE_TIMEOUT_MILLIS - MARGIN_MILLIS));
+            pollUntil(channel, 2 * IDLE_TIMEOUT_MILLIS - MARGIN_MILLIS);
             assertTrue(recorder.events.isEmpty(), "Idle event fired while reads were still suspended");
 
             // The application drains: reads are reissued, but the peer has not answered them yet.
@@ -184,17 +184,14 @@ public class BackPressureAwareIdleStateHandlerTest {
             + "timed out on schedule")
     public void testProgressWithoutASuspensionDoesNotExtendTheCountdown() throws Exception {
         RecordingHandler recorder = new RecordingHandler();
-        long startNanos = System.nanoTime();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        EmbeddedChannel channel = newChannel(recorder);
         try {
             Object owner = new Object();
             // Tracked, but the application keeps up with the message throughout - reads are never suspended.
             BackPressureAwareIdleStateHandler.trackInboundReads(channel, owner, () -> false);
 
             // A drain reported just short of the idle check that is already due.
-            pollUntil(channel, startNanos + TimeUnit.MILLISECONDS.toNanos(
-                    IDLE_TIMEOUT_MILLIS - MARGIN_MILLIS));
+            pollUntil(channel, IDLE_TIMEOUT_MILLIS - MARGIN_MILLIS);
             BackPressureAwareIdleStateHandler.inboundReadsResumed(channel, owner);
 
             pollFor(channel, 2 * MARGIN_MILLIS);
@@ -212,8 +209,7 @@ public class BackPressureAwareIdleStateHandlerTest {
     public void testNewOwnerDoesNotInheritThePreviousOwnersStallClock() throws Exception {
         Util.setMaxBackPressureStallTime(MAX_STALL_SECONDS);
         RecordingHandler recorder = new RecordingHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        EmbeddedChannel channel = newChannel(recorder);
         try {
             // The first message stalls long enough to start a stall clock, then goes away without untracking.
             BackPressureAwareIdleStateHandler.trackInboundReads(channel, new Object(), () -> true);
@@ -237,8 +233,7 @@ public class BackPressureAwareIdleStateHandlerTest {
             + "state must not clear the suspension the message tracked in its place is relying on")
     public void testStaleUntrackFromPreviousOwnerDoesNotClearCurrentOwnersSuspension() throws Exception {
         RecordingHandler recorder = new RecordingHandler();
-        EmbeddedChannel channel = new EmbeddedChannel(
-                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        EmbeddedChannel channel = newChannel(recorder);
         try {
             Object staleOwner = new Object();
             Object currentOwner = new Object();
@@ -260,19 +255,76 @@ public class BackPressureAwareIdleStateHandlerTest {
         }
     }
 
-    private void pollUntil(EmbeddedChannel channel, long deadlineNanos) throws InterruptedException {
-        while (System.nanoTime() < deadlineNanos) {
-            Thread.sleep(POLL_STEP_MILLIS);
-            channel.runScheduledPendingTasks();
+    @Test(description = "A stall that begins when the ticker reads exactly 0 - a valid reading of a Netty ticker - "
+            + "must still be remembered as having begun then, not mistaken for no stall at all and restarted "
+            + "by the recheck")
+    public void testStallBeginningAtTickerZeroIsNotRestartedByTheRecheck() throws Exception {
+        Util.setMaxBackPressureStallTime(MAX_STALL_SECONDS);
+        RecordingHandler recorder = new RecordingHandler();
+        EmbeddedChannel channel = new EmbeddedChannel();
+        channel.freezeTime();
+        // Put the ticker at -IDLE_TIMEOUT_MILLIS, so the first idle check, one idle period later, runs at 0.
+        channel.advanceTimeBy(-channel.eventLoop().ticker().nanoTime() - TimeUnit.MILLISECONDS.toNanos(
+                IDLE_TIMEOUT_MILLIS), TimeUnit.NANOSECONDS);
+        elapsedMillis = 0;
+        channel.pipeline().addLast(
+                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        try {
+            BackPressureAwareIdleStateHandler.trackInboundReads(channel, new Object(), () -> true);
+
+            pollFor(channel, IDLE_TIMEOUT_MILLIS);
+            assertEquals(channel.eventLoop().ticker().nanoTime(), 0L, "The first idle check did not run at tick 0");
+            assertTrue(recorder.events.isEmpty(), "Idle event fired before the stall allowance even began");
+
+            pollFor(channel, STALL_MILLIS + MARGIN_MILLIS);
+
+            assertFalse(recorder.events.isEmpty(),
+                        "Stall was not reclaimed - a stall that began at tick 0 was restarted by the recheck");
+        } finally {
+            channel.finishAndReleaseAll();
         }
     }
 
-    private void pollFor(EmbeddedChannel channel, long totalMillis) throws InterruptedException {
-        long elapsed = 0;
-        while (elapsed < totalMillis) {
-            long step = Math.min(POLL_STEP_MILLIS, totalMillis - elapsed);
-            Thread.sleep(step);
-            elapsed += step;
+    @Test(description = "The clock of a channel that is not registered to an event loop yet must use the same time "
+            + "base as the one of a registered channel, or the two readings cannot be compared")
+    public void testUnregisteredChannelUsesTheTimeBaseOfTheEventLoopTicker() {
+        NioSocketChannel channel = new NioSocketChannel();
+        try {
+            long before = Ticker.systemTicker().nanoTime();
+            long ticks = Util.ticksInNanos(channel);
+            long after = Ticker.systemTicker().nanoTime();
+            assertTrue(ticks >= before && ticks <= after, "Unexpected time base: " + ticks + " is not within "
+                    + before + " and " + after);
+        } finally {
+            channel.unsafe().closeForcibly();
+        }
+    }
+
+    // The channel's clock is frozen before the handler is added, so the handler and the superclass it extends read
+    // the same mock ticker from the event loop from the very start, and time only moves when the test moves it.
+    // That makes every timing below exact, instead of depending on how long the test thread happens to sleep.
+    private EmbeddedChannel newChannel(RecordingHandler recorder) {
+        EmbeddedChannel channel = new EmbeddedChannel();
+        channel.freezeTime();
+        elapsedMillis = 0;
+        channel.pipeline().addLast(
+                new BackPressureAwareIdleStateHandler(IDLE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS), recorder);
+        return channel;
+    }
+
+    // Moves the channel's clock to the given number of milliseconds since the channel was created, in the same
+    // steps the polling used to sleep in, running whatever has come due after each one.
+    private void pollUntil(EmbeddedChannel channel, long targetElapsedMillis) {
+        pollFor(channel, targetElapsedMillis - elapsedMillis);
+    }
+
+    private void pollFor(EmbeddedChannel channel, long totalMillis) {
+        long advanced = 0;
+        while (advanced < totalMillis) {
+            long step = Math.min(POLL_STEP_MILLIS, totalMillis - advanced);
+            channel.advanceTimeBy(step, TimeUnit.MILLISECONDS);
+            advanced += step;
+            elapsedMillis += step;
             channel.runScheduledPendingTasks();
         }
     }
