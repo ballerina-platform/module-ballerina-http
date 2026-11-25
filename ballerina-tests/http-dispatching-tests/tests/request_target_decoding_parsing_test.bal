@@ -279,8 +279,10 @@ function testQueryParameterNamesAreDecoded() returns error? {
     check assertRequestTarget("/qb?fl%61g=true", 200, "true");
     check assertRequestTarget("/qn?first%20name=a", 200, "first name=[a]");
     check assertRequestTarget("/qn?first+name=a", 200, "first name=[a]");
-    check assertRequestTarget("/q?x%zz=1", 400);
-    check assertRequestTarget("/q?x%=1", 400);
+    // A name with a malformed escape is left as it is, so it does not bind `x`
+    check assertRequestTarget("/q?x%zz=1", 200, "x=[()]");
+    check assertRequestTarget("/q?x%=1", 200, "x=[()]");
+    check assertRequestTarget("/q?x=%zz", 400);
 }
 
 @test:Config {}
