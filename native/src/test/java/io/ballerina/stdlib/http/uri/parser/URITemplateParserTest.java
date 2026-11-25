@@ -18,9 +18,15 @@
 
 package io.ballerina.stdlib.http.uri.parser;
 
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.stdlib.http.api.HttpResourceArguments;
 import io.ballerina.stdlib.http.uri.URITemplate;
 import io.ballerina.stdlib.http.uri.URITemplateException;
+import io.ballerina.stdlib.http.uri.URIUtil;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -29,7 +35,7 @@ import java.io.UnsupportedEncodingException;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
-
+import static org.testng.Assert.assertTrue;
 /**
  * Unit tests for the URI template parser and the node tree it builds, driven end to end: a template is parsed
  * into the tree and real URIs are matched against it, asserting which {@link String} resource name each
@@ -250,5 +256,41 @@ public class URITemplateParserTest {
     @Test(description = "An expression that starts with a comma has a zero length name and is rejected")
     public void testZeroLengthVariableReferenceIsRejected() {
         assertThrows(URITemplateException.class, () -> parse("/orders/{,a}", "bad"));
+    }
+
+    @Test(description = "Test query parameters without assignment operator")
+    public void testQueryParamsWithoutAssignment() throws UnsupportedEncodingException {
+        BMap<BString, Object> queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo&foo", queryParams);
+        assertTrue(queryParams.containsKey(StringUtils.fromString("foo")), "Key 'foo' should be present");
+        BArray values = (BArray) queryParams.get(StringUtils.fromString("foo"));
+        assertEquals(values.size(), 2, "Should contain two values for repeated key");
+        assertEquals(values.getString(0), "", "First value should be empty string");
+        assertEquals(values.getString(1), "", "Second value should be empty string");
+    }
+
+    @Test(description = "Valueless query parameters retain resource binding semantics")
+    public void testQueryParamsWithoutAssignmentForResourceBinding() throws UnsupportedEncodingException {
+        BString foo = StringUtils.fromString("foo");
+        BMap<BString, Object> queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo", queryParams, false);
+        assertTrue(queryParams.containsKey(foo), "Key 'foo' should be present");
+        assertNull(queryParams.get(foo), "A valueless parameter should have no binding value");
+
+        queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo&foo", queryParams, false);
+        assertNull(queryParams.get(foo), "Repeated valueless parameters should have no binding value");
+
+        queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo&foo=", queryParams, false);
+        BArray values = (BArray) queryParams.get(foo);
+        assertEquals(values.size(), 1, "An explicit empty value should be retained");
+        assertEquals(values.getString(0), "", "An explicit empty value should remain an empty string");
+
+        queryParams = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("foo&foo=value", queryParams, false);
+        values = (BArray) queryParams.get(foo);
+        assertEquals(values.size(), 1, "Valueless repeats should not obscure assigned values");
+        assertEquals(values.getString(0), "value", "The assigned value should be retained");
     }
 }
