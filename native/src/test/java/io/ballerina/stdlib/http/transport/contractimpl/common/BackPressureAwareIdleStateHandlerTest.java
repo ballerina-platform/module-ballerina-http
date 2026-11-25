@@ -21,7 +21,9 @@ package io.ballerina.stdlib.http.transport.contractimpl.common;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.concurrent.Ticker;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
@@ -30,6 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
@@ -270,15 +273,30 @@ public class BackPressureAwareIdleStateHandlerTest {
             BackPressureAwareIdleStateHandler.trackInboundReads(channel, new Object(), () -> true);
 
             pollFor(channel, IDLE_TIMEOUT_MILLIS);
-            assertTrue(channel.eventLoop().ticker().nanoTime() == 0, "The first idle check did not run at tick 0");
+            assertEquals(channel.eventLoop().ticker().nanoTime(), 0L, "The first idle check did not run at tick 0");
             assertTrue(recorder.events.isEmpty(), "Idle event fired before the stall allowance even began");
 
             pollFor(channel, STALL_MILLIS + MARGIN_MILLIS);
 
-            assertTrue(!recorder.events.isEmpty(),
-                       "Stall was not reclaimed - a stall that began at tick 0 was restarted by the recheck");
+            assertFalse(recorder.events.isEmpty(),
+                        "Stall was not reclaimed - a stall that began at tick 0 was restarted by the recheck");
         } finally {
             channel.finishAndReleaseAll();
+        }
+    }
+
+    @Test(description = "The clock of a channel that is not registered to an event loop yet must use the same time "
+            + "base as the one of a registered channel, or the two readings cannot be compared")
+    public void testUnregisteredChannelUsesTheTimeBaseOfTheEventLoopTicker() {
+        NioSocketChannel channel = new NioSocketChannel();
+        try {
+            long before = Ticker.systemTicker().nanoTime();
+            long ticks = Util.ticksInNanos(channel);
+            long after = Ticker.systemTicker().nanoTime();
+            assertTrue(ticks >= before && ticks <= after, "Unexpected time base: " + ticks + " is not within "
+                    + before + " and " + after);
+        } finally {
+            channel.unsafe().closeForcibly();
         }
     }
 

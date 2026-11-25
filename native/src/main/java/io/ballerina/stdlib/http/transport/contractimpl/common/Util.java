@@ -84,6 +84,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1129,10 +1130,10 @@ public class Util {
 
     // The current time according to the ticker of the event loop the channel is registered to. That is the clock
     // Netty's own timeout handlers (e.g. IdleStateHandler) use, so code reasoning alongside them stays on the same
-    // time base, and a test can drive both with a mock ticker. Falls back to the system clock for a channel that
-    // is not registered to an event loop yet.
+    // time base, and a test can drive both with a mock ticker. Falls back to Netty's system ticker, whose origin
+    // differs from that of System.nanoTime(), for a channel that is not registered to an event loop yet.
     public static long ticksInNanos(Channel channel) {
-        return channel.isRegistered() ? channel.eventLoop().ticker().nanoTime() : ticksInNanos();
+        return channel.isRegistered() ? channel.eventLoop().ticker().nanoTime() : Ticker.systemTicker().nanoTime();
     }
 
     public static ScheduledFuture<?> schedule(ChannelHandlerContext ctx, Runnable task, long delay) {
