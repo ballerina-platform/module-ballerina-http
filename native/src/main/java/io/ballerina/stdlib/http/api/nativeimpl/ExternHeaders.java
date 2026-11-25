@@ -129,6 +129,12 @@ public class ExternHeaders {
         }
     }
 
+    public static void copyHostHeaderFlag(BObject originalMessage, BObject newMessage) {
+        if (originalMessage.getNativeData(SET_HOST_HEADER) != null) {
+            newMessage.addNativeData(SET_HOST_HEADER, true);
+        }
+    }
+
     private static HttpHeaders getHeadersBasedOnPosition(BObject messageObj, Object position) {
         return position.equals(StringUtils.fromString(LEADING_HEADER)) ?
                 (HttpHeaders) messageObj.getNativeData(HTTP_HEADERS) :

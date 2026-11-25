@@ -119,7 +119,8 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.runtime"},
 	{org = "ballerina", name = "mime"},
-	{org = "ballerina", name = "test"}
+	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "time"}
 ]
 modules = [
 	{org = "ballerina", packageName = "http_resiliency_tests", moduleName = "http_resiliency_tests"}
@@ -376,6 +377,9 @@ version = "2.8.4"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "time", moduleName = "time"}
 ]
 
 [[package]]

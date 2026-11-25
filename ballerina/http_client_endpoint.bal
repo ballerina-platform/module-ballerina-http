@@ -599,6 +599,9 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
     var cbConfig = configuration.circuitBreaker;
     if cbConfig is CircuitBreakerConfig {
         validateCircuitBreakerConfiguration(cbConfig);
+        if cbConfig.rollingWindow.bucketSize <= 0d {
+            return error GenericClientError("Circuit breaker 'bucketSize' value should be greater than zero.");
+        }
         var redirectConfig = configuration.followRedirects;
         if redirectConfig is FollowRedirects {
             var redirectClient = createRedirectClient(uri, configuration, cookieStore);
@@ -648,6 +651,9 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
 isolated function createRetryClient(string url, ClientConfiguration configuration, CookieStore? cookieStore) returns HttpClient|ClientError {
     var retryConfig = configuration.retryConfig;
     if retryConfig is RetryConfig {
+        if retryConfig.count < 0 {
+            return error GenericClientError("Retry 'count' value should not be negative.");
+        }
         RetryInferredConfig retryInferredConfig = {
             count: retryConfig.count,
             interval: retryConfig.interval,

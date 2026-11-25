@@ -308,36 +308,128 @@ isolated function populateRequestFields (Request originalRequest, Request newReq
     newRequest.extraPathInfo = originalRequest.extraPathInfo;
 }
 
-isolated function populateMultipartRequest(Request inRequest) returns Request|ClientError {
+// Builds the message of a multipart request. Byte stream parts are read into memory only if `bufferStreams` is set;
+// otherwise, they are left to be streamed.
+isolated function populateMultipartRequest(Request inRequest, boolean bufferStreams) returns Request|ClientError {
     if isMultipartRequest(inRequest) {
         mime:Entity[] bodyParts = check inRequest.getBodyParts();
-        foreach var bodyPart in bodyParts {
-            if isNestedEntity(bodyPart) {
-                mime:Entity[]|error childParts = bodyPart.getBodyParts();
-
-                if childParts is error {
-                    return error GenericClientError(childParts.message(), childParts);
-                }
-
-                foreach var childPart in childParts {
-                    // When performing passthrough scenarios, message needs to be built before
-                    // invoking the endpoint to create a message datasource.
-                    byte[]|error childBlobContent = childPart.getByteArray();
-                    if childBlobContent is error {
-                        log:printDebug("Error building datasource for multipart request: " + childBlobContent.message());
-                    }
-                }
-                bodyPart.setBodyParts(childParts, bodyPart.getContentType());
-            } else {
-                byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
-                if bodyPartBlobContent is error {
-                    log:printDebug("Error building datasource for multipart request: " + bodyPartBlobContent.message());
-                }
-            }
-        }
+        bodyParts = check bufferBodyParts(bodyParts, bufferStreams);
         inRequest.setBodyParts(bodyParts, inRequest.getContentType());
     }
     return inRequest;
+}
+
+// Builds the body parts, at all nesting levels, so that they can be sent more than once.
+isolated function bufferBodyParts(mime:Entity[] bodyParts, boolean bufferStreams) returns mime:Entity[]|ClientError {
+    foreach int partIndex in 0 ..< bodyParts.length() {
+        mime:Entity bodyPart = bodyParts[partIndex];
+        if isNestedEntity(bodyPart) {
+            mime:Entity[]|error nestedParts = bodyPart.getBodyParts();
+            if nestedParts is error {
+                return error GenericClientError(nestedParts.message(), nestedParts);
+            }
+            mime:Entity[] childParts = check bufferBodyParts(nestedParts, bufferStreams);
+            bodyPart.setBodyParts(childParts, bodyPart.getContentType());
+        } else {
+            if !bufferStreams && isByteStreamEntity(bodyPart) {
+                continue;
+            }
+            bodyPart = check bufferBodyPartByteStream(bodyPart);
+            bodyParts[partIndex] = bodyPart;
+            // When performing passthrough scenarios, message needs to be built before
+            // invoking the endpoint to create a message datasource.
+            byte[]|error bodyPartBlobContent = bodyPart.getByteArray();
+            if bodyPartBlobContent is error {
+                log:printDebug("Error building datasource for multipart request: " + bodyPartBlobContent.message());
+            }
+        }
+    }
+    return bodyParts;
+}
+
+isolated function isByteStreamEntity(mime:Entity entity) returns boolean {
+    return externGetMimeByteStream(entity) is stream<byte[], io:Error?>;
+}
+
+// Reads the entity's byte stream body into memory. Returns nil if the body is not a stream, or the stream's error.
+isolated function readEntityByteStream(mime:Entity entity) returns byte[]|ClientError? {
+    stream<byte[], io:Error?>|mime:Error? byteStream = externGetMimeByteStream(entity);
+    if byteStream is () || byteStream is mime:Error {
+        return;
+    }
+    byte[] content = [];
+    error? result = from byte[] chunk in byteStream
+        do {
+            content.push(...chunk);
+        };
+    // The stream is not used again, so release its resources whether or not it was read fully.
+    error? closeResult = byteStream.close();
+    if result is error {
+        return error GenericClientError("Error reading the byte stream of the payload: " + result.message(), result);
+    }
+    if closeResult is error {
+        // The whole stream is already in memory, so a failure to release it does not stop the request from being sent.
+        log:printDebug("Error closing the byte stream of the payload: " + closeResult.message());
+    }
+    return content;
+}
+
+// Returns a body part with the stream content held in memory, so it can be sent again. A new entity is needed because
+// the drained stream stays attached to the original. Parts that are not streams are returned as they are.
+// The whole stream is held in memory; there is no size limit (ballerina-library#9652).
+isolated function bufferBodyPartByteStream(mime:Entity bodyPart) returns mime:Entity|ClientError {
+    byte[]? content = check readEntityByteStream(bodyPart);
+    if content is () {
+        return bodyPart;
+    }
+    mime:Entity bufferedPart = new;
+    foreach string headerName in bodyPart.getHeaderNames() {
+        string[]|mime:HeaderNotFoundError headerValues = bodyPart.getHeaders(headerName);
+        if headerValues is string[] {
+            foreach string headerValue in headerValues {
+                bufferedPart.addHeader(headerName, headerValue);
+            }
+        }
+    }
+    setByteArray(bufferedPart, content, bodyPart.getContentType(), ());
+    return bufferedPart;
+}
+
+// Builds the payload of a non-multipart request so that it can be sent more than once. A byte stream is read into
+// memory (once) only if `bufferStreams` is set; otherwise, it is left to be streamed. The whole stream is held in
+// memory; there is no size limit (ballerina-library#9652).
+isolated function bufferRequestPayloadForResend(Request request, boolean bufferStreams) returns ClientError? {
+    if isMultipartRequest(request) {
+        return;
+    }
+    if request.hasMsgDataSource() {
+        // Already built, possibly by an outer client; the entity may still hold the drained stream.
+        return;
+    }
+    mime:Entity entity = check request.getEntityWithBodyAndWithoutHeaders();
+    if isByteStreamEntity(entity) {
+        if bufferStreams {
+            byte[]? streamContent = check readEntityByteStream(entity);
+            if streamContent is byte[] {
+                request.setBinaryPayload(streamContent);
+            }
+        }
+        return;
+    }
+    byte[]|error binaryPayload = externGetByteArray(entity);
+    if binaryPayload is error {
+        log:printDebug("Error building payload for request resend: " + binaryPayload.message());
+    }
+}
+
+// Prepares a request of any kind so that it can be sent more than once. Byte streams are read into memory only if
+// `bufferStreams` is set; otherwise, they are left to be streamed.
+isolated function prepareRequestForResend(Request request, boolean bufferStreams) returns Request|ClientError {
+    if isMultipartRequest(request) {
+        return populateMultipartRequest(request, bufferStreams);
+    }
+    check bufferRequestPayloadForResend(request, bufferStreams);
+    return request;
 }
 
 isolated function isMultipartRequest(Request request) returns boolean {
@@ -352,14 +444,21 @@ isolated function isNestedEntity(mime:Entity entity) returns boolean {
 
 isolated function createFailoverRequest(Request request, mime:Entity requestEntity) returns Request|ClientError {
     if isMultipartRequest(request) {
-        return populateMultipartRequest(request);
+        return populateMultipartRequest(request, true);
     } else {
         Request newOutRequest = new;
         populateRequestFields(request, newOutRequest);
         newOutRequest.setEntity(requestEntity);
+        newOutRequest.noEntityBody = request.noEntityBody;
+        copyHostHeaderFlag(request, newOutRequest);
         return newOutRequest;
     }
 }
+
+// Keeps a `Host` header set by the caller from being overwritten with the host of the target.
+isolated function copyHostHeaderFlag(Request originalRequest, Request newRequest) = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternHeaders"
+} external;
 
 isolated function getInvalidTypeError() returns ClientError {
     return error GenericClientError("Invalid return type found for the HTTP operation");
