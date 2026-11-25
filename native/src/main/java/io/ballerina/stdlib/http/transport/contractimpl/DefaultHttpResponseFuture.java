@@ -51,6 +51,7 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     private BackPressureObservable backPressureObservable;
 
     private HttpCarbonMessage httpCarbonMessage;
+    private volatile boolean responseReceived;
     private ResponseHandle responseHandle;
     private OutboundMsgHolder outboundMsgHolder;
 
@@ -109,6 +110,7 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
         responseLock.lock();
         try {
             this.httpCarbonMessage = httpCarbonMessage;
+            responseReceived = true;
             if (executionWaitSem != null) {
                 executionWaitSem.release();
             }
@@ -156,6 +158,11 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
         } finally {
             responseLock.unlock();
         }
+    }
+
+    @Override
+    public boolean isResponseReceived() {
+        return responseReceived;
     }
 
     public HttpResponseFuture sync() throws InterruptedException {

@@ -90,7 +90,8 @@ public final class CallControls {
         if (!(handle instanceof ResponseHandle)) {
             return HttpUtil.createHttpError("invalid http handle");
         }
-        CallExchange exchange = CallExchange.of(((ResponseHandle) handle).getOutboundMsgHolder().getRequest());
+        // The exchange of this very submission, even if its request object has been sent again since
+        CallExchange exchange = ((ResponseHandle) handle).getOutboundMsgHolder().getCallExchange();
         if (exchange != null) {
             exchange.abort(new CallCancelledException(Constants.CALL_CANCELLED, -1));
         }

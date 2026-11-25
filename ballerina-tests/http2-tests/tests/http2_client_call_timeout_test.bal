@@ -80,6 +80,18 @@ service /http2CallTimeoutBackend on http2CallTimeoutListener {
         return res;
     }
 
+    resource function post echo(@http:Payload string payload) returns string {
+        return payload;
+    }
+
+    resource function get cacheableStalledBody() returns http:Response {
+        http:Response res = new;
+        res.setByteStream(new stream<byte[], io:Error?>(new Http2CallTimeoutStalledStream()), "text/plain");
+        res.setHeader("Cache-Control", "public, max-age=60");
+        res.setHeader("ETag", "stalled");
+        return res;
+    }
+
     resource function get stalledBody() returns http:Response {
         http:Response res = new;
         res.setByteStream(new stream<byte[], io:Error?>(new Http2CallTimeoutStalledStream()), "text/plain");
@@ -104,7 +116,7 @@ function http2CallTimeoutSeconds(time:Utc since) returns decimal {
 }
 
 function http2CallTimeoutDescribe(any|error value) returns string {
-    return value is error ? value.message() : value.toString();
+    return value.toString();
 }
 
 function http2CallTimeoutReset() {
@@ -243,10 +255,10 @@ function http2CallTimeoutCancelAbortsTheSubmittedRequest() returns error? {
     test:assertTrue(response is http:CallCancelledError, "Expected an http:CallCancelledError but got " + http2CallTimeoutDescribe(response));
     test:assertTrue(http2CallTimeoutSeconds(startedAt) < 2d, "The cancelled call took " + http2CallTimeoutSeconds(startedAt).toString() + " seconds");
 
-    // The connection was released, and the one connection of the pool serves the next call
     // The Ballerina HTTP/2 listener closes the connection when a stream is reset, so the client is given the time to
     // notice it before the connection is used again
     runtime:sleep(0.5);
+    // The connection was released, and the one connection of the pool serves the next call
     startedAt = time:utcNow();
     string fast = check cl->get("/http2CallTimeoutBackend/fast");
     test:assertEquals(fast, "fast");
@@ -292,4 +304,70 @@ function http2CallTimeoutDataBindingOfTheBodyFailsWithTheCallTimeoutError() retu
     decimal elapsed = http2CallTimeoutSeconds(startedAt);
     test:assertTrue(payload is http:CallTimeoutError, "Expected an http:CallTimeoutError but got " + http2CallTimeoutDescribe(payload));
     test:assertTrue(elapsed < 4d, "The call took " + elapsed.toString() + " seconds");
+}
+
+// A cancel after the response has been returned aborts the reading of its body.
+@test:Config {groups: ["callTimeout"]}
+function http2CallTimeoutCancelAbortsTheBodyOfAReturnedResponse() returns error? {
+    http:Client cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(12));
+    http:HttpFuture httpFuture = check cl->submit("GET", "/http2CallTimeoutBackend/stalledBody", ());
+    http:Response res = check cl->getResponse(httpFuture);
+    time:Utc startedAt = time:utcNow();
+    check cl->cancel(httpFuture);
+    string|error payload = res.getTextPayload();
+    test:assertTrue(payload is http:CallCancelledError, "Expected an http:CallCancelledError but got " + http2CallTimeoutDescribe(payload));
+    test:assertTrue(http2CallTimeoutSeconds(startedAt) < 3d, "The body read ended after " + http2CallTimeoutSeconds(startedAt).toString() + " seconds");
+}
+
+// A cancel stops the submission it is given, even if the same request object has been submitted again since.
+@test:Config {groups: ["callTimeout"]}
+function http2CallTimeoutCancelOfOneSubmissionLeavesAnotherOfTheSameRequestAlone() returns error? {
+    http:Client cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(13));
+    http:Client other = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(14));
+    http:Request request = new;
+    http:HttpFuture first = check cl->submit("GET", "/http2CallTimeoutBackend/slow", request);
+    http:HttpFuture second = check other->submit("GET", "/http2CallTimeoutBackend/delayed", request);
+    check cl->cancel(first);
+    http:Response|http:ClientError cancelled = cl->getResponse(first);
+    test:assertTrue(cancelled is http:CallCancelledError,
+        "Expected an http:CallCancelledError but got " + http2CallTimeoutDescribe(cancelled));
+    http:Response response = check other->getResponse(second);
+    test:assertEquals(check response.getTextPayload(), "delayed");
+}
+
+// A body that is read by the caching layer of the client is part of the call as well.
+@test:Config {groups: ["callTimeout"]}
+function http2CallTimeoutDeadlineCoversTheBodyReadToBeCached() returns error? {
+    http:Client cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(15, callTimeout = 1.5));
+    http:Response|error result = cl->get("/http2CallTimeoutBackend/cacheableStalledBody");
+    test:assertTrue(result is http:CallTimeoutError, "Expected an http:CallTimeoutError but got " + http2CallTimeoutDescribe(result));
+}
+
+type Http2CallTimeoutOk record {|
+    *http:Ok;
+    string body;
+|};
+
+@test:Config {groups: ["callTimeout"]}
+function http2CallTimeoutStatusCodeClientFailsWithTheCallTimeoutError() returns error? {
+    http:StatusCodeClient cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(16, callTimeout = 1.5));
+    Http2CallTimeoutOk|error result = cl->get("/http2CallTimeoutBackend/stalledBody");
+    test:assertTrue(result is http:CallTimeoutError, "Expected an http:CallTimeoutError but got " + http2CallTimeoutDescribe(result));
+}
+
+// The time a request object was given by one client does not follow it to a client that sets none.
+@test:Config {groups: ["callTimeout"]}
+function http2CallTimeoutTimeOfAnEarlierCallDoesNotFollowTheRequestToOtherClients() returns error? {
+    http:Client cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(17, callTimeout = 1));
+    http:Request request = new;
+    request.setTextPayload("echo");
+    string first = check cl->post("/http2CallTimeoutBackend/echo", request);
+    test:assertEquals(first, "echo");
+    runtime:sleep(1.2);
+    http:LoadBalanceClient loadBalancer = check new ({http2Settings: {http2PriorKnowledge: true}, timeout: 48, targets: [{url: http2CallTimeoutUrl}]});
+    string balanced = check loadBalancer->post("/http2CallTimeoutBackend/echo", request);
+    test:assertEquals(balanced, "echo");
+    http:FailoverClient failover = check new ({http2Settings: {http2PriorKnowledge: true}, timeout: 49, targets: [{url: http2CallTimeoutUrl}]});
+    string failedOver = check failover->post("/http2CallTimeoutBackend/echo", request);
+    test:assertEquals(failedOver, "echo");
 }

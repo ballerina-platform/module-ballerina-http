@@ -370,7 +370,7 @@ isolated function createErrorForNoPayload(mime:Error err) returns ClientError {
 }
 
 // The messages that the call's total timeout and a cancel by the caller fail a body that is still being read with
-const string CALL_TIMEOUT_EXCEEDED_MESSAGE = "Call timeout exceeded";
+const string CALL_TIMEOUT_EXCEEDED_MESSAGE = "Call timeout exceeded: the call did not complete within ";
 const string CALL_CANCELLED_MESSAGE = "Call cancelled by the caller";
 
 // The error of a body that could not be read. A body that failed because its call ran out of time, or was cancelled,
@@ -395,9 +395,8 @@ isolated function findCallAbortError(error err) returns CallTimeoutError|CallCan
         if timeoutAt is int {
             return error CallTimeoutError(message.substring(timeoutAt), err);
         }
-        int? cancelAt = message.indexOf(CALL_CANCELLED_MESSAGE);
-        if cancelAt is int {
-            return error CallCancelledError(message.substring(cancelAt), err);
+        if message.endsWith(CALL_CANCELLED_MESSAGE) {
+            return error CallCancelledError(CALL_CANCELLED_MESSAGE, err);
         }
         current = current.cause();
     }

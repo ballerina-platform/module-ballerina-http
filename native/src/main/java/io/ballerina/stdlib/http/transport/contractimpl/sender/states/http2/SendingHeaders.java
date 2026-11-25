@@ -168,6 +168,8 @@ public class SendingHeaders implements SenderState {
     private void writeHeaders(ChannelHandlerContext ctx, HttpContent msg) throws Http2Exception {
         // Initiate the stream
         boolean endStream = false;
+        // From here the slot is released by the closure of the stream, or by the failure to open it
+        outboundMsgHolder.claimStreamReservation();
         try {
             this.streamId = initiateStream(ctx, connection, http2ClientChannel, outboundMsgHolder);
         } catch (Http2Exception e) {

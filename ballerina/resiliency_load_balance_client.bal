@@ -414,6 +414,8 @@ public client isolated class LoadBalanceClient {
     // Handles all the actions exposed through the Load Balance connector.
     isolated function performLoadBalanceAction(string path, Request request, HttpOperation requestAction)
              returns Response|ClientError {
+        // A request object that an `http:Client` has sent before still carries the time of that call
+        applyCallDeadline(request, 0);
         int loadBalanceTermination = 0; // Tracks at which point failover within the load balancing should be terminated.
         //TODO: workaround to initialize a type inside a function. Change this once fix is available.
         LoadBalanceActionErrorData loadBalanceActionErrorData = {httpActionErr:[]};

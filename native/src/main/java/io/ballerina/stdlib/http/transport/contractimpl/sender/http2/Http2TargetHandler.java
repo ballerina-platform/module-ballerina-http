@@ -166,7 +166,7 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
         }
 
         void writeContent(ChannelHandlerContext ctx, HttpContent msg) throws Http2Exception {
-            CallExchange exchange = CallExchange.of(httpOutboundRequest);
+            CallExchange exchange = outboundMsgHolder.getCallExchange();
             if (exchange != null && exchange.isAborted()) {
                 // The attempt was aborted, and its stream with it, so nothing more of the request is sent
                 ReferenceCountUtil.release(msg);
@@ -214,6 +214,7 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
 
         public void setStreamId(int streamId) {
             http2MessageStateContext.setStreamId(streamId);
+            outboundMsgHolder.setStreamId(streamId);
         }
     }
 

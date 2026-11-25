@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.ScheduledFuture;
 
 /**
@@ -59,6 +60,7 @@ public final class CallExchange {
     }
 
     private final CallDeadline deadline;
+    private final HttpCarbonMessage request;
     private final HttpResponseFuture responseFuture;
     // Guarded by this
     private State state = State.ACTIVE;
@@ -66,13 +68,15 @@ public final class CallExchange {
     private Throwable failure;
     private ScheduledFuture<?> timer;
 
-    private CallExchange(CallDeadline deadline, HttpResponseFuture responseFuture) {
+    private CallExchange(CallDeadline deadline, HttpCarbonMessage request, HttpResponseFuture responseFuture) {
         this.deadline = deadline;
+        this.request = request;
         this.responseFuture = responseFuture;
     }
 
     /**
-     * Gets the exchange of the request's current attempt.
+     * Gets the exchange of the request's latest attempt. The request message is shared by the attempts of a call and
+     * by every use of a request object, so whatever deals with one particular attempt keeps hold of its exchange.
      *
      * @param request the outbound request
      * @return the exchange, or {@code null} if the attempt has no deadline and cannot be cancelled
@@ -98,7 +102,7 @@ public final class CallExchange {
         if (deadline == null && !cancellable) {
             return null;
         }
-        CallExchange exchange = new CallExchange(deadline, responseFuture);
+        CallExchange exchange = new CallExchange(deadline, request, responseFuture);
         request.setProperty(Constants.CALL_EXCHANGE, exchange);
         if (deadline != null) {
             if (deadline.hasExpired()) {
@@ -207,12 +211,23 @@ public final class CallExchange {
         // The caller is told first, so it hears this failure and not the one a closing connection reports
         responseFuture.notifyResponseHandle(reason);
         responseFuture.notifyHttpListener(reason);
+        stopRequestBody(reason);
         if (toAbort != null) {
             try {
                 toAbort.abort(reason);
             } catch (RuntimeException e) {
                 LOG.warn("Failed to abort the exchange: {}", e.getMessage(), e);
             }
+        }
+    }
+
+    // A request that gets no response any more may still be having its body written, which a body that comes from a
+    // stream can take long over, and the call does not return until that ends. Failing the request message ends it at
+    // the next content, and releases what is added to it from then on. Not done once the response has arrived, or when
+    // the message already carries a later attempt.
+    private void stopRequestBody(Throwable reason) {
+        if (!responseFuture.isResponseReceived() && request.getProperty(Constants.CALL_EXCHANGE) == this) {
+            request.setIoException(new IOException(reason.getMessage()));
         }
     }
 

@@ -942,7 +942,14 @@ isolated function processResponseNew(Response|ClientError response, typedesc<Sta
     if response is ClientError {
         return response;
     }
-    return externProcessResponseNew(response, targetType, requireValidation, requireLaxDataBinding);
+    StatusCodeResponse|ClientError result = externProcessResponseNew(response, targetType, requireValidation,
+            requireLaxDataBinding);
+    if result is ClientError {
+        // A body that failed because its call ran out of time fails with that error
+        CallTimeoutError|CallCancelledError? callAbortError = findCallAbortError(result);
+        return callAbortError is error ? callAbortError : result;
+    }
+    return result;
 }
 
 isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation, boolean requireLaxDataBinding)

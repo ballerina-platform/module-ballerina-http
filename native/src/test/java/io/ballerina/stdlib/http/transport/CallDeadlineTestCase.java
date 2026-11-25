@@ -26,14 +26,24 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
+import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
 import io.ballerina.stdlib.http.transport.contract.exceptions.CallCancelledException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.CallTimeoutException;
+import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
+import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
 import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 import io.ballerina.stdlib.http.transport.util.DefaultHttpConnectorListener;
 import io.ballerina.stdlib.http.transport.util.TestUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpVersion;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
@@ -41,6 +51,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -49,6 +60,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,6 +70,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 
 /**
  * Tests that the total timeout of an HTTP/1.1 call, and a cancel by the caller, abort the exchange by closing its
@@ -156,26 +169,13 @@ public class CallDeadlineTestCase {
         HttpCarbonMessage request = newRequest();
         request.setProperty(Constants.CALL_CANCELLABLE, true);
 
-        CompletableFuture<ResponseHandle> handle = new CompletableFuture<>();
-        HttpResponseFuture future = client.send(request);
-        future.setResponseHandleListener(new HttpClientConnectorListener() {
-            @Override
-            public void onResponseHandle(ResponseHandle responseHandle) {
-                handle.complete(responseHandle);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                handle.completeExceptionally(throwable);
-            }
-        });
-        ResponseHandle responseHandle = handle.get(10, TimeUnit.SECONDS);
+        ResponseHandle responseHandle = submit(client, request).get(10, TimeUnit.SECONDS);
         assertTrue(backend.requestReceived.get(0).await(10, TimeUnit.SECONDS), "The request did not arrive");
 
         CountDownLatch done = new CountDownLatch(1);
         DefaultHttpConnectorListener listener = new DefaultHttpConnectorListener(done);
         client.getResponse(responseHandle).setHttpConnectorListener(listener);
-        CallExchange.of(responseHandle.getOutboundMsgHolder().getRequest())
+        responseHandle.getOutboundMsgHolder().getCallExchange()
                 .abort(new CallCancelledException(Constants.CALL_CANCELLED, -1));
 
         assertTrue(done.await(10, TimeUnit.SECONDS), "The cancelled call did not complete");
@@ -228,6 +228,124 @@ public class CallDeadlineTestCase {
     }
 
     @Test(timeOut = 60000)
+    public void testSubmittedRequestHearsOfTheDeadlineRunningOutWhileWaitingForThePool() throws Exception {
+        backend = new Backend(PORT, Backend::swallowRequestAndStay);
+        SenderConfiguration senderConfiguration = new SenderConfiguration();
+        senderConfiguration.getPoolConfiguration().setMaxActivePerPool(1);
+        senderConfiguration.getPoolConfiguration().setMaxWaitTime(30000);
+        HttpClientConnector client = createClient(senderConfiguration);
+        client.send(newRequest()).setHttpConnectorListener(new DefaultHttpConnectorListener(new CountDownLatch(1)));
+        assertTrue(backend.requestReceived.get(0).await(10, TimeUnit.SECONDS), "The request did not arrive");
+
+        HttpCarbonMessage request = withDeadline(newRequest(), DEADLINE_MILLIS);
+        request.setProperty(Constants.CALL_CANCELLABLE, true);
+        CompletableFuture<ResponseHandle> handle = submit(client, request);
+
+        ExecutionException failure = expectThrows(ExecutionException.class, () -> handle.get(10, TimeUnit.SECONDS));
+        assertTrue(failure.getCause() instanceof CallTimeoutException,
+                   "Expected a CallTimeoutException but got " + failure.getCause());
+    }
+
+    @Test(timeOut = 60000)
+    public void testCancelAbortsItsOwnSubmissionOfARequestThatWasSubmittedAgain() throws Exception {
+        CompletableFuture<Void> answerSecond = new CompletableFuture<>();
+        backend = new Backend(PORT, (backend, socket, connection) -> {
+            if (connection == 0) {
+                backend.swallowRequestAndStay(backend, socket, connection);
+            } else {
+                backend.readRequest(socket, connection);
+                answerSecond.get();
+                Backend.respond(socket, "second");
+                Backend.awaitEof(socket);
+            }
+        });
+        HttpClientConnector client = createClient(new SenderConfiguration());
+        HttpCarbonMessage request = newRequest();
+        request.setProperty(Constants.CALL_CANCELLABLE, true);
+        ResponseHandle first = submit(client, request).get(10, TimeUnit.SECONDS);
+        assertTrue(backend.requestReceived.get(0).await(10, TimeUnit.SECONDS), "The request did not arrive");
+
+        // The same message again, as a request object that is submitted twice is
+        request.addHttpContent(new DefaultLastHttpContent(Unpooled.copiedBuffer("hello", StandardCharsets.UTF_8)));
+        ResponseHandle second = submit(client, request).get(10, TimeUnit.SECONDS);
+        assertTrue(backend.requestReceived.get(1).await(10, TimeUnit.SECONDS), "The second request did not arrive");
+
+        first.getOutboundMsgHolder().getCallExchange()
+                .abort(new CallCancelledException(Constants.CALL_CANCELLED, -1));
+
+        assertTrue(backend.connectionClosedByClient.get(0).await(10, TimeUnit.SECONDS),
+                   "The connection of the cancelled submission was not closed");
+        assertFalse(second.getOutboundMsgHolder().getCallExchange().isAborted());
+        answerSecond.complete(null);
+        CountDownLatch done = new CountDownLatch(1);
+        DefaultHttpConnectorListener listener = new DefaultHttpConnectorListener(done);
+        client.getResponse(second).setHttpConnectorListener(listener);
+        assertTrue(done.await(10, TimeUnit.SECONDS), "The second submission did not complete");
+        assertNull(listener.getHttpErrorMessage(), "The second submission failed: " + listener.getHttpErrorMessage());
+        assertEquals(bodyOf(listener.getHttpResponseMessage()), "second");
+    }
+
+    @Test(timeOut = 60000)
+    public void testDeadlineStopsTheWritingOfARequestBodyThatIsStillBeingProduced() throws Exception {
+        backend = new Backend(PORT, (backend, socket, connection) -> Backend.awaitEof(socket));
+        HttpClientConnector client = createClient(new SenderConfiguration());
+        HttpCarbonMessage request = new HttpCarbonMessage(
+                new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/"));
+        request.setHttpMethod(HttpMethod.POST.toString());
+        request.setProperty(Constants.HTTP_HOST, TestUtil.TEST_HOST);
+        request.setProperty(Constants.HTTP_PORT, PORT);
+        withDeadline(request, DEADLINE_MILLIS);
+
+        DefaultHttpConnectorListener listener = send(client, request);
+
+        assertTrue(listener.getHttpErrorMessage() instanceof CallTimeoutException,
+                   "Expected a CallTimeoutException but got " + listener.getHttpErrorMessage());
+        // The producer of the body is stopped by the next part it adds, which is released
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (request.getIoException() == null && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+        }
+        ByteBuf part = Unpooled.copiedBuffer("more", StandardCharsets.UTF_8);
+        expectThrows(UncheckedIOException.class, () -> request.addHttpContent(new DefaultHttpContent(part)));
+        assertEquals(part.refCnt(), 0, "The part of the body that is not sent was not released");
+    }
+
+    @Test(timeOut = 60000)
+    public void testAbortOfTheUpgradeRequestDoesNotFailTheRequestsWaitingForTheHttp2Connection() throws Exception {
+        // The first request asks to upgrade the connection and is never answered, and the next one is answered
+        backend = new Backend(PORT, (backend, socket, connection) -> {
+            if (connection == 0) {
+                backend.swallowRequestAndStay(backend, socket, connection);
+            } else {
+                backend.readRequest(socket, connection);
+                Backend.respond(socket, "served");
+                Backend.awaitEof(socket);
+            }
+        });
+        SenderConfiguration senderConfiguration = new SenderConfiguration();
+        senderConfiguration.setScheme(Constants.HTTP_SCHEME);
+        senderConfiguration.setHttpVersion(Constants.HTTP_2_0);
+        connectorFactory = new DefaultHttpWsConnectorFactory();
+        senderConfiguration.setSocketIdleTimeout(IDLE_TIMEOUT_MILLIS);
+        HttpClientConnector client = connectorFactory.createHttpClientConnector(
+                HttpConnectorUtil.getTransportProperties(new TransportsConfiguration()), senderConfiguration);
+
+        CountDownLatch openerDone = new CountDownLatch(1);
+        DefaultHttpConnectorListener opener = new DefaultHttpConnectorListener(openerDone);
+        client.send(withDeadline(newRequest(), 2 * DEADLINE_MILLIS)).setHttpConnectorListener(opener);
+        assertTrue(backend.requestReceived.get(0).await(10, TimeUnit.SECONDS), "The request did not arrive");
+
+        // Waits for the connection the first request is opening, until that request gives up
+        DefaultHttpConnectorListener waiter = send(client, newRequest());
+
+        assertTrue(openerDone.await(10, TimeUnit.SECONDS), "The first call did not end");
+        assertTrue(opener.getHttpErrorMessage() instanceof CallTimeoutException,
+                   "Expected a CallTimeoutException but got " + opener.getHttpErrorMessage());
+        assertNull(waiter.getHttpErrorMessage(), "The waiting call failed: " + waiter.getHttpErrorMessage());
+        assertEquals(bodyOf(waiter.getHttpResponseMessage()), "served");
+    }
+
+    @Test(timeOut = 60000)
     public void testCallWhoseDeadlineHasRunOutIsNotSent() throws Exception {
         backend = new Backend(PORT, Backend::swallowRequestAndStay);
         HttpClientConnector client = createClient(new SenderConfiguration());
@@ -248,7 +366,7 @@ public class CallDeadlineTestCase {
         CountDownLatch done = new CountDownLatch(1);
         HttpCarbonMessage request = newRequest();
         request.setProperty(Constants.CALL_DEADLINE, CallDeadline.startingNow(TimeUnit.SECONDS.toNanos(60)));
-        HttpResponseFuture future = new io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpResponseFuture();
+        HttpResponseFuture future = new DefaultHttpResponseFuture();
         DefaultHttpConnectorListener listener = new DefaultHttpConnectorListener(done);
         future.setHttpConnectorListener(listener);
         CallExchange exchange = CallExchange.begin(request, future);
@@ -269,7 +387,7 @@ public class CallDeadlineTestCase {
         CountDownLatch done = new CountDownLatch(1);
         HttpCarbonMessage request = newRequest();
         request.setProperty(Constants.CALL_CANCELLABLE, true);
-        HttpResponseFuture future = new io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpResponseFuture();
+        HttpResponseFuture future = new DefaultHttpResponseFuture();
         DefaultHttpConnectorListener listener = new DefaultHttpConnectorListener(done);
         future.setHttpConnectorListener(listener);
         CallExchange exchange = CallExchange.begin(request, future);
@@ -309,6 +427,22 @@ public class CallDeadlineTestCase {
         client.send(request).setHttpConnectorListener(listener);
         assertTrue(latch.await(30, TimeUnit.SECONDS), "The call neither responded nor failed");
         return listener;
+    }
+
+    private static CompletableFuture<ResponseHandle> submit(HttpClientConnector client, HttpCarbonMessage request) {
+        CompletableFuture<ResponseHandle> handle = new CompletableFuture<>();
+        client.send(request).setResponseHandleListener(new HttpClientConnectorListener() {
+            @Override
+            public void onResponseHandle(ResponseHandle responseHandle) {
+                handle.complete(responseHandle);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                handle.completeExceptionally(throwable);
+            }
+        });
+        return handle;
     }
 
     private static String bodyOf(HttpCarbonMessage response) {

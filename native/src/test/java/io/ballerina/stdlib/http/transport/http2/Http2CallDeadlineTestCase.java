@@ -19,11 +19,9 @@
 package io.ballerina.stdlib.http.transport.http2;
 
 import io.ballerina.stdlib.http.transport.contract.CallDeadline;
-import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
-import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.HttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
@@ -49,6 +47,7 @@ import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.DefaultHttp2DataFrame;
@@ -74,6 +73,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.ballerina.stdlib.http.transport.util.TestUtil.HTTP_SERVER_PORT;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -94,6 +94,10 @@ public class Http2CallDeadlineTestCase {
     private CountDownLatch firstRequestReceived;
     private AtomicInteger connections;
     private AtomicInteger requests;
+    private CopyOnWriteArrayList<Integer> streamIds;
+    private CopyOnWriteArrayList<Integer> resetStreamIds;
+    private volatile boolean holdEveryStream;
+    private volatile boolean endFirstStreamOnSecondRequest;
     private EventLoopGroup serverGroup;
     private Channel serverChannel;
     private HttpWsConnectorFactory connectorFactory;
@@ -106,6 +110,10 @@ public class Http2CallDeadlineTestCase {
         firstRequestReceived = new CountDownLatch(1);
         connections = new AtomicInteger();
         requests = new AtomicInteger();
+        streamIds = new CopyOnWriteArrayList<>();
+        resetStreamIds = new CopyOnWriteArrayList<>();
+        holdEveryStream = false;
+        endFirstStreamOnSecondRequest = false;
     }
 
     @AfterMethod(alwaysRun = true)
@@ -173,26 +181,13 @@ public class Http2CallDeadlineTestCase {
         HttpCarbonMessage request = newRequest();
         request.setProperty(Constants.CALL_CANCELLABLE, true);
 
-        CompletableFuture<ResponseHandle> handle = new CompletableFuture<>();
-        HttpResponseFuture future = client.send(request);
-        future.setResponseHandleListener(new HttpClientConnectorListener() {
-            @Override
-            public void onResponseHandle(ResponseHandle responseHandle) {
-                handle.complete(responseHandle);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                handle.completeExceptionally(throwable);
-            }
-        });
-        ResponseHandle responseHandle = handle.get(10, TimeUnit.SECONDS);
+        ResponseHandle responseHandle = submit(request).get(10, TimeUnit.SECONDS);
         assertTrue(firstRequestReceived.await(10, TimeUnit.SECONDS), "The request did not arrive");
 
         CountDownLatch done = new CountDownLatch(1);
         DefaultHttpConnectorListener listener = new DefaultHttpConnectorListener(done);
         client.getResponse(responseHandle).setHttpConnectorListener(listener);
-        CallExchange.of(responseHandle.getOutboundMsgHolder().getRequest())
+        responseHandle.getOutboundMsgHolder().getCallExchange()
                 .abort(new CallCancelledException(Constants.CALL_CANCELLED, -1));
 
         assertTrue(done.await(10, TimeUnit.SECONDS), "The cancelled call did not complete");
@@ -218,13 +213,113 @@ public class Http2CallDeadlineTestCase {
         assertNotNull(second.getHttpResponseMessage(), "The next call failed: " + second.getHttpErrorMessage());
     }
 
+    @Test(timeOut = 60000)
+    public void testAbortBeforeTheStreamOpensGivesBackTheSlotReservedForIt() throws Exception {
+        startBackend(false, true);
+        client = createClient(1);
+        DefaultHttpConnectorListener first = send(newRequest());
+        assertNotNull(first.getHttpResponseMessage(), "The call failed: " + first.getHttpErrorMessage());
+        readBodyFailure(first.getHttpResponseMessage());
+        awaitStreamSlotRelease();
+
+        // No part of this request's body is ever there, so its time runs out before its stream is opened. The one
+        // stream the connection allows must be free again for each call that follows.
+        for (int i = 0; i < 2; i++) {
+            DefaultHttpConnectorListener unopened = send(withDeadline(newRequestWithoutBody(), DEADLINE_MILLIS));
+            assertTrue(unopened.getHttpErrorMessage() instanceof CallTimeoutException,
+                       "Expected a CallTimeoutException but got " + unopened.getHttpErrorMessage());
+            awaitStreamSlotRelease();
+        }
+        DefaultHttpConnectorListener next = send(newRequest());
+        assertNotNull(next.getHttpResponseMessage(), "The next call failed: " + next.getHttpErrorMessage());
+        assertEquals(connections.get(), 1, "The slot of a stream that was never opened was not given back");
+    }
+
+    @Test(timeOut = 60000)
+    public void testCancelResetsItsOwnStreamOfARequestThatWasSubmittedAgain() throws Exception {
+        startBackend(false);
+        holdEveryStream = true;
+        client = createClient();
+        HttpCarbonMessage request = newRequest();
+        request.setProperty(Constants.CALL_CANCELLABLE, true);
+        ResponseHandle first = submit(request).get(10, TimeUnit.SECONDS);
+        awaitRequests(1);
+        request.addHttpContent(new DefaultLastHttpContent());
+        ResponseHandle second = submit(request).get(10, TimeUnit.SECONDS);
+        awaitRequests(2);
+
+        first.getOutboundMsgHolder().getCallExchange()
+                .abort(new CallCancelledException(Constants.CALL_CANCELLED, -1));
+
+        assertTrue(firstStreamReset.await(10, TimeUnit.SECONDS), "The stream of the cancelled call was not reset");
+        assertEquals(resetStreamIds.get(0).intValue(), streamIds.get(0).intValue(), "Another stream was reset");
+        assertFalse(second.getOutboundMsgHolder().getCallExchange().isAborted());
+    }
+
+    @Test(timeOut = 60000)
+    public void testEndOfAnEarlierStreamOfARequestDoesNotDisarmTheDeadlineOfALaterOne() throws Exception {
+        // The first stream is left open until the second request, of the same message, arrives, and then it is ended
+        startBackend(false);
+        holdEveryStream = true;
+        endFirstStreamOnSecondRequest = true;
+        client = createClient();
+        HttpCarbonMessage request = newRequest();
+        request.setProperty(Constants.CALL_CANCELLABLE, true);
+        submit(request).get(10, TimeUnit.SECONDS);
+        awaitRequests(1);
+
+        request.addHttpContent(new DefaultLastHttpContent());
+        withDeadline(request, DEADLINE_MILLIS);
+        DefaultHttpConnectorListener second = send(request);
+
+        assertTrue(second.getHttpErrorMessage() instanceof CallTimeoutException,
+                   "Expected a CallTimeoutException but got " + second.getHttpErrorMessage());
+        assertTrue(firstStreamReset.await(10, TimeUnit.SECONDS), "The stream was not reset");
+        assertEquals(resetStreamIds.get(0).intValue(), streamIds.get(1).intValue(), "Another stream was reset");
+    }
+
+    // The slot of a stream is given back on the connection's event loop, which can run just after the caller has heard
+    // of the end of the stream or of the failure. A slot that is not given back stays taken however long this waits.
+    private static void awaitStreamSlotRelease() throws InterruptedException {
+        Thread.sleep(500);
+    }
+
+    private void awaitRequests(int count) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (streamIds.size() < count && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+        }
+        assertEquals(streamIds.size(), count, "The requests did not arrive");
+    }
+
+    private CompletableFuture<ResponseHandle> submit(HttpCarbonMessage request) {
+        CompletableFuture<ResponseHandle> handle = new CompletableFuture<>();
+        client.send(request).setResponseHandleListener(new HttpClientConnectorListener() {
+            @Override
+            public void onResponseHandle(ResponseHandle responseHandle) {
+                handle.complete(responseHandle);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                handle.completeExceptionally(throwable);
+            }
+        });
+        return handle;
+    }
+
     private HttpClientConnector createClient() {
+        return createClient(100);
+    }
+
+    private HttpClientConnector createClient(int maxActiveStreams) {
         connectorFactory = new DefaultHttpWsConnectorFactory();
         SenderConfiguration senderConfiguration = new SenderConfiguration();
         senderConfiguration.setScheme(Constants.HTTP_SCHEME);
         senderConfiguration.setHttpVersion(Constants.HTTP_2_0);
         senderConfiguration.setForceHttp2(true);
         senderConfiguration.setSocketIdleTimeout(IDLE_TIMEOUT_MILLIS);
+        senderConfiguration.getPoolConfiguration().setHttp2MaxActiveStreamsPerConnection(maxActiveStreams);
         return connectorFactory.createHttpClientConnector(
                 HttpConnectorUtil.getTransportProperties(new TransportsConfiguration()), senderConfiguration);
     }
@@ -254,6 +349,7 @@ public class Http2CallDeadlineTestCase {
 
         private final boolean stallInTheBody;
         private final boolean answerEveryStream;
+        private Http2FrameStream firstStream;
 
         Backend(boolean stallInTheBody, boolean answerEveryStream) {
             this.stallInTheBody = stallInTheBody;
@@ -266,7 +362,16 @@ public class Http2CallDeadlineTestCase {
                 int request = requests.incrementAndGet();
                 firstRequestReceived.countDown();
                 Http2FrameStream stream = headersFrame.stream();
-                if (request == 1 && stallInTheBody) {
+                streamIds.add(stream.id());
+                if (holdEveryStream) {
+                    if (request == 1) {
+                        firstStream = stream;
+                    } else if (request == 2 && endFirstStreamOnSecondRequest) {
+                        ctx.write(new DefaultHttp2HeadersFrame(new DefaultHttp2Headers().status("200"), true)
+                                          .stream(firstStream));
+                        ctx.flush();
+                    }
+                } else if (request == 1 && stallInTheBody) {
                     ctx.write(new DefaultHttp2HeadersFrame(new DefaultHttp2Headers().status("200"), false)
                                       .stream(stream));
                     ctx.writeAndFlush(new DefaultHttp2DataFrame(Unpooled.wrappedBuffer("partial".getBytes()), false)
@@ -279,6 +384,7 @@ public class Http2CallDeadlineTestCase {
                 }
             } else if (msg instanceof Http2ResetFrame resetFrame) {
                 resetErrorCodes.add(resetFrame.errorCode());
+                resetStreamIds.add(resetFrame.stream().id());
                 firstStreamReset.countDown();
             }
             ReferenceCountUtil.release(msg);
@@ -286,6 +392,12 @@ public class Http2CallDeadlineTestCase {
     }
 
     private static HttpCarbonMessage newRequest() {
+        HttpCarbonMessage request = newRequestWithoutBody();
+        request.addHttpContent(new DefaultLastHttpContent());
+        return request;
+    }
+
+    private static HttpCarbonMessage newRequestWithoutBody() {
         String uri = String.format("http://%s:%d", TestUtil.TEST_HOST, HTTP_SERVER_PORT);
         HttpCarbonMessage request = new HttpCarbonRequest(new DefaultHttpRequest(HttpVersion.HTTP_1_1,
                                                                                  HttpMethod.GET, uri));
@@ -293,7 +405,6 @@ public class Http2CallDeadlineTestCase {
         request.setProperty(Constants.HTTP_HOST, TestUtil.TEST_HOST);
         request.setProperty(Constants.HTTP_PORT, HTTP_SERVER_PORT);
         request.setHeader(TestUtil.HOST, TestUtil.TEST_HOST + ":" + HTTP_SERVER_PORT);
-        request.addHttpContent(new io.netty.handler.codec.http.DefaultLastHttpContent());
         return request;
     }
 

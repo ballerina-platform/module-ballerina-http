@@ -22,6 +22,7 @@ import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2CallAborter;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.states.SendingHeaders;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http2.Http2CodecUtil;
 import org.slf4j.Logger;
@@ -74,6 +75,12 @@ public class Http1CallAborter implements CallExchange.Aborter {
                     Http2CodecUtil.HTTP_UPGRADE_STREAM_ID), () -> Http2CodecUtil.HTTP_UPGRADE_STREAM_ID)
                     .abortOnEventLoop(failure);
             return;
+        }
+        // The requests waiting for this connection to become an HTTP/2 one must not fail with this call, so each of
+        // them opens its own
+        targetChannel.reportHttp2Unavailable();
+        if (targetChannel.senderReqRespStateManager.state instanceof SendingHeaders sendingHeaders) {
+            sendingHeaders.releaseHeldContent();
         }
         TargetHandler targetHandler = targetChannel.getTargetHandler();
         if (targetHandler != null) {

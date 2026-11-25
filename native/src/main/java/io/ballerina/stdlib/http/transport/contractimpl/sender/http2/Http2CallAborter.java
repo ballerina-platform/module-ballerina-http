@@ -20,7 +20,6 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
 import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.Constants;
-import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.Http2Error;
@@ -62,11 +61,7 @@ public class Http2CallAborter implements CallExchange.Aborter {
      */
     public static Http2CallAborter forStreamOf(Http2ClientChannel http2ClientChannel,
                                                OutboundMsgHolder outboundMsgHolder) {
-        return new Http2CallAborter(http2ClientChannel, outboundMsgHolder, () -> {
-            HttpCarbonMessage request = outboundMsgHolder.getRequest();
-            return request.getHttp2MessageStateContext() == null ? 0 :
-                    request.getHttp2MessageStateContext().getStreamId();
-        });
+        return new Http2CallAborter(http2ClientChannel, outboundMsgHolder, outboundMsgHolder::getStreamId);
     }
 
     @Override
@@ -89,7 +84,12 @@ public class Http2CallAborter implements CallExchange.Aborter {
         }
         int streamId = streamIdSupplier.getAsInt();
         if (streamId <= 0) {
-            // No stream is open, and the request is not written on one once the exchange is aborted
+            // No stream is open, and the request is not written on one once the exchange is aborted, so the slot the
+            // connection reserved for it is given back here, as no stream closure will ever release it
+            if (outboundMsgHolder.claimStreamReservation()) {
+                http2ClientChannel.releaseReservedStream(null);
+                outboundMsgHolder.markNoPromisesReceived();
+            }
             return;
         }
         // A stream that ended already is not tied to the exchange any more
@@ -97,7 +97,9 @@ public class Http2CallAborter implements CallExchange.Aborter {
                 || !outboundMsgHolder.claimStreamTermination()) {
             return;
         }
-        outboundMsgHolder.getRequest().setIoException(new IOException(failure.getMessage()));
+        if (http2ClientChannel.isRequestStillSending(streamId)) {
+            outboundMsgHolder.getRequest().setIoException(new IOException(failure.getMessage()));
+        }
         Channel channel = http2ClientChannel.getChannel();
         ChannelHandlerContext ctx = channel.pipeline().context(Constants.HTTP2_TARGET_HANDLER);
         if (ctx != null) {
@@ -109,5 +111,7 @@ public class Http2CallAborter implements CallExchange.Aborter {
             handleIncompleteInboundMessage(outboundMsgHolder.getResponse(), failure.getMessage());
         }
         http2ClientChannel.removeInFlightMessage(streamId);
+        // No push promise follows a reset, so a caller waiting to hear of one is told
+        outboundMsgHolder.markNoPromisesReceived();
     }
 }

@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Reset an HTTP/2 client stream with `CANCEL` instead of `STREAM_CLOSED` when the client gives up on it, that is on an idle timeout or when its request body fails part-way, as RFC 9113 defines `STREAM_CLOSED` for a frame received on a half-closed stream](https://github.com/ballerina-platform/ballerina-library/issues/9244)
 - [Abort a passthrough response whose backend body fails part-way, by closing the HTTP/1.1 connection or resetting the HTTP/2 stream, instead of ending the truncated body as if it were complete](https://github.com/ballerina-platform/ballerina-library/issues/9349)
 - [Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read](https://github.com/ballerina-platform/ballerina-library/issues/9267)
+- [Fail a request sent by `submit` with the error when no connection can be taken from the pool, such as after `poolConfig.waitTime` on an exhausted pool, instead of never completing it](https://github.com/ballerina-platform/ballerina-library/issues/9438)
 - [Document which phase of a call the `timeout`, `socketConfig.connectTimeOut`, `poolConfig.waitTime` and `callTimeout` cover, and state that `timeout` is an inactivity timeout that every read and write restarts](https://github.com/ballerina-platform/ballerina-library/issues/9438)
 
 ## [2.18.1] - 2026-10-16

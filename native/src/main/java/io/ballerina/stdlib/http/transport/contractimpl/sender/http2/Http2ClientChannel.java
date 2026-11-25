@@ -225,7 +225,7 @@ public class Http2ClientChannel {
 
     // The stream no longer belongs to the call that opened it, so the call can no longer abort it
     private static void endExchange(OutboundMsgHolder outboundMsgHolder) {
-        CallExchange exchange = CallExchange.of(outboundMsgHolder.getRequest());
+        CallExchange exchange = outboundMsgHolder.getCallExchange();
         if (exchange != null) {
             exchange.end();
         }

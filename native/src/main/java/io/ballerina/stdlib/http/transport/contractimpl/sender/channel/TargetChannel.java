@@ -152,14 +152,15 @@ public class TargetChannel {
 
         resetTargetChannelState();
 
+        // Of this attempt, which is the latest one while its request is being handed to the channel
+        CallExchange requestExchange = CallExchange.of(httpOutboundRequest);
         httpOutboundRequest.getHttpContentAsync().setMessageListener((httpContent -> {
             //TODO:Until the listener is set, content writing happens in I/O thread. If writability changed
             //while in I/O thread and DefaultBackPressureListener is engaged, there's a chance of I/O thread
             //getting blocked. Cannot recreate, only a possibility.
             Util.checkUnWritabilityAndNotify(targetHandler.getContext(), backpressureHandler);
             this.channel.eventLoop().execute(() -> {
-                CallExchange exchange = currentExchange;
-                if (exchange != null && exchange.isAborted()) {
+                if (requestExchange != null && requestExchange.isAborted()) {
                     // The attempt was aborted and its connection is closing, so nothing more of the request is sent
                     ReferenceCountUtil.release(httpContent);
                     return;
@@ -246,6 +247,19 @@ public class TargetChannel {
     public void reportConnectionAttemptFailed(ClientConnectorException failure) {
         connectionAttemptFailure = failure;
         endConnectionAttempt();
+    }
+
+    /**
+     * Gives up the opening of the route's new HTTP/2 connection without ruling out that this channel becomes one
+     * later, as when it is handed back to the pool before any request is sent on it. Each request waiting for the
+     * connection then opens its own.
+     */
+    public void abandonConnectionAttempt() {
+        NewConnectionAttempt attempt = newConnectionAttempt;
+        newConnectionAttempt = null;
+        if (attempt != null) {
+            http2ConnectionManager.releaseWaitingRequests(httpRoute, attempt);
+        }
     }
 
     private void endConnectionAttempt() {

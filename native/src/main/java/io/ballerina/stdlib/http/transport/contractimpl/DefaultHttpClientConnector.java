@@ -183,6 +183,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
         final CallExchange callExchange = CallExchange.begin(httpOutboundRequest,
                                                              outboundMsgHolder.getResponseFuture());
+        outboundMsgHolder.setCallExchange(callExchange);
         if (callExchange != null && callExchange.isAborted()) {
             // The total timeout of the call ran out before this attempt started, and the future carries the failure
             return outboundMsgHolder.getResponseFuture();
@@ -285,6 +286,7 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                             http2 = false;
                         }
                         if (abandoned) {
+                            targetChannel.abandonConnectionAttempt();
                             targetChannel.setChannel(channelFuture.channel());
                             connectionManager.returnChannel(targetChannel);
                             return;
@@ -341,7 +343,9 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     targetChannel.configTargetHandler(httpOutboundRequest, httpResponseFuture);
                     if (callExchange != null && !targetChannel.bindExchange(callExchange)) {
                         // Aborted just now. The connection is in the middle of being set up for the request, so it
-                        // is closed rather than handed back as it is.
+                        // is closed rather than handed back as it is. The requests waiting for it to become an HTTP/2
+                        // connection do not fail with this call.
+                        targetChannel.reportHttp2Unavailable();
                         targetNettyChannel.close();
                         return false;
                     }
@@ -449,7 +453,17 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                 discardBorrowed(borrowed);
             }
         });
-        if (!borrow.await(callExchange.remainingNanos())) {
+        boolean delivered;
+        try {
+            delivered = borrow.await(callExchange.remainingNanos());
+        } catch (InterruptedException e) {
+            if (borrow.abandon()) {
+                task.cancel(true);
+                http2ConnectionManager.releaseWaitingRequests(route, newConnectionAttempt);
+            }
+            throw e;
+        }
+        if (!delivered) {
             if (borrow.abandon()) {
                 task.cancel(true);
                 // This request may have been picked to open the route's new connection, which it now never opens, so
@@ -469,7 +483,12 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             return;
         }
         try {
-            connectionManager.invalidateTargetChannel(borrowed);
+            if (borrowed.getChannel() != null) {
+                // An established connection that no request has used since it was borrowed stays in the pool
+                connectionManager.returnChannel(borrowed);
+            } else {
+                connectionManager.invalidateTargetChannel(borrowed);
+            }
         } catch (Exception e) {
             LOG.warn("Failed to discard a connection that was borrowed after its caller gave up: {}",
                      e.getMessage());
@@ -545,6 +564,8 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
     private HttpResponseFuture notifyListenerAndGetErrorResponseFuture(Exception failedCause) {
         HttpResponseFuture errorResponseFuture = new DefaultHttpResponseFuture();
         errorResponseFuture.notifyHttpListener(failedCause);
+        // A submitted request waits for the response handle, and would never hear of the failure otherwise
+        errorResponseFuture.notifyResponseHandle(failedCause);
         return errorResponseFuture;
     }
 
