@@ -29,6 +29,8 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.internal.PlatformDependent;
 
 import java.util.concurrent.CountDownLatch;
@@ -54,6 +56,20 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     private volatile CountDownLatch handoverLatch;
     private final AtomicBoolean handoverClaimed = new AtomicBoolean();
     private volatile Throwable handoverFailure;
+    private EventExecutor terminatingExecutor;
+    private GenericFutureListener<Future<Object>> terminationListener;
+    private boolean published;
+    private boolean cancelRequested;
+
+    /**
+     * The state a start was in when its cancellation was requested.
+     */
+    public enum CancelResult {
+        // The bind is still pending, and the port is closed as soon as it is bound
+        CANCELLED,
+        // The port is already bound and serving, hence the connector has to be stopped
+        PUBLISHED
+    }
 
     public HttpWsServerConnectorFuture() {
     }
@@ -119,11 +135,14 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
     /**
      * Fails the start if the event loop terminates before the bind callback has run. Netty does not run a callback
      * that is rejected by a shut down event loop, so without this {@link #sync()} would wait for it forever.
+     * This has to be called before the bind callback is added, which releases the registration with
+     * {@link #releaseTerminationListener()}.
      *
      * @param executor the event loop that runs the bind callback
      */
+    @SuppressWarnings("unchecked")
     public void failHandoverOnTermination(EventExecutor executor) {
-        executor.terminationFuture().addListener(terminated -> {
+        GenericFutureListener<Future<Object>> listener = terminated -> {
             if (claimHandover()) {
                 try {
                     handoverFailure = new ServerConnectorException("The event loop was shut down before the " +
@@ -136,7 +155,69 @@ public class HttpWsServerConnectorFuture extends DefaultWebSocketConnectorFuture
                     }
                 }
             }
-        });
+        };
+        synchronized (this) {
+            terminatingExecutor = executor;
+            terminationListener = listener;
+        }
+        ((Future<Object>) executor.terminationFuture()).addListener(listener);
+    }
+
+    /**
+     * Removes the listener added by {@link #failHandoverOnTermination(EventExecutor)}. The event loop outlives the
+     * listeners started on it, so the registration would keep this future reachable.
+     */
+    @SuppressWarnings("unchecked")
+    public void releaseTerminationListener() {
+        EventExecutor executor;
+        GenericFutureListener<Future<Object>> listener;
+        synchronized (this) {
+            executor = terminatingExecutor;
+            listener = terminationListener;
+            terminatingExecutor = null;
+            terminationListener = null;
+        }
+        if (executor != null) {
+            ((Future<Object>) executor.terminationFuture()).removeListener(listener);
+        }
+    }
+
+    /**
+     * Runs the given action, which starts serving the bound port, unless the start has been cancelled.
+     *
+     * @param publisher the action that starts serving the port
+     * @return false if the start was cancelled, in which case the action is not run
+     */
+    public synchronized boolean publish(Runnable publisher) {
+        if (cancelRequested) {
+            return false;
+        }
+        publisher.run();
+        published = true;
+        return true;
+    }
+
+    /**
+     * Requests the cancellation of a start, for a stop that arrives while the port is being bound.
+     *
+     * @return whether the start was cancelled, or the port is already being served
+     */
+    public synchronized CancelResult cancelStart() {
+        if (published) {
+            return CancelResult.PUBLISHED;
+        }
+        cancelRequested = true;
+        return CancelResult.CANCELLED;
+    }
+
+    /**
+     * Fails the start, so that {@link #sync()} throws the given failure.
+     *
+     * @param failure the reason for the failure
+     */
+    public void failStart(Throwable failure) {
+        handoverFailure = failure;
+        notifyPortBindingError(failure);
     }
 
     @Override

@@ -241,33 +241,44 @@ public class ServerConnectorBootstrap {
             HttpWsServerConnectorFuture startedFuture = new HttpWsServerConnectorFuture(channelFuture, allChannels);
             CountDownLatch handover = new CountDownLatch(1);
             startedFuture.setHandoverLatch(handover);
+            // A callback that Netty rejects because the event loop is already shut down never runs, so fail the
+            // start when the event loop terminates instead of leaving sync() waiting for the handover. A bind that
+            // has already failed may not have an event loop, and always runs the callback.
+            if (!channelFuture.isDone() || channelFuture.isSuccess()) {
+                startedFuture.failHandoverOnTermination(channelFuture.channel().eventLoop());
+            }
             channelFuture.addListener(future -> {
                 if (!startedFuture.claimHandover()) {
                     return;
                 }
+                startedFuture.releaseTerminationListener();
                 try {
-                    if (future.isSuccess()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
-                        }
-                        // Switch to the new channel and future only once the port is bound, so that a concurrent
-                        // stop() of the listener that owns the port never sees a bind that is about to fail.
-                        serverChannel = channelFuture.channel();
-                        serverConnectorFuture = startedFuture;
-                        // Hand over dispatching only once the port is bound.
-                        httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
-                        startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
-                    } else {
+                    if (!future.isSuccess()) {
                         startedFuture.notifyPortBindingError(future.cause());
+                    } else if (!startedFuture.publish(() -> publish(channelFuture.channel(), startedFuture))) {
+                        // The listener was stopped while the port was being bound
+                        channelFuture.channel().close();
+                        startedFuture.failStart(
+                                new ServerConnectorException("The listener was stopped while it was starting"));
                     }
                 } finally {
                     handover.countDown();
                 }
             });
-            // A callback that Netty rejects because the event loop is already shut down never runs, so fail the
-            // start when the event loop terminates instead of leaving sync() waiting for the handover.
-            startedFuture.failHandoverOnTermination(channelFuture.channel().eventLoop());
             return startedFuture;
+        }
+
+        private void publish(Channel channel, HttpWsServerConnectorFuture startedFuture) {
+            if (log.isDebugEnabled()) {
+                log.debug("HTTP(S) Interface starting on host {} and port {}", getHost(), getPort());
+            }
+            // Switch to the new channel and future only once the port is bound, so that a concurrent
+            // stop() of the listener that owns the port never sees a bind that is about to fail.
+            serverChannel = channel;
+            serverConnectorFuture = startedFuture;
+            // Hand over dispatching only once the port is bound.
+            httpServerChannelInitializer.setServerConnectorFuture(startedFuture);
+            startedFuture.notifyPortBindingEvent(this.connectorID, isHttps);
         }
 
         @Override

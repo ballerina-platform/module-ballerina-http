@@ -1664,8 +1664,8 @@ public class HttpUtil {
     }
 
     /**
-     * Converts timeBetweenStaleEviction in seconds to milliseconds. Returns 0 when the value is not positive after
-     * the conversion, so that the default applies (a zero period is rejected by Timer.schedule).
+     * Converts a duration in seconds to milliseconds, clamped at 0. Callers decide what a result of 0 means (for
+     * example, keeping the default when a zero period would be rejected by Timer.schedule).
      *
      * @param seconds the configured value in seconds
      * @return the value in milliseconds, or 0

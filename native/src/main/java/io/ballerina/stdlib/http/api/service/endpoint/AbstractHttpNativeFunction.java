@@ -5,9 +5,11 @@ import io.ballerina.stdlib.http.api.HTTPInterceptorServicesRegistry;
 import io.ballerina.stdlib.http.api.HTTPServicesRegistry;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnector;
+import io.ballerina.stdlib.http.transport.contractimpl.HttpWsServerConnectorFuture;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Includes common functions to all the actions.
@@ -46,5 +48,22 @@ public abstract class AbstractHttpNativeFunction {
         }
         serviceEndpoint.addNativeData(HttpConstants.INTERCEPTOR_SERVICES_REGISTRIES,
                 httpInterceptorServicesRegistries);
+    }
+
+    /**
+     * Stops the connector of a listener that has started, or cancels the start of one that is still binding its port.
+     * A listener whose start() failed (for example on a port another listener already uses) shares the connector of
+     * the listener that owns the port, so it must not stop that connector.
+     */
+    static void stopConnector(BObject serviceEndpoint, Consumer<ServerConnector> stop) {
+        if (isConnectorStarted(serviceEndpoint)) {
+            stop.accept(getServerConnector(serviceEndpoint));
+            return;
+        }
+        Object pendingStart = serviceEndpoint.getNativeData(HttpConstants.PENDING_CONNECTOR_START);
+        if (pendingStart instanceof HttpWsServerConnectorFuture startFuture
+                && startFuture.cancelStart() == HttpWsServerConnectorFuture.CancelResult.PUBLISHED) {
+            stop.accept(getServerConnector(serviceEndpoint));
+        }
     }
 }
