@@ -35,6 +35,7 @@ import java.util.List;
 import static io.ballerina.stdlib.http.api.HttpConstants.INBOUND_MESSAGE;
 import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.getHttpAccessLogMessages;
 import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.getTypedProperty;
+import static io.ballerina.stdlib.http.api.logging.accesslog.HttpAccessLogUtil.populateCustomHeaders;
 import static io.ballerina.stdlib.http.transport.contract.Constants.HTTP_X_FORWARDED_FOR;
 import static io.ballerina.stdlib.http.transport.contract.Constants.OUTBOUND_ACCESS_LOG_MESSAGE;
 import static io.ballerina.stdlib.http.transport.contract.Constants.TO;
@@ -95,9 +96,7 @@ public class SenderHttpAccessLogger implements HttpAccessLogger {
         if (headers.contains(HttpHeaderNames.REFERER)) {
             outboundAccessLogMessage.setHttpReferrer(headers.get(HttpHeaderNames.REFERER));
         }
-        HttpAccessLogConfig.getInstance().getCustomHeaders().forEach(customHeader ->
-                outboundAccessLogMessage.putCustomHeader(customHeader, headers.contains(customHeader) ?
-                        headers.get(customHeader) : "-"));
+        populateCustomHeaders(outboundAccessLogMessage, headers);
 
         outboundAccessLogMessage.setRequestMethod(outboundRequestMsg.getHttpMethod());
         outboundAccessLogMessage.setRequestUri((String) outboundRequestMsg.getProperty(TO));
