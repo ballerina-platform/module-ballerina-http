@@ -69,17 +69,17 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
             DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1,
                     h2ClientWithPriorKnowledge);
             writeSemaphore.release();
-            readSemaphore.acquire();
+            awaitServerWrite(3);
             CountDownLatch latch2 = new CountDownLatch(1);
             DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch2,
                     h2ClientWithPriorKnowledge);
             writeSemaphore.release();
-            readSemaphore.acquire();
+            awaitServerWrite(5);
             CountDownLatch latch3 = new CountDownLatch(1);
             DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(latch3,
                     h2ClientWithPriorKnowledge);
             writeSemaphore.release();
-            readSemaphore.acquire();
+            awaitServerWrite(7);
             // The listener callbacks are invoked asynchronously by the client's event loop, so wait for each of them
             // (this also guarantees the visibility of the results) before reading the results.
             assertTrue(latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
@@ -97,6 +97,12 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
             LOGGER.error("Interrupted exception occurred");
             fail();
         }
+    }
+
+    // Bounded, so that a failure in the server thread fails the test instead of hanging the build
+    private void awaitServerWrite(int streamId) throws InterruptedException {
+        assertTrue(readSemaphore.tryAcquire(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
+                "Timed out waiting for the server to write the frames of stream " + streamId);
     }
 
     private void runTcpServer(int port) {
