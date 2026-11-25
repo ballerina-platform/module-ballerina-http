@@ -134,6 +134,8 @@ public abstract class Node<DataType, InboundMsgType> {
      */
     private boolean matchFullyConsumed(HttpResourceArguments variables, InboundMsgType inboundMsg,
                                        DataReturnAgent<DataType> dataReturnAgent) {
+        // Undoes the state of an automatic OPTIONS response, in case the rest child has a resource for the request
+        Runnable restoreBeforeOwn = dataElement.saveState(inboundMsg);
         boolean ownMatched = dataElement.getData(inboundMsg, dataReturnAgent);
         if (ownMatched && dataReturnAgent.getData() != null) {
             return true;
@@ -161,6 +163,9 @@ public abstract class Node<DataType, InboundMsgType> {
                         restoreOwnState.run();
                     }
                     return true;
+                }
+                if (ownMatched) {
+                    restoreBeforeOwn.run();
                 }
                 dataReturnAgent.setData(restAgent.getData());
             }

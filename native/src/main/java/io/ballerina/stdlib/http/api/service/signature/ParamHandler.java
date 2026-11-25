@@ -42,6 +42,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_FIELD_RESPOND_TYPE;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CACHE;
@@ -311,16 +312,17 @@ public class ParamHandler {
     }
 
     /**
-     * Gets the map of query params for given raw query string.
+     * Gets the map of query params for given raw query string. Only the values of the given params have to be
+     * well-formed, so that a malformed one the resource does not bind cannot fail the request.
      *
      * @return a map of query params
      */
-    public BMap<BString, Object> getQueryParams(Object rawQueryString) {
+    public BMap<BString, Object> getQueryParams(Object rawQueryString, Set<String> boundParams) {
         BMap<BString, Object> queryParams = ValueCreator.createMapValue(MAP_TYPE);
 
         if (rawQueryString != null) {
             try {
-                URIUtil.populateQueryParamMap((String) rawQueryString, queryParams, true);
+                URIUtil.populateQueryParamMap((String) rawQueryString, queryParams, boundParams::contains);
             } catch (MalformedPercentEncodingException e) {
                 throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_QUERY_PARAM_BINDING_ERROR,
                         "malformed percent-encoding in the query string");

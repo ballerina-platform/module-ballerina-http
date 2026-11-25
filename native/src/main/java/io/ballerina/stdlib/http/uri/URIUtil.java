@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -265,7 +266,7 @@ public final class URIUtil {
      */
     public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap)
             throws UnsupportedEncodingException {
-        populateQueryParamMap(queryParamString, queryParamsMap, false);
+        populateQueryParamMap(queryParamString, queryParamsMap, name -> false);
     }
 
     /**
@@ -273,25 +274,28 @@ public final class URIUtil {
      *
      * @param queryParamString the raw query string
      * @param queryParamsMap   the map to populate
-     * @param strict           whether a malformed escape or invalid UTF-8 throws
-     *                         {@link MalformedPercentEncodingException} instead of being tolerated
+     * @param isStrictParam    tests a decoded name; for the values of the names it accepts, a malformed escape or
+     *                         invalid UTF-8 throws {@link MalformedPercentEncodingException} instead of being
+     *                         tolerated
      * @throws UnsupportedEncodingException never thrown; declared because other modules catch it
      */
     @SuppressWarnings("unchecked")
     public static void populateQueryParamMap(String queryParamString, BMap<BString, Object> queryParamsMap,
-                                             boolean strict) throws UnsupportedEncodingException {
+                                             Predicate<String> isStrictParam)
+            throws UnsupportedEncodingException {
         Map<String, List<String>> tempParamMap = new HashMap<>();
         String[] queryParamVals = queryParamString.split("&");
         for (String queryParam : queryParamVals) {
             int index = queryParam.indexOf('=');
             if (index == -1) {
-                String decodedName = decodeQueryPart(queryParam, strict);
+                String decodedName = decodeQueryPart(queryParam, false);
                 if (!tempParamMap.containsKey(decodedName)) {
                     tempParamMap.put(decodedName, null);
                 }
                 continue;
             }
-            String queryParamName = decodeQueryPart(queryParam.substring(0, index).trim(), strict);
+            String queryParamName = decodeQueryPart(queryParam.substring(0, index).trim(), false);
+            boolean strict = isStrictParam.test(queryParamName);
             String queryParamValue = queryParam.substring(index + 1).trim();
             List<String> values = new ArrayList<>();
             Set<String> uniqueValues = new HashSet<>();

@@ -68,15 +68,17 @@ public class URIUtilPercentDecodeTest {
     }
 
     @Test(expectedExceptions = MalformedPercentEncodingException.class,
-            description = "A malformed escape in a query parameter name is rejected")
-    public void testMalformedQueryParameterName() throws Exception {
-        URIUtil.populateQueryParamMap("x%zz=1", ValueCreator.createMapValue(), true);
+            description = "A malformed value of a bound query parameter is rejected")
+    public void testMalformedValueOfBoundQueryParameter() throws Exception {
+        URIUtil.populateQueryParamMap("x=%zz", ValueCreator.createMapValue(), "x"::equals);
     }
 
-    @Test(expectedExceptions = MalformedPercentEncodingException.class,
-            description = "A malformed escape in a value-less query key is rejected")
-    public void testMalformedValueLessQueryKey() throws Exception {
-        URIUtil.populateQueryParamMap("x%", ValueCreator.createMapValue(), true);
+    @Test(description = "A malformed name or value that no query parameter binds is tolerated")
+    public void testMalformedUnboundQueryParameterIsTolerated() throws Exception {
+        BMap<BString, Object> map = ValueCreator.createMapValue();
+        URIUtil.populateQueryParamMap("x=1&utm=%E9&a%zz=1&lone%", map, "x"::equals);
+        assertEquals(map.getArrayValue(StringUtils.fromString("x")).getBString(0).getValue(), "1");
+        assertTrue(map.containsKey(StringUtils.fromString("a%zz")));
     }
 
     @DataProvider(name = "malformed")
