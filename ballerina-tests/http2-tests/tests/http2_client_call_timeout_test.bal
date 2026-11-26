@@ -116,7 +116,7 @@ function http2CallTimeoutSeconds(time:Utc since) returns decimal {
 }
 
 function http2CallTimeoutDescribe(any|error value) returns string {
-    return value.toString();
+    return value is error ? value.message() + " " + value.detail().toString() : value.toString();
 }
 
 function http2CallTimeoutReset() {

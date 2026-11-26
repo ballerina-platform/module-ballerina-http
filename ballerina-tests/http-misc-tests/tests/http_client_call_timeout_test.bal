@@ -117,7 +117,7 @@ function callTimeoutSeconds(time:Utc since) returns decimal {
 }
 
 function callTimeoutDescribe(any|error value) returns string {
-    return value.toString();
+    return value is error ? value.message() + " " + value.detail().toString() : value.toString();
 }
 
 function callTimeoutReset() {

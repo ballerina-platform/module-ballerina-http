@@ -1607,7 +1607,7 @@ A client has four settings that limit time, and each of them covers a different 
 | Setting | Phase it covers | Fails with |
 |---|---|---|
 | `poolConfig.waitTime` | Waiting for a free connection from the pool when the pool is exhausted. For HTTP/2, it is also the wait for a connection that another request is opening. Nothing else. | `http:ClientError` |
-| `socketConfig.connectTimeOut` | Making the TCP connection. It does not cover the TLS handshake, the request or the response. | `http:GenericClientError` |
+| `socketConfig.connectTimeOut` | Making the TCP connection. It does not cover the TLS handshake, the request or the response. | `http:ClientConnectorError` |
 | `timeout` | **Inactivity** while a connection or a stream is in use: writing the request, waiting for the response to start and reading its body. Every read and write restarts the period, so it never limits the total time. A response whose body arrives one byte at a time, within the `timeout` of each byte, never times out. | `http:IdleTimeoutError` |
 | `callTimeout` and `Client.withDeadline()` | The whole call, from its start until its response body has been read: waiting for a connection, making it, writing the request, and reading the response, including the body bytes that are read after the `http:Response` has been returned. It does not restart on activity. | `http:CallTimeoutError` |
 
