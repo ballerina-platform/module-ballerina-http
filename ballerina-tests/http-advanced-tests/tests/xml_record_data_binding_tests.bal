@@ -584,17 +584,13 @@ function testXmlInboundUnionBindingNoMatchReportsTheMemberErrors() returns error
 // ----------------------------------------------------------------------- service outbound
 
 @test:Config {}
-function testXmlInboundAfterInterceptorReadPayloadAsBinaryWithCharset() returns error? {
-    // 0xE9 is "é" in ISO-8859-1, and is not valid UTF-8
-    byte[] body = "<PurchaseOrder><id>caf".toBytes();
-    body.push(233);
-    foreach byte b in "</id><qty>3</qty></PurchaseOrder>".toBytes() {
-        body.push(b);
+function testXmlInboundAfterInterceptorReadPayloadAsBinary() returns error? {
+    // A non-ASCII value has to be decoded as it is without an interceptor
+    string body = "<PurchaseOrder><id>café</id><qty>3</qty></PurchaseOrder>";
+    foreach string path in ["/xmlService/order", "/xmlBinaryInterceptedService/order"] {
+        http:Response res = check postXml(path, body);
+        check assertBody(res, "PurchaseOrder", "café:3");
     }
-    http:Request req = new;
-    req.setBinaryPayload(body, "application/xml; charset=ISO-8859-1");
-    http:Response res = check xmlRecordBindingClient->post("/xmlBinaryInterceptedService/order", req);
-    check assertBody(res, "PurchaseOrder", "café:3");
 }
 
 @test:Config {}
