@@ -226,6 +226,24 @@ isolated function externExecuteClientAction(HttpClient caller, string path, Requ
     name: "executeClientAction"
 } external;
 
+isolated function externSetCallDeadline(Request req, decimal seconds) =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.client.actions.CallControls",
+    name: "setCallDeadline"
+} external;
+
+isolated function externRemainingCallTime(Request req) returns decimal =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.client.actions.CallControls",
+    name: "remainingCallTime"
+} external;
+
+isolated function externCancelCall(HttpFuture httpFuture) returns ClientError? =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.client.actions.CallControls",
+    name: "cancel"
+} external;
+
 isolated function createClient(string url, ClientConfiguration config) returns HttpClient|ClientError {
     HttpClient simpleClient = check new(url, config);
     return simpleClient;

@@ -332,7 +332,7 @@ isolated function getCachedResponse(HttpCache cache, HttpClient httpClient, Requ
         if cache.isAllowedToCache(response) {
             response.requestTime = currentT;
             response.receivedTime = time:utcNow();
-            cache.put(getCacheKey(httpMethod, path), req.cacheControl, response);
+            check cache.put(getCacheKey(httpMethod, path), req.cacheControl, response);
         }
         return response;
     } else {

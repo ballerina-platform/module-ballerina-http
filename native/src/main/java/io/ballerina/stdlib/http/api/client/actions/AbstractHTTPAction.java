@@ -42,6 +42,8 @@ import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
+import io.ballerina.stdlib.http.transport.contract.CallDeadline;
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
@@ -288,11 +290,26 @@ public abstract class AbstractHTTPAction {
             outboundRequestMsg.setProperty(HttpConstants.REMOTE_ADDRESS,
                     dataContext.getEnvironment().getStrandLocal(HttpConstants.REMOTE_ADDRESS));
         }
+        applyCallControls(dataContext, outboundRequestMsg, async);
         outboundRequestMsg.setProperty(HttpConstants.ORIGIN_HOST,
                 dataContext.getEnvironment().getStrandLocal(HttpConstants.ORIGIN_HOST));
         outboundRequestMsg.setProperty(HttpConstants.INBOUND_MESSAGE,
                 dataContext.getEnvironment().getStrandLocal(HttpConstants.INBOUND_MESSAGE));
         sendOutboundRequest(dataContext, outboundRequestMsg, async);
+    }
+
+    // Ties the request to the call it is sent for: its total time budget, which the retries and the redirects of the
+    // call share, and whether the caller can cancel it by the future it gets
+    private static void applyCallControls(DataContext dataContext, HttpCarbonMessage outboundRequestMsg,
+                                          boolean async) {
+        BObject requestObj = dataContext.getRequestObj();
+        Object callDeadline = requestObj == null ? null : requestObj.getNativeData(HttpConstants.CALL_DEADLINE);
+        if (callDeadline instanceof CallDeadline) {
+            outboundRequestMsg.setProperty(Constants.CALL_DEADLINE, callDeadline);
+        } else {
+            outboundRequestMsg.removeProperty(Constants.CALL_DEADLINE);
+        }
+        outboundRequestMsg.setProperty(Constants.CALL_CANCELLABLE, async);
     }
 
     private static void checkDirtiness(DataContext dataContext, HttpCarbonMessage outboundRequestMsg) {
@@ -405,7 +422,14 @@ public abstract class AbstractHTTPAction {
             }
         } catch (IOException | EncoderException serializerException) {
             // We don't have to do anything here as the client connector will notify the error though the listener
-            logger.warn("couldn't serialize the message", serializerException);
+            CallExchange exchange = CallExchange.of(outboundRequestMsg);
+            if (exchange != null && exchange.isAborted()) {
+                // The call was ended by its timeout or by the caller, which is an expected end of the body
+                logger.debug("The request body was cut short, as the call was aborted: {}",
+                             serializerException.getMessage());
+            } else {
+                logger.warn("couldn't serialize the message", serializerException);
+            }
         } catch (RuntimeException exception) {
             if (exception.getMessage() != null &&
                     exception.getMessage().contains(Constants.INBOUND_RESPONSE_ALREADY_RECEIVED)) {

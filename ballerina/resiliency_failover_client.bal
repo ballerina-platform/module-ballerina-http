@@ -502,6 +502,8 @@ public client isolated class FailoverClient {
     isolated function performFailoverAction (string path, Request request, HttpOperation requestAction,
             string verb = "") returns HttpResponse|ClientError {
 
+        // A request object that an `http:Client` has sent before still carries the time of that call
+        applyCallDeadline(request, 0);
         Client foClient = self.getLastSuceededClientEP();
         FailoverInferredConfig failoverInferredConfig = self.failoverInferredConfig;
         int[] failoverCodes = failoverInferredConfig.failoverCodes;

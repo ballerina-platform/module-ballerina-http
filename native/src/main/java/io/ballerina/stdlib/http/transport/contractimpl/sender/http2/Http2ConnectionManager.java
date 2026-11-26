@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
@@ -154,6 +155,20 @@ public class Http2ConnectionManager {
     }
 
     /**
+     * Borrow an HTTP/2 client channel for a request that has no total timeout.
+     *
+     * @param httpRoute the http route
+     * @param attempt   the caller's attempt to get a connection
+     * @return Http2ClientChannel
+     * @throws ClientConnectorException the failure of the connection attempt the caller waited for
+     * @see #fetchChannel(HttpRoute, NewConnectionAttempt, CallExchange)
+     */
+    public Http2ClientChannel fetchChannel(HttpRoute httpRoute, NewConnectionAttempt attempt)
+            throws ClientConnectorException {
+        return fetchChannel(httpRoute, attempt, null);
+    }
+
+    /**
      * Borrow an HTTP/2 client channel. If none is returned and the caller is to open the route's new connection, the
      * attempt is marked as the opener, and its outcome must be reported through
      * {@link #releaseWaitingRequests(HttpRoute, NewConnectionAttempt)} or
@@ -161,14 +176,16 @@ public class Http2ConnectionManager {
      *
      * @param httpRoute the http route
      * @param attempt   the caller's attempt to get a connection
+     * @param exchange  the exchange of the caller's request, whose total timeout also ends the wait, or {@code null}
      * @return Http2ClientChannel
-     * @throws ClientConnectorException the failure of the connection attempt the caller waited for
+     * @throws ClientConnectorException the failure of the connection attempt the caller waited for, or of the
+     *                                  exchange if it is aborted during the wait
      */
-    public Http2ClientChannel fetchChannel(HttpRoute httpRoute, NewConnectionAttempt attempt)
+    public Http2ClientChannel fetchChannel(HttpRoute httpRoute, NewConnectionAttempt attempt, CallExchange exchange)
             throws ClientConnectorException {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
         perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
-        return perRouteConnectionPool.fetchTargetChannel(attempt);
+        return perRouteConnectionPool.fetchTargetChannel(attempt, exchange);
     }
 
     /**

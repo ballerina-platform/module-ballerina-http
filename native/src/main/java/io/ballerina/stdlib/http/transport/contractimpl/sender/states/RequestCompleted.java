@@ -81,7 +81,12 @@ public class RequestCompleted implements SenderState {
         String message = targetHandler.resolveInboundResponseFailure(
                 REMOTE_SERVER_CLOSED_BEFORE_INITIATING_INBOUND_RESPONSE);
         httpResponseFuture.notifyHttpListener(new ServerConnectorException(message));
-        LOG.error(message);
+        if (targetHandler.isAbortedByCall()) {
+            // The call was ended by its timeout or by the caller, so the closure is expected
+            LOG.debug(message);
+        } else {
+            LOG.error(message);
+        }
     }
 
     @Override

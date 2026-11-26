@@ -37,6 +37,7 @@ public client isolated class Client {
     final HttpClient httpClient;
     private final boolean requireValidation;
     private final boolean requireLaxDataBinding;
+    private final decimal callTimeout;
 
     # Gets invoked to initialize the `client`. During initialization, the configurations provided through the `config`
     # record is used to determine which type of additional behaviours are added to the endpoint (e.g., caching,
@@ -46,6 +47,20 @@ public client isolated class Client {
     # + config - The configurations to be used when initializing the `client`
     # + return - The `client` or an `http:ClientError` if the initialization failed
     public isolated function init(string url, *ClientConfiguration config) returns ClientError? {
+        if config.callTimeout < 0d {
+            return error GenericClientError("'callTimeout' must not be negative");
+        }
+        self.callTimeout = config.callTimeout;
+        ClientViewSource? viewSource = takeClientViewSource(url);
+        if viewSource is ClientViewSource {
+            // A view made by `withDeadline()`, which shares everything with the client it was made from
+            self.url = viewSource.url;
+            self.cookieStore = viewSource.cookieStore;
+            self.httpClient = viewSource.httpClient;
+            self.requireValidation = viewSource.requireValidation;
+            self.requireLaxDataBinding = viewSource.requireLaxDataBinding;
+            return;
+        }
         var cookieConfigVal = config.cookieConfig;
         if cookieConfigVal is CookieConfig {
             if cookieConfigVal.enabled {
@@ -57,6 +72,37 @@ public client isolated class Client {
         self.requireValidation = config.validation;
         self.requireLaxDataBinding = config.laxDataBinding;
         return;
+    }
+
+    # Creates a view of this client in which every call has the given total time, instead of the `callTimeout` of the
+    # client. The view shares the connection pool, the cookies and the resiliency behaviour (retry, redirect and
+    # circuit breaker state) of this client, so it costs nothing to create one per call, for example
+    # `http:Client view = client.withDeadline(5); Order[] orders = check view->/orders;`. It covers the resource and the
+    # remote methods alike.
+    #
+    # All the attempts of a call, that is its retries and its redirects, share the time. When it runs out, the HTTP/1.1
+    # connection is closed and dropped from the pool, or the HTTP/2 stream is reset with `CANCEL`, and the call fails
+    # with an `http:CallTimeoutError`. The time covers waiting for a connection, making it, writing the request and
+    # reading the response, including the body bytes that are read after the `http:Response` has been returned.
+    #
+    # + deadline - Total time in seconds that a call may take, or `0` for no limit
+    # + return - A view of this client with the given time for its calls
+    public isolated function withDeadline(decimal deadline) returns Client {
+        if deadline < 0d {
+            panic error GenericClientError("the deadline of a call must not be negative");
+        }
+        string viewKey = CLIENT_VIEW_KEY_PREFIX + nextClientViewId().toString();
+        ClientViewSource viewSource = new (self.url, self.getCookieStore(), self.httpClient, self.requireValidation,
+            self.requireLaxDataBinding);
+        lock {
+            clientViewSources[viewKey] = viewSource;
+        }
+        Client|ClientError view = new (viewKey, callTimeout = deadline);
+        if view is ClientError {
+            discardClientViewSource(viewKey);
+            panic view;
+        }
+        return view;
     }
 
     # The client resource function to send HTTP GET requests to HTTP endpoints.
@@ -98,6 +144,7 @@ public client isolated class Client {
     private isolated function processGet(string path, map<string|string[]>? headers, TargetType targetType)
             returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
+        applyCallDeadline(req, self.callTimeout);
         Response|ClientError response = self.httpClient->get(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_GET, response.statusCode, self.url);
@@ -149,6 +196,7 @@ public client isolated class Client {
     private isolated function processPost(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->post(path, req);
         if observabilityEnabled && response is Response {
@@ -201,6 +249,7 @@ public client isolated class Client {
     private isolated function processPut(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->put(path, req);
         if observabilityEnabled && response is Response {
@@ -253,6 +302,7 @@ public client isolated class Client {
     private isolated function processDelete(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->delete(path, req);
         if observabilityEnabled && response is Response {
@@ -305,6 +355,7 @@ public client isolated class Client {
     private isolated function processPatch(string path, RequestMessage message, TargetType targetType,
             string? mediaType, map<string|string[]>? headers) returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->patch(path, req);
         if observabilityEnabled && response is Response {
@@ -332,6 +383,7 @@ public client isolated class Client {
     # + return - The response or an `http:ClientError` if failed to establish the communication with the upstream server
     remote isolated function head(string path, map<string|string[]>? headers = ()) returns Response|ClientError {
         Request req = buildRequestWithHeaders(headers);
+        applyCallDeadline(req, self.callTimeout);
         Response|ClientError response = self.httpClient->head(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_HEAD, response.statusCode, self.url);
@@ -378,6 +430,7 @@ public client isolated class Client {
     private isolated function processOptions(string path, map<string|string[]>? headers, TargetType targetType)
             returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = buildRequestWithHeaders(headers);
+        applyCallDeadline(req, self.callTimeout);
         Response|ClientError response = self.httpClient->options(path, message = req);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, HTTP_OPTIONS, response.statusCode, self.url);
@@ -410,6 +463,7 @@ public client isolated class Client {
             TargetType targetType, string? mediaType, map<string|string[]>? headers)
             returns Response|stream<SseEvent, error?>|anydata|ClientError {
         Request req = check buildRequest(message, mediaType);
+        applyCallDeadline(req, self.callTimeout);
         populateOptions(req, mediaType, headers);
         Response|ClientError response = self.httpClient->execute(httpVerb, path, req);
         if observabilityEnabled && response is Response {
@@ -437,6 +491,7 @@ public client isolated class Client {
 
     private isolated function processForward(string path, Request request, TargetType targetType)
             returns Response|stream<SseEvent, error?>|anydata|ClientError {
+        applyCallDeadline(request, self.callTimeout);
         Response|ClientError response = self.httpClient->forward(path, request);
         if observabilityEnabled && response is Response {
             addObservabilityInformation(path, request.method, response.statusCode, self.url);
@@ -453,7 +508,26 @@ public client isolated class Client {
     # + return - An `http:HttpFuture` that represents an asynchronous service invocation or else an `http:ClientError` if the submission fails
     remote isolated function submit(string httpVerb, string path, RequestMessage message) returns HttpFuture|ClientError {
         Request req = check buildRequest(message, ());
+        applyCallDeadline(req, self.callTimeout);
         return self.httpClient->submit(httpVerb, path, req);
+    }
+
+    # Cancel a previously submitted asynchronous request. Cancelling closes the HTTP/1.1 connection that carries the
+    # request and drops it from the pool, or resets the HTTP/2 stream with `CANCEL`, so the connection is released at
+    # once instead of when the remote endpoint responds or goes idle. A cancelled request does not count as a failure of
+    # the remote endpoint towards the circuit breaker. Nothing happens if the request has completed.
+    #
+    # Getting the response of a cancelled request, or reading the body of its response if the response has started,
+    # fails with an `http:CallCancelledError`. The outcome of the request on the remote endpoint is unknown to the
+    # caller.
+    #
+    # When the client has a retry or a circuit breaker configuration, the future is returned only once the response
+    # has started, so the request can no longer be cancelled before that.
+    #
+    # + httpFuture - The `http:HttpFuture` related to the asynchronous invocation to cancel
+    # + return - An `http:ClientError` if the future is not one that a submitted request returned, otherwise nil
+    remote isolated function cancel(HttpFuture httpFuture) returns ClientError? {
+        return externCancelCall(httpFuture);
     }
 
     # Get the response from a previously submitted asynchronous request. Can be used after calling `submit()` action to retrieve the actual response.
@@ -811,6 +885,10 @@ isolated function processResponse(Response|ClientError response, TargetType targ
             if payload is NoContentError {
                 return createResponseError(statusCode, reasonPhrase, headers);
             }
+            CallTimeoutError|CallCancelledError? callAbortError = findCallAbortError(payload);
+            if callAbortError is error {
+                return callAbortError;
+            }
             return error PayloadBindingClientError("http:ApplicationResponseError creation failed: " + statusCode.toString() +
                 " response payload extraction failed", payload);
         } else {
@@ -818,7 +896,12 @@ isolated function processResponse(Response|ClientError response, TargetType targ
         }
     }
     if targetType is typedesc<anydata> {
-        anydata payload = check performDataBinding(response, targetType, requireLaxDataBinding);
+        anydata|ClientError payload = performDataBinding(response, targetType, requireLaxDataBinding);
+        if payload is ClientError {
+            // A body that failed because its call ran out of time, or was cancelled, fails with that error
+            CallTimeoutError|CallCancelledError? callAbortError = findCallAbortError(payload);
+            return callAbortError is error ? callAbortError : payload;
+        }
         if requireValidation {
             return performDataValidation(payload, targetType);
         }
@@ -859,7 +942,14 @@ isolated function processResponseNew(Response|ClientError response, typedesc<Sta
     if response is ClientError {
         return response;
     }
-    return externProcessResponseNew(response, targetType, requireValidation, requireLaxDataBinding);
+    StatusCodeResponse|ClientError result = externProcessResponseNew(response, targetType, requireValidation,
+            requireLaxDataBinding);
+    if result is ClientError {
+        // A body that failed because its call ran out of time fails with that error
+        CallTimeoutError|CallCancelledError? callAbortError = findCallAbortError(result);
+        return callAbortError is error ? callAbortError : result;
+    }
+    return result;
 }
 
 isolated function externProcessResponse(Response response, TargetType targetType, boolean requireValidation, boolean requireLaxDataBinding)
@@ -877,3 +967,53 @@ isolated function externProcessResponseNew(Response response, typedesc<StatusCod
 isolated function hasHttpResponseType(typedesc targetTypeDesc) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder"
 } external;
+
+const CLIENT_VIEW_KEY_PREFIX = "\u{0}client-view:";
+
+// What a view made by `Client.withDeadline()` takes over from the client it was made from
+isolated class ClientViewSource {
+    final string url;
+    final CookieStore? cookieStore;
+    final HttpClient httpClient;
+    final boolean requireValidation;
+    final boolean requireLaxDataBinding;
+
+    isolated function init(string url, CookieStore? cookieStore, HttpClient httpClient, boolean requireValidation,
+            boolean requireLaxDataBinding) {
+        self.url = url;
+        self.cookieStore = cookieStore;
+        self.httpClient = httpClient;
+        self.requireValidation = requireValidation;
+        self.requireLaxDataBinding = requireLaxDataBinding;
+    }
+}
+
+isolated map<ClientViewSource> clientViewSources = {};
+isolated int clientViewCounter = 0;
+
+isolated function nextClientViewId() returns int {
+    lock {
+        clientViewCounter += 1;
+        return clientViewCounter;
+    }
+}
+
+isolated function takeClientViewSource(string url) returns ClientViewSource? {
+    if !url.startsWith(CLIENT_VIEW_KEY_PREFIX) {
+        return;
+    }
+    lock {
+        return clientViewSources.removeIfHasKey(url);
+    }
+}
+
+isolated function discardClientViewSource(string viewKey) {
+    lock {
+        _ = clientViewSources.removeIfHasKey(viewKey);
+    }
+}
+
+// Starts the total time of the call the request is sent for, which every attempt of the call shares
+isolated function applyCallDeadline(Request req, decimal callTimeout) {
+    externSetCallDeadline(req, callTimeout);
+}

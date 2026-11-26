@@ -52,7 +52,9 @@ public isolated class HttpCache {
         return true;
     }
 
-    isolated function put(string key, RequestCacheControl? requestCacheControl, Response inboundResponse) {
+    // Returns an error only if the call ran out of time, or was cancelled, while the body was read to be cached
+    isolated function put(string key, RequestCacheControl? requestCacheControl, Response inboundResponse)
+            returns CallTimeoutError|CallCancelledError? {
         if self.isNonCacheableResponse(requestCacheControl, inboundResponse.cacheControl) {
             return;
         }
@@ -62,11 +64,19 @@ public isolated class HttpCache {
             // will be read by the client and the response will be after the first cache hit.
             byte[]|error binaryPayload = inboundResponse.getBinaryPayload();
             if binaryPayload is error {
+                // A body cut short by the time of the call is neither cached nor handed to the caller as a response
+                CallTimeoutError|CallCancelledError? callAbortError = findCallAbortError(binaryPayload);
+                if callAbortError is error {
+                    return callAbortError;
+                }
                 log:printDebug("Error building the payload in HTTP caching: " + binaryPayload.message());
+                // A response whose body could not be read is not cached, as every hit would serve a broken body
+                return;
             }
             log:printDebug("Adding new cache entry for: " + key);
             addEntry(self.cache, key, inboundResponse);
         }
+        return;
     }
 
     // TODO: Need to consider https://tools.ietf.org/html/rfc7234#section-3.2 as well here

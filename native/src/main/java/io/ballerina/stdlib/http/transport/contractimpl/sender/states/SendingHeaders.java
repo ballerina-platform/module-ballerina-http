@@ -165,6 +165,14 @@ public class SendingHeaders implements SenderState {
         senderReqRespStateManager.writeOutboundRequestEntity(httpOutboundRequest, httpContent);
     }
 
+    /**
+     * Releases the parts of the body held back until the whole of it is there, as the request is not going to be sent.
+     */
+    public void releaseHeldContent() {
+        contentList.forEach(HttpContent::release);
+        contentList.clear();
+    }
+
     private void waitForCompleteBody(HttpContent httpContent) {
         contentList.add(httpContent);
         contentLength += httpContent.content().readableBytes();

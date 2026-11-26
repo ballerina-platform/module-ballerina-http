@@ -65,6 +65,8 @@ import io.ballerina.stdlib.http.transport.contract.config.Parameter;
 import io.ballerina.stdlib.http.transport.contract.config.ProxyServerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SslConfiguration;
+import io.ballerina.stdlib.http.transport.contract.exceptions.CallCancelledException;
+import io.ballerina.stdlib.http.transport.contract.exceptions.CallTimeoutException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ConnectionTimedOutException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.EndpointTimeOutException;
@@ -596,7 +598,11 @@ public class HttpUtil {
 
     public static BError createHttpError(Throwable throwable) {
         BError cause;
-        if (throwable instanceof EndpointTimeOutException) {
+        if (throwable instanceof CallTimeoutException) {
+            return createHttpError(throwable.getMessage(), HttpErrorType.CALL_TIMEOUT_EXCEEDED);
+        } else if (throwable instanceof CallCancelledException) {
+            return createHttpError(throwable.getMessage(), HttpErrorType.CALL_CANCELLED);
+        } else if (throwable instanceof EndpointTimeOutException) {
             return createHttpError(throwable.getMessage(), HttpErrorType.IDLE_TIMEOUT_TRIGGERED);
         } else if (throwable instanceof SslException) {
             return createHttpError(throwable.getMessage(), HttpErrorType.SSL_ERROR);
@@ -648,6 +654,14 @@ public class HttpUtil {
 
     // TODO: Find a better way to get the error type than String matching.
     private static HttpErrorType getErrorType(String errorMessage) {
+        // A call that was aborted from the outside, by its total timeout or by the caller, can reach here as the
+        // failure of a response body, which carries only the message
+        if (errorMessage.startsWith(Constants.CALL_TIMEOUT_EXCEEDED)) {
+            return HttpErrorType.CALL_TIMEOUT_EXCEEDED;
+        }
+        if (errorMessage.startsWith(Constants.CALL_CANCELLED)) {
+            return HttpErrorType.CALL_CANCELLED;
+        }
         // Every Idle Timeout triggered error is mapped to IdleTimeoutError
         if (errorMessage.contains("Idle timeout triggered")) {
             return HttpErrorType.IDLE_TIMEOUT_TRIGGERED;

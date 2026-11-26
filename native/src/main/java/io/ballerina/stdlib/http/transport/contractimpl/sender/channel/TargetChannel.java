@@ -15,6 +15,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.channel;
 
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.BackPressureHandler;
@@ -22,6 +23,7 @@ import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.ConnectionAvailabilityFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.Http1CallAborter;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.HttpClientChannelInitializer;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.TargetHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
@@ -35,6 +37,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +74,9 @@ public class TargetChannel {
     private volatile boolean connectionAttemptEnded;
     private volatile boolean http2Unavailable;
     private volatile ClientConnectorException connectionAttemptFailure;
+    // The exchange of the request this channel is carrying; cleared before the channel goes back to the pool, which
+    // is what keeps an abort that comes late away from a channel another request has since taken
+    private volatile CallExchange currentExchange;
 
     public TargetChannel(HttpClientChannelInitializer httpClientChannelInitializer, ChannelFuture channelFuture,
                          HttpRoute httpRoute, ConnectionAvailabilityFuture connectionAvailabilityFuture) {
@@ -95,6 +101,40 @@ public class TargetChannel {
         targetHandler.setTargetChannel(this);
     }
 
+    /**
+     * Ties the exchange of the request this channel is about to carry to the channel.
+     *
+     * @param exchange the exchange of the request
+     * @return false if the exchange has already been aborted, in which case the channel must not carry the request
+     */
+    public boolean bindExchange(CallExchange exchange) {
+        currentExchange = exchange;
+        if (exchange.bind(new Http1CallAborter(this, exchange))) {
+            return true;
+        }
+        currentExchange = null;
+        return false;
+    }
+
+    public CallExchange getCurrentExchange() {
+        return currentExchange;
+    }
+
+    /**
+     * Ends the exchange of the request this channel was carrying, as the channel is about to leave it.
+     */
+    public void releaseExchange() {
+        CallExchange exchange = currentExchange;
+        currentExchange = null;
+        if (exchange != null) {
+            exchange.end();
+        }
+    }
+
+    public TargetHandler getTargetHandler() {
+        return targetHandler;
+    }
+
     public BackPressureObservable getBackPressureObservable() {
         if (Util.getBackPressureHandler(targetHandler.getContext()) != null) {
             return Util.getBackPressureHandler(targetHandler.getContext()).getBackPressureObservable();
@@ -112,12 +152,19 @@ public class TargetChannel {
 
         resetTargetChannelState();
 
+        // Of this attempt, which is the latest one while its request is being handed to the channel
+        CallExchange requestExchange = CallExchange.of(httpOutboundRequest);
         httpOutboundRequest.getHttpContentAsync().setMessageListener((httpContent -> {
             //TODO:Until the listener is set, content writing happens in I/O thread. If writability changed
             //while in I/O thread and DefaultBackPressureListener is engaged, there's a chance of I/O thread
             //getting blocked. Cannot recreate, only a possibility.
             Util.checkUnWritabilityAndNotify(targetHandler.getContext(), backpressureHandler);
             this.channel.eventLoop().execute(() -> {
+                if (requestExchange != null && requestExchange.isAborted()) {
+                    // The attempt was aborted and its connection is closing, so nothing more of the request is sent
+                    ReferenceCountUtil.release(httpContent);
+                    return;
+                }
                 try {
                     senderReqRespStateManager.writeOutboundRequestEntity(httpOutboundRequest, httpContent);
                 } catch (Exception exception) {
@@ -200,6 +247,19 @@ public class TargetChannel {
     public void reportConnectionAttemptFailed(ClientConnectorException failure) {
         connectionAttemptFailure = failure;
         endConnectionAttempt();
+    }
+
+    /**
+     * Gives up the opening of the route's new HTTP/2 connection without ruling out that this channel becomes one
+     * later, as when it is handed back to the pool before any request is sent on it. Each request waiting for the
+     * connection then opens its own.
+     */
+    public void abandonConnectionAttempt() {
+        NewConnectionAttempt attempt = newConnectionAttempt;
+        newConnectionAttempt = null;
+        if (attempt != null) {
+            http2ConnectionManager.releaseWaitingRequests(httpRoute, attempt);
+        }
     }
 
     private void endConnectionAttempt() {

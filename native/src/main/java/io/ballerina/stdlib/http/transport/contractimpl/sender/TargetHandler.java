@@ -17,6 +17,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contract.config.KeepAliveConfig;
+import io.ballerina.stdlib.http.transport.contract.exceptions.CallAbortedException;
 import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.SenderReqRespStateManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.TargetChannel;
@@ -212,6 +213,27 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
                                                                             targetChannel.getNewConnectionAttempt());
         upgradedHttp2ClientChannel.getConnection().remote().flowController().listener(
             new ClientRemoteFlowControlListener(upgradedHttp2ClientChannel));
+    }
+
+    /**
+     * Aborts the exchange this handler serves by closing its connection. The failure is kept as the reason the
+     * connection closed, so a response or a response body that has not ended yet fails with it, rather than with the
+     * connection having been closed by the remote host.
+     *
+     * @param failure the reason the exchange is aborted
+     */
+    public void abortExchange(Throwable failure) {
+        this.cause = failure;
+        closeChannel(context);
+    }
+
+    /**
+     * Whether the connection was closed because its call was aborted, which is an expected end and not a failure.
+     *
+     * @return true if the call was aborted
+     */
+    public boolean isAbortedByCall() {
+        return cause instanceof CallAbortedException;
     }
 
     public void closeChannel(ChannelHandlerContext ctx) {

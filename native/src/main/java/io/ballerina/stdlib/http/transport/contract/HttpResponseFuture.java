@@ -173,4 +173,10 @@ public interface HttpResponseFuture {
      */
     void notifyPushResponse(int streamId, Throwable throwable);
 
+    /**
+     * Checks whether the response of the request has arrived, which says nothing about its body.
+     *
+     * @return true once the response has been reported
+     */
+    boolean isResponseReceived();
 }

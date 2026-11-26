@@ -30,9 +30,19 @@ public type TargetService record {|
 # configs.
 #
 # + secureSocket - SSL/TLS security settings for HTTPS connections
+# + callTimeout - Total time in seconds that a call may take, from the moment it starts until its response body has
+#                 been read, or `0` for no such limit. It covers waiting for a connection from the pool (`poolConfig.waitTime`
+#                 still applies within it), making the connection (`socketConfig.connectTimeOut`), writing the request,
+#                 and reading the response, including the body bytes that are read after the `http:Response` has been
+#                 returned. All the attempts of a call share it, that is its retries (`retryConfig`) and its redirects
+#                 (`followRedirects`), and so do the waits between them. When it expires, the HTTP/1.1 connection is
+#                 closed and dropped from the pool, or the HTTP/2 stream is reset with `CANCEL`, and the call fails
+#                 with an `http:CallTimeoutError`, which is not retried. Unlike `timeout`, it does not restart on activity.
+#                 A call can be given a different value with `Client.withDeadline()`
 public type ClientConfiguration record {|
     *CommonClientConfiguration;
     ClientSecureSocket? secureSocket = ();
+    decimal callTimeout = 0;
 |};
 
 # Provides settings related to HTTP/1.x protocol.
@@ -184,7 +194,8 @@ public type CookieConfig record {|
 
 # Provides settings related to client socket configuration.
 #
-# + connectTimeOut - Connect timeout of the channel in seconds. If the Channel does not support connect operation,
+# + connectTimeOut - Connect timeout of the channel in seconds. It covers only making the TCP connection (and not the
+# TLS handshake or any waiting for the response). If the Channel does not support connect operation,
 # this property is not used at all, and therefore will be ignored.
 # + receiveBufferSize - Sets the SO_RCVBUF option to the specified value for this Socket.
 # + sendBufferSize - Sets the SO_SNDBUF option to the specified value for this Socket.

@@ -22,6 +22,7 @@ package io.ballerina.stdlib.http.transport.contractimpl;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpConnectorListener;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
+import io.ballerina.stdlib.http.transport.contract.exceptions.CallAbortedException;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.OutboundMsgHolder;
 import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
@@ -29,6 +30,7 @@ import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
@@ -50,6 +52,7 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     private BackPressureObservable backPressureObservable;
 
     private HttpCarbonMessage httpCarbonMessage;
+    private volatile boolean responseReceived;
     private ResponseHandle responseHandle;
     private OutboundMsgHolder outboundMsgHolder;
 
@@ -107,7 +110,14 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     public void notifyHttpListener(HttpCarbonMessage httpCarbonMessage) {
         responseLock.lock();
         try {
+            if (returnError instanceof CallAbortedException) {
+                // The call already ended with the abort, so a response that was read in the meantime is dropped. Its
+                // content is released off this thread, as the wait for the rest of its body can take a while.
+                CompletableFuture.runAsync(httpCarbonMessage::waitAndReleaseAllEntities);
+                return;
+            }
             this.httpCarbonMessage = httpCarbonMessage;
+            responseReceived = true;
             if (executionWaitSem != null) {
                 executionWaitSem.release();
             }
@@ -125,6 +135,11 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     public void notifyHttpListener(Throwable throwable) {
         responseLock.lock();
         try {
+            // The closure that follows an abort must not replace the reason the call was aborted for, but the reason
+            // itself is delivered again when a listener is set after it was reported
+            if (returnError instanceof CallAbortedException && returnError != throwable) {
+                return;
+            }
             // For HTTP1.1 we have the listener attached to BackPressureObservable inside the BackPressureHandler.
             // Whereas for HTTP2 we have the listener attached to BackPressureObservable inside the OutboundMsgHolder.
             if (backPressureObservable != null) {
@@ -150,6 +165,11 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
         } finally {
             responseLock.unlock();
         }
+    }
+
+    @Override
+    public boolean isResponseReceived() {
+        return responseReceived;
     }
 
     public HttpResponseFuture sync() throws InterruptedException {

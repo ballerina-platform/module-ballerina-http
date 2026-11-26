@@ -64,7 +64,7 @@ isolated function getValidationResponse(HttpClient httpClient, Request req, Resp
     } else {
         // Forward the received response and replace the stored responses
         validationResponse.requestTime = currentT;
-        cache.put(getCacheKey(httpMethod, path), req.cacheControl, validationResponse);
+        check cache.put(getCacheKey(httpMethod, path), req.cacheControl, validationResponse);
         log:printDebug("Received a full response. Storing it in cache and forwarding to the client");
         return validationResponse;
     }

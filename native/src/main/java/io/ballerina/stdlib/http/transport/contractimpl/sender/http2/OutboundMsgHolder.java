@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.HttpResponseFuture;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpResponseFuture;
 import io.ballerina.stdlib.http.transport.message.BackPressureObservable;
@@ -51,6 +52,11 @@ public class OutboundMsgHolder implements StreamWritability {
     private volatile long lastReadWriteTime;
     private volatile boolean requestWritten;
     private volatile boolean firstContentWritten;
+    // Kept per invocation, as the request message is shared by the attempts of a call and by every use of a request
+    // object: the exchange of this invocation, and the stream it opened
+    private volatile CallExchange callExchange;
+    private volatile int streamId;
+    private final AtomicBoolean streamReservationClaimed = new AtomicBoolean(false);
     private AtomicBoolean streamWritable = new AtomicBoolean(true);
     private final AtomicBoolean streamTerminationNotified = new AtomicBoolean(false);
     private final BackPressureObservable backPressureObservable = new DefaultBackPressureObservable();
@@ -75,6 +81,42 @@ public class OutboundMsgHolder implements StreamWritability {
      */
     public boolean claimStreamTermination() {
         return streamTerminationNotified.compareAndSet(false, true);
+    }
+
+    /**
+     * Claims the stream slot the connection reserved for this invocation. Whoever claims it is responsible for it:
+     * the writer that opens the stream, or an abort that comes before any stream is opened and gives the slot back.
+     *
+     * @return true if this caller claimed it, false if it was claimed already
+     */
+    public boolean claimStreamReservation() {
+        return streamReservationClaimed.compareAndSet(false, true);
+    }
+
+    /**
+     * Gets the exchange of this invocation.
+     *
+     * @return the exchange, or {@code null} if the invocation has no deadline and cannot be cancelled
+     */
+    public CallExchange getCallExchange() {
+        return callExchange;
+    }
+
+    public void setCallExchange(CallExchange callExchange) {
+        this.callExchange = callExchange;
+    }
+
+    /**
+     * Gets the id of the stream the request of this invocation is written on.
+     *
+     * @return the stream id, or zero if no stream has been opened
+     */
+    int getStreamId() {
+        return streamId;
+    }
+
+    void setStreamId(int streamId) {
+        this.streamId = streamId;
     }
 
     /**

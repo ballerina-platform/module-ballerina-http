@@ -328,6 +328,15 @@ public final class Constants {
     public static final String REQUEST_LINE_TOO_LONG = "An HTTP line is larger than";
     public static final String REQUEST_HEADER_TOO_LARGE = "HTTP header is larger than";
 
+    // Properties of an outbound request that tie it to the call it belongs to
+    public static final String CALL_DEADLINE = "CALL_DEADLINE";
+    public static final String CALL_CANCELLABLE = "CALL_CANCELLABLE";
+    public static final String CALL_EXCHANGE = "CALL_EXCHANGE";
+
+    // Messages of the call failures, which the client maps to its own error types by these prefixes
+    public static final String CALL_TIMEOUT_EXCEEDED = "Call timeout exceeded";
+    public static final String CALL_CANCELLED = "Call cancelled by the caller";
+
     // Idle timeout error scenarios
     public static final String IDLE_TIMEOUT_TRIGGERED_BEFORE_INITIATING_INBOUND_REQUEST
             = "Idle timeout triggered before initiating inbound request";
