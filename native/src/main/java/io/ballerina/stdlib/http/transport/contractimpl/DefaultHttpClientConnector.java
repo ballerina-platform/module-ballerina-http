@@ -402,6 +402,8 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                     }
                     targetChannel.reportConnectionAttemptFailed(cause);
                     httpResponseFuture.notifyHttpListener(cause);
+                    // A submitted request waits for the response handle, and the failure may come before it listens
+                    httpResponseFuture.notifyResponseHandle(cause);
                     httpOutboundRequest
                             .setIoException(new IOException(REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
                 }
@@ -459,8 +461,12 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
         } catch (InterruptedException e) {
             if (borrow.abandon()) {
                 task.cancel(true);
-                http2ConnectionManager.releaseWaitingRequests(route, newConnectionAttempt);
+            } else {
+                // The borrower delivered just before the interrupt, so nobody else owns that connection
+                discardBorrowed(borrow.getChannel());
             }
+            http2ConnectionManager.releaseWaitingRequests(route, newConnectionAttempt);
+            Thread.currentThread().interrupt();
             throw e;
         }
         if (!delivered) {
@@ -487,6 +493,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                 // An established connection that no request has used since it was borrowed stays in the pool
                 connectionManager.returnChannel(borrowed);
             } else {
+                // The connection is still being made and the pool has no channel to close for it, so stop the connect
+                if (borrowed.getChannelFuture() != null) {
+                    borrowed.getChannelFuture().cancel(true);
+                    borrowed.getChannelFuture().channel().close();
+                }
                 connectionManager.invalidateTargetChannel(borrowed);
             }
         } catch (Exception e) {
@@ -527,11 +538,12 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
         // Whether the caller took it. If it did not, the borrower must give the connection back.
         boolean deliver(TargetChannel borrowed, Exception borrowFailure) {
+            // Written before the state changes, so a caller that finds the state DELIVERED always sees them
+            channel = borrowed;
+            failure = borrowFailure;
             if (!state.compareAndSet(State.WAITING, State.DELIVERED)) {
                 return false;
             }
-            channel = borrowed;
-            failure = borrowFailure;
             delivered.countDown();
             return true;
         }

@@ -58,6 +58,7 @@ public class WaitingFor100Continue implements SenderState {
     private final Http2TargetHandler.Http2RequestWriter http2RequestWriter;
     private final HttpContent httpContent;
     private List<HttpContent> cachedContent = new ArrayList<>();
+    private boolean aborted;
 
     WaitingFor100Continue(Http2TargetHandler http2TargetHandler,
             Http2TargetHandler.Http2RequestWriter http2RequestWriter, HttpContent httpContent,
@@ -79,13 +80,36 @@ public class WaitingFor100Continue implements SenderState {
     @Override
     public void writeOutboundRequestBody(ChannelHandlerContext ctx, HttpContent httpContent,
             Http2MessageStateContext http2MessageStateContext) throws Http2Exception {
+        if (aborted) {
+            httpContent.release();
+            return;
+        }
         cachedContent.add(httpContent);
+    }
+
+    /**
+     * Releases the request chunks held back for the 100 Continue response, as an aborted call never writes them, and
+     * releases any chunk that arrives afterwards. Must run on the event loop of the connection.
+     */
+    public void releaseHeldContent() {
+        if (aborted) {
+            return;
+        }
+        aborted = true;
+        httpContent.release();
+        for (HttpContent cachedHttpContent : cachedContent) {
+            cachedHttpContent.release();
+        }
+        cachedContent.clear();
     }
 
     @Override
     public void readInboundResponseHeaders(ChannelHandlerContext ctx, Http2HeadersFrame http2HeadersFrame,
             OutboundMsgHolder outboundMsgHolder, boolean serverPush,
             Http2MessageStateContext http2MessageStateContext) throws Http2Exception {
+        if (aborted) {
+            return;
+        }
         configTimeOut(ctx, http2HeadersFrame.getStreamId(), false);
         Http2Headers http2Headers = http2HeadersFrame.getHeaders();
 
@@ -140,6 +164,9 @@ public class WaitingFor100Continue implements SenderState {
     @Override
     public void handleStreamTimeout(OutboundMsgHolder outboundMsgHolder, boolean serverPush,
             ChannelHandlerContext context, int streamId) throws Http2Exception {
+        if (aborted) {
+            return;
+        }
         configTimeOut(context, streamId, false);
         http2MessageStateContext.setSenderState(new SendingEntityBody(http2TargetHandler, http2RequestWriter));
         http2MessageStateContext.getSenderState()

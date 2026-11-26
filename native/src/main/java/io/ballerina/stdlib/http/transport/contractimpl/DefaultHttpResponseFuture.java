@@ -30,6 +30,7 @@ import io.ballerina.stdlib.http.transport.message.ResponseHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
@@ -109,6 +110,12 @@ public class DefaultHttpResponseFuture implements HttpResponseFuture {
     public void notifyHttpListener(HttpCarbonMessage httpCarbonMessage) {
         responseLock.lock();
         try {
+            if (returnError instanceof CallAbortedException) {
+                // The call already ended with the abort, so a response that was read in the meantime is dropped. Its
+                // content is released off this thread, as the wait for the rest of its body can take a while.
+                CompletableFuture.runAsync(httpCarbonMessage::waitAndReleaseAllEntities);
+                return;
+            }
             this.httpCarbonMessage = httpCarbonMessage;
             responseReceived = true;
             if (executionWaitSem != null) {

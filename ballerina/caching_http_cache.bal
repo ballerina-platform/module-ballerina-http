@@ -70,6 +70,8 @@ public isolated class HttpCache {
                     return callAbortError;
                 }
                 log:printDebug("Error building the payload in HTTP caching: " + binaryPayload.message());
+                // A response whose body could not be read is not cached, as every hit would serve a broken body
+                return;
             }
             log:printDebug("Adding new cache entry for: " + key);
             addEntry(self.cache, key, inboundResponse);

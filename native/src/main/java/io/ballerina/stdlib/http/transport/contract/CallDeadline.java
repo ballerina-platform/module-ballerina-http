@@ -22,8 +22,10 @@ import io.ballerina.stdlib.http.transport.contract.exceptions.CallTimeoutExcepti
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.math.BigDecimal;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,7 +38,9 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.CALL_TIMEOUT
 public final class CallDeadline {
 
     private static final AtomicInteger TIMER_THREAD_COUNT = new AtomicInteger();
+    private static final AtomicInteger ABORT_THREAD_COUNT = new AtomicInteger();
     private static final ScheduledThreadPoolExecutor TIMER = createTimer();
+    private static final ThreadPoolExecutor ABORT_EXECUTOR = createAbortExecutor();
 
     private final long budgetNanos;
     private final long expiryNanos;
@@ -80,8 +84,23 @@ public final class CallDeadline {
                                                 + " seconds", HttpResponseStatus.GATEWAY_TIMEOUT.code());
     }
 
+    // The timer thread only hands the task over, so a slow abort (it runs listener code and takes locks) cannot make
+    // the deadlines of other calls fire late
     ScheduledFuture<?> schedule(Runnable task, long delayNanos) {
-        return TIMER.schedule(task, Math.max(delayNanos, 0), TimeUnit.NANOSECONDS);
+        return TIMER.schedule(() -> ABORT_EXECUTOR.execute(task), Math.max(delayNanos, 0), TimeUnit.NANOSECONDS);
+    }
+
+    private static ThreadPoolExecutor createAbortExecutor() {
+        int threads = Math.max(2, Runtime.getRuntime().availableProcessors());
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(threads, threads, 30, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(), runnable -> {
+            Thread thread = new Thread(runnable,
+                                       "ballerina-http-call-abort-" + ABORT_THREAD_COUNT.incrementAndGet());
+            thread.setDaemon(true);
+            return thread;
+        });
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
     }
 
     private static ScheduledThreadPoolExecutor createTimer() {

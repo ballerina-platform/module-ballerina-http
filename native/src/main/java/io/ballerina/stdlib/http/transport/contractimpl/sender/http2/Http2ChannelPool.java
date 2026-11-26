@@ -113,8 +113,9 @@ class Http2ChannelPool {
                     if (opensItsOwnConnection(attempt)) {
                         return null;
                     }
-                    if (exchange != null) {
-                        throwIfAborted(exchange);
+                    if (exchange != null && (exchange.isAborted() || exchange.remainingNanos() <= 0)) {
+                        // Reported once the lock is released, as it runs the caller's callbacks
+                        break;
                     }
                     if (maxWaitTimeNanos > 0 && remainingNanos <= 0) {
                         LOG.warn("Timed out waiting for a new HTTP/2 connection, opening another connection");
@@ -143,14 +144,8 @@ class Http2ChannelPool {
             } finally {
                 lock.unlock();
             }
-        }
-
-        // Once the total timeout of the call has run out, the caller stops waiting, and if it was the one to open
-        // the route's new connection it hands that over, so the requests waiting for it do not wait for ever
-        private void throwIfAborted(CallExchange exchange) throws ClientConnectorException {
-            if (exchange.isAborted() || exchange.remainingNanos() <= 0) {
-                throw exchange.abortOnTimeout();
-            }
+            // Once the total timeout of the call has run out, the caller stops waiting
+            throw exchange.abortOnTimeout();
         }
 
         // Claims the opening of the route's new connection when none is being opened, so the caller does not wait

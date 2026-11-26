@@ -20,6 +20,8 @@ package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
 import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.Constants;
+import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.states.http2.WaitingFor100Continue;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http2.Http2Error;
@@ -99,6 +101,11 @@ public class Http2CallAborter implements CallExchange.Aborter {
         }
         if (http2ClientChannel.isRequestStillSending(streamId)) {
             outboundMsgHolder.getRequest().setIoException(new IOException(failure.getMessage()));
+        }
+        // The reset replaces the state, so what the state holds back is released first
+        Http2MessageStateContext stateContext = outboundMsgHolder.getRequest().getHttp2MessageStateContext();
+        if (stateContext != null && stateContext.getSenderState() instanceof WaitingFor100Continue waiting) {
+            waiting.releaseHeldContent();
         }
         Channel channel = http2ClientChannel.getChannel();
         ChannelHandlerContext ctx = channel.pipeline().context(Constants.HTTP2_TARGET_HANDLER);
