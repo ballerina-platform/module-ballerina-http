@@ -33,12 +33,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getDecoderErrorMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getErrorResponseMessage;
 import static io.ballerina.stdlib.http.transport.util.TestUtil.getResponseMessage;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 /**
@@ -52,6 +55,7 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     Semaphore readSemaphore = new Semaphore(0);
     Semaphore writeSemaphore = new Semaphore(0);
     private volatile ServerSocket serverSocket;
+    private Thread serverThread;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -62,15 +66,29 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     @Test
     private void testRSTStreamFrameForMultipleStreams() {
         try {
-            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
+            CountDownLatch latch1 = new CountDownLatch(1);
+            DefaultHttpConnectorListener msgListener1 = TestUtil.sendRequestAsync(latch1,
+                    h2ClientWithPriorKnowledge);
             writeSemaphore.release();
-            readSemaphore.acquire();
-            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
+            awaitServerWrite(3);
+            CountDownLatch latch2 = new CountDownLatch(1);
+            DefaultHttpConnectorListener msgListener2 = TestUtil.sendRequestAsync(latch2,
+                    h2ClientWithPriorKnowledge);
             writeSemaphore.release();
-            readSemaphore.acquire();
-            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(null, h2ClientWithPriorKnowledge);
+            awaitServerWrite(5);
+            CountDownLatch latch3 = new CountDownLatch(1);
+            DefaultHttpConnectorListener msgListener3 = TestUtil.sendRequestAsync(latch3,
+                    h2ClientWithPriorKnowledge);
             writeSemaphore.release();
-            readSemaphore.acquire();
+            awaitServerWrite(7);
+            // The listener callbacks are invoked asynchronously by the client's event loop, so wait for each of them
+            // (this also guarantees the visibility of the results) before reading the results.
+            assertTrue(latch1.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
+                    "Timed out waiting for the response of stream 3");
+            assertTrue(latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
+                    "Timed out waiting for the response of stream 5");
+            assertTrue(latch3.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
+                    "Timed out waiting for the response of stream 7");
             assertEquals(getErrorResponseMessage(msgListener1),
                     Constants.REMOTE_SERVER_SENT_RST_STREAM_BEFORE_INITIATING_INBOUND_RESPONSE);
             assertEquals(getResponseMessage(msgListener2), FrameLevelTestUtils.DATA_VALUE_HELLO_WORLD_05);
@@ -82,6 +100,12 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
         }
     }
 
+    // Bounded, so that a failure in the server thread fails the test instead of hanging the build
+    private void awaitServerWrite(int streamId) throws InterruptedException {
+        assertTrue(readSemaphore.tryAcquire(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS),
+                "Timed out waiting for the server to write the frames of stream " + streamId);
+    }
+
     private void runTcpServer(int port) {
         try {
             serverSocket = new ServerSocket(port);
@@ -89,12 +113,14 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
             throw new IllegalStateException("Could not bind the test server to port " + port, e);
         }
         LOGGER.info("HTTP/2 TCP Server listening on port " + port);
-        new Thread(() -> {
+        serverThread = new Thread(() -> {
             try {
                 Socket clientSocket = serverSocket.accept();
                 LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
                 try (OutputStream outputStream = clientSocket.getOutputStream()) {
                     sendRSTStream(outputStream);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 } catch (Exception e) {
                     LOGGER.error(e.getMessage());
                 }
@@ -104,7 +130,8 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
                 readSemaphore.release();
                 writeSemaphore.release();
             }
-        }).start();
+        });
+        serverThread.start();
     }
 
     // This will send an RST_STREAM frame for stream 3 before sending headers and a successful response for
@@ -134,10 +161,15 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     }
 
     @AfterMethod
-    public void cleanUp() throws IOException {
+    public void cleanUp() throws IOException, InterruptedException {
         h2ClientWithPriorKnowledge.close();
         if (serverSocket != null) {
             serverSocket.close();
+        }
+        // After a failed test, the server may still be waiting for a permit, which closing the socket cannot end
+        if (serverThread != null) {
+            serverThread.interrupt();
+            serverThread.join(TimeUnit.SECONDS.toMillis(TestUtil.HTTP2_RESPONSE_TIME_OUT));
         }
     }
 }
