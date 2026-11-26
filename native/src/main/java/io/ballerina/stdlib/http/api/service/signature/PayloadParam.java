@@ -41,7 +41,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import io.ballerina.stdlib.mime.util.MimeConstants;
 
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -154,7 +154,7 @@ public class PayloadParam implements Parameter {
      * Gets the XML value of an already built payload of a request with an XML media type. A payload which is read as
      * text or binary is parsed to XML.
      */
-    private static BXml getXmlDataSource(String contentType, Object dataSource) {
+    private static BXml getXmlDataSource(BObject inRequestEntity, String contentType, Object dataSource) {
         if (dataSource instanceof BXml xml) {
             return xml;
         }
@@ -165,7 +165,9 @@ public class PayloadParam implements Parameter {
             return XmlUtils.parse(text.getValue());
         }
         if (dataSource instanceof BArray bytes && bytes.getElementType().getTag() == TypeTags.BYTE_TAG) {
-            return XmlUtils.parse(new String(bytes.getBytes(), StandardCharsets.UTF_8));
+            // Decoded with the charset of the entity, as when the XML payload is read from the request
+            return EntityBodyHandler.constructXmlDataSource(inRequestEntity,
+                    new ByteArrayInputStream(bytes.getBytes()));
         }
         return null;
     }
@@ -175,7 +177,7 @@ public class PayloadParam implements Parameter {
                                                     String contentType) {
         try {
             if (XmlToRecordConverter.isBindableType(payloadType)) {
-                BXml xmlDataSource = getXmlDataSource(contentType, dataSource);
+                BXml xmlDataSource = getXmlDataSource(inRequestEntity, contentType, dataSource);
                 if (xmlDataSource != null) {
                     paramFeed[index] = validateConstraints(
                             XmlToRecordConverter.convert(payloadType, xmlDataSource, laxDataBinding, readonly));

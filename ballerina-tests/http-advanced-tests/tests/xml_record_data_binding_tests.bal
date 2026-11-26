@@ -194,6 +194,14 @@ service /xmlService on xmlRecordBindingEP {
         return {"first name": "Alice"};
     }
 
+    resource function post invalidXmlNameMap() returns @http:Payload {mediaType: "application/xml"} map<string> {
+        return {"first name": "Alice"};
+    }
+
+    resource function get invalidXmlNameStatusCode() returns http:Ok {
+        return {body: <map<string>>{"first name": "Alice"}, mediaType: "application/xml"};
+    }
+
     resource function get statusCodeXml() returns http:Ok {
         return {body: <PurchaseOrder>{id: "S1", qty: 7}, mediaType: "application/xml"};
     }
@@ -287,6 +295,26 @@ service http:InterceptableService /xmlInterceptedService on xmlRecordBindingEP {
 
     resource function post constrained(ConstrainedOrder payload) returns XmlResponseBody {
         return {kind: "ConstrainedOrder", value: payload.id};
+    }
+}
+
+service class XmlBinaryReadInterceptor {
+    *http:RequestInterceptor;
+
+    resource function 'default [string... path](http:RequestContext ctx, http:Request req)
+            returns http:NextService|error? {
+        _ = check req.getBinaryPayload();
+        return ctx.next();
+    }
+}
+
+service http:InterceptableService /xmlBinaryInterceptedService on xmlRecordBindingEP {
+    public function createInterceptors() returns http:RequestInterceptor[] {
+        return [new XmlBinaryReadInterceptor()];
+    }
+
+    resource function post 'order(PurchaseOrder payload) returns XmlResponseBody {
+        return {kind: "PurchaseOrder", value: payload.id + ":" + payload.qty.toString()};
     }
 }
 
@@ -556,9 +584,34 @@ function testXmlInboundUnionBindingNoMatchReportsTheMemberErrors() returns error
 // ----------------------------------------------------------------------- service outbound
 
 @test:Config {}
+function testXmlInboundAfterInterceptorReadPayloadAsBinaryWithCharset() returns error? {
+    // 0xE9 is "é" in ISO-8859-1, and is not valid UTF-8
+    byte[] body = "<PurchaseOrder><id>caf".toBytes();
+    body.push(233);
+    foreach byte b in "</id><qty>3</qty></PurchaseOrder>".toBytes() {
+        body.push(b);
+    }
+    http:Request req = new;
+    req.setBinaryPayload(body, "application/xml; charset=ISO-8859-1");
+    http:Response res = check xmlRecordBindingClient->post("/xmlBinaryInterceptedService/order", req);
+    check assertBody(res, "PurchaseOrder", "café:3");
+}
+
+@test:Config {}
+function testXmlOutboundInvalidXmlNameKeepsTheErrorResponse() returns error? {
+    http:Response postResponse = check xmlRecordBindingClient->post("/xmlService/invalidXmlNameMap", "");
+    http:Response statusCodeResponse = check xmlRecordBindingClient->get("/xmlService/invalidXmlNameStatusCode");
+    foreach http:Response res in [postResponse, statusCodeResponse] {
+        test:assertEquals(res.statusCode, 500);
+        test:assertEquals(res.getContentType(), "text/plain");
+    }
+}
+
+@test:Config {}
 function testXmlOutboundMapWithInvalidXmlName() returns error? {
     http:Response res = check xmlRecordBindingClient->/xmlService/invalidXmlNameMap;
     test:assertEquals(res.statusCode, 500);
+    test:assertEquals(res.getContentType(), "text/plain");
     string message = check res.getTextPayload();
     test:assertTrue(message.startsWith("anydata to xml conversion error:"), "unexpected message: " + message);
     test:assertFalse(message.includes("xml conversion error: anydata"), "unexpected message: " + message);

@@ -42,7 +42,7 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
     // Handling the client errors
     if err is ApplicationResponseError {
         response.statusCode = err.detail().statusCode;
-        setPayload(err.detail().body, response, returnMediaType);
+        _ = setPayload(err.detail().body, response, returnMediaType);
         setHeaders(err.detail().headers, response);
         return response;
     }
@@ -51,13 +51,13 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
     response.statusCode = getStatusCode(err);
 
     if err !is httpscerr:StatusCodeError {
-        setPayload(err.message(), response, returnMediaType);
+        _ = setPayload(err.message(), response, returnMediaType);
         return response;
     }
 
     if err !is NoContentError {
         anydata body = err.detail()?.body ?: err.message();
-        setPayload(body, response, returnMediaType);
+        _ = setPayload(body, response, returnMediaType);
     }
 
     map<string|string[]> headers = err.detail().headers ?: {};
@@ -74,7 +74,7 @@ isolated function getErrorResponseForInterceptor(error err, Request request) ret
         if err.detail().body is () {
             setErrorPayload(err, request, response);
         } else {
-            setPayload(err.detail().body, response);
+            _ = setPayload(err.detail().body, response);
         }
         setHeaders(err.detail().headers, response);
         return response;
@@ -99,7 +99,7 @@ isolated function getErrorResponseForInterceptor(error err, Request request) ret
         if err.detail()?.body is () {
             setErrorPayload(err, request, response);
         } else {
-            setPayload(err.detail()?.body, response);
+            _ = setPayload(err.detail()?.body, response);
         }
     }
 

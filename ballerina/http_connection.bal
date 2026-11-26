@@ -160,7 +160,7 @@ public isolated client class Caller {
         } else if message is StatusCodeResponse {
             if message is SuccessStatusCodeResponse {
                 response = createStatusCodeResponse(message, returnMediaType, setETag, links);
-                cacheCompatibleType = true;
+                cacheCompatibleType = response.statusCode != STATUS_INTERNAL_SERVER_ERROR;
             } else {
                 response = createStatusCodeResponse(message, returnMediaType);
             }
@@ -174,14 +174,16 @@ public isolated client class Caller {
         } else if message is stream<SseEvent, error?>|stream<SseEvent, error> {
             response = createSseResponse(message);
         } else if message is anydata {
-            setPayload(message, response, returnMediaType, setETag, links);
-            if returnMediaType is string {
-                response.setHeader(CONTENT_TYPE, returnMediaType);
+            // A payload which cannot be set turns the response into an error, which is sent as it is
+            if setPayload(message, response, returnMediaType, setETag, links) {
+                if returnMediaType is string {
+                    response.setHeader(CONTENT_TYPE, returnMediaType);
+                }
+                if self.getResourceAccessor() == HTTP_POST {
+                    response.statusCode = STATUS_CREATED;
+                }
+                cacheCompatibleType = true;
             }
-            if self.getResourceAccessor() == HTTP_POST {
-                response.statusCode = STATUS_CREATED;
-            }
-            cacheCompatibleType = true;
         } else {
             string errorMsg = "invalid response body type. expected one of the types: anydata|http:StatusCodeResponse|http:Response";
             panic error ListenerError(errorMsg);
@@ -226,7 +228,9 @@ isolated function createStatusCodeResponse(StatusCodeResponse message, string? r
     }
 
     string? mediaType = retrieveMediaType(message, returnMediaType);
-    setPayload(message?.body, response, mediaType, setETag, links);
+    if !setPayload(message?.body, response, mediaType, setETag, links) {
+        return response;
+    }
     // Update content-type header according to the priority. (Highest to lowest)
     // 1. MediaType field in response record
     // 2. Payload annotation mediaType value
@@ -306,7 +310,9 @@ isolated function addLinksToJsonPayload(map<anydata> message, map<Link> links) {
     message["_links"] = links.toJson();
 }
 
-isolated function setPayload(anydata message, Response response, string? mediaType = (), boolean setETag = false, map<Link>? links = ()) {
+// Returns false if the payload cannot be serialized, in which case the response is turned into a `500` error response.
+isolated function setPayload(anydata message, Response response, string? mediaType = (), boolean setETag = false, map<Link>? links = ())
+    returns boolean {
     // The links are not added to the payload when the media type is XML, they are only added to the `Link` header
     [boolean, anydata] [isLinksAddedToPayload, payload] = message is map<anydata> && isXmlMediaType(mediaType) ? [false, message] :
         addLinksToPayload(message, links);
@@ -315,7 +321,7 @@ isolated function setPayload(anydata message, Response response, string? mediaTy
     }
 
     if payload is () {
-        return;
+        return true;
     }
 
     if payload is xml {
@@ -334,14 +340,15 @@ isolated function setPayload(anydata message, Response response, string? mediaTy
             response.setETag(payload);
         }
     } else {
-        processAnydata(response, payload, mediaType, setETag);
+        return processAnydata(response, payload, mediaType, setETag);
     }
+    return true;
 }
 
-isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false) {
+isolated function processAnydata(Response response, anydata payload, string? mediaType = (), boolean setETag = false)
+    returns boolean {
     if mediaType is string && payload is map<anydata> && isXmlMediaType(mediaType) {
-        setXmlRecordPayload(response, payload, mediaType, setETag);
-        return;
+        return setXmlRecordPayload(response, payload, mediaType, setETag);
     }
     match mediaType {
         mime:APPLICATION_FORM_URLENCODED => {
@@ -353,7 +360,7 @@ isolated function processAnydata(Response response, anydata payload, string? med
                     if setETag {
                         response.setETag(result);
                     }
-                    return;
+                    return true;
                 }
                 panic error InitializingOutboundResponseError("content encoding error: " + result.message(), result);
             } else {
@@ -364,6 +371,7 @@ isolated function processAnydata(Response response, anydata payload, string? med
             setJsonPayload(response, payload, setETag);
         }
     }
+    return true;
 }
 
 isolated function retrieveUrlEncodedData(map<string> message) returns string|error {
@@ -377,7 +385,8 @@ isolated function retrieveUrlEncodedData(map<string> message) returns string|err
     return strings:'join("&", ...messageParams);
 }
 
-isolated function setXmlRecordPayload(Response response, map<anydata> payload, string mediaType, boolean setETag) {
+isolated function setXmlRecordPayload(Response response, map<anydata> payload, string mediaType, boolean setETag)
+    returns boolean {
     xml|error result = trap xmldata:toXml(payload);
     if result is error {
         // The payload cannot be represented as XML (e.g., a key which is not a valid XML name), hence the caller
@@ -386,12 +395,13 @@ isolated function setXmlRecordPayload(Response response, map<anydata> payload, s
         log:printError(message, result);
         response.statusCode = STATUS_INTERNAL_SERVER_ERROR;
         response.setTextPayload(message);
-        return;
+        return false;
     }
     response.setXmlPayload(result, mediaType);
     if setETag {
         response.setETag(result);
     }
+    return true;
 }
 
 isolated function setJsonPayload(Response response, anydata payload, boolean setETag) {
