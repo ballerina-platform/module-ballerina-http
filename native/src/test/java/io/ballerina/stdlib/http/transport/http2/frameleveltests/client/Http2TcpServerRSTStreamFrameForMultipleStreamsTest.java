@@ -55,6 +55,7 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     Semaphore readSemaphore = new Semaphore(0);
     Semaphore writeSemaphore = new Semaphore(0);
     private volatile ServerSocket serverSocket;
+    private Thread serverThread;
 
     @BeforeClass
     public void setup() throws InterruptedException {
@@ -112,12 +113,14 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
             throw new IllegalStateException("Could not bind the test server to port " + port, e);
         }
         LOGGER.info("HTTP/2 TCP Server listening on port " + port);
-        new Thread(() -> {
+        serverThread = new Thread(() -> {
             try {
                 Socket clientSocket = serverSocket.accept();
                 LOGGER.info("Accepted connection from: " + clientSocket.getInetAddress());
                 try (OutputStream outputStream = clientSocket.getOutputStream()) {
                     sendRSTStream(outputStream);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 } catch (Exception e) {
                     LOGGER.error(e.getMessage());
                 }
@@ -127,7 +130,8 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
                 readSemaphore.release();
                 writeSemaphore.release();
             }
-        }).start();
+        });
+        serverThread.start();
     }
 
     // This will send an RST_STREAM frame for stream 3 before sending headers and a successful response for
@@ -157,10 +161,15 @@ public class Http2TcpServerRSTStreamFrameForMultipleStreamsTest {
     }
 
     @AfterMethod
-    public void cleanUp() throws IOException {
+    public void cleanUp() throws IOException, InterruptedException {
         h2ClientWithPriorKnowledge.close();
         if (serverSocket != null) {
             serverSocket.close();
+        }
+        // After a failed test, the server may still be waiting for a permit, which closing the socket cannot end
+        if (serverThread != null) {
+            serverThread.interrupt();
+            serverThread.join(TimeUnit.SECONDS.toMillis(TestUtil.HTTP2_RESPONSE_TIME_OUT));
         }
     }
 }
