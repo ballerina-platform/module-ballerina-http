@@ -155,11 +155,11 @@ public class PayloadParam implements Parameter {
      * text or binary is parsed to XML.
      */
     private static BXml getXmlDataSource(BObject inRequestEntity, String contentType, Object dataSource) {
-        if (dataSource instanceof BXml xml) {
-            return xml;
-        }
         if (!AbstractPayloadBuilder.isXmlMediaType(contentType)) {
             return null;
+        }
+        if (dataSource instanceof BXml xml) {
+            return xml;
         }
         if (dataSource instanceof BString text) {
             return XmlUtils.parse(text.getValue());
