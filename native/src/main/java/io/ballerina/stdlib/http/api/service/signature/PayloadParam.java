@@ -25,17 +25,23 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.utils.XmlUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BXml;
 import io.ballerina.stdlib.constraint.Constraints;
 import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.service.signature.builder.AbstractPayloadBuilder;
 import io.ballerina.stdlib.http.api.service.signature.converter.JsonToRecordConverter;
+import io.ballerina.stdlib.http.api.service.signature.converter.XmlToRecordConverter;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.mime.util.EntityBodyHandler;
 import io.ballerina.stdlib.mime.util.MimeConstants;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -137,15 +143,47 @@ public class PayloadParam implements Parameter {
         // Check if datasource is already available from interceptor service read
         // TODO : Validate the dataSource type with payload type and populate
         if (dataSource != null) {
-            populateFeedWithAlreadyBuiltPayload(paramFeed, inRequestEntity, index, payloadType, dataSource);
+            populateFeedWithAlreadyBuiltPayload(paramFeed, inRequestEntity, index, payloadType, dataSource,
+                    HttpUtil.getContentTypeFromTransportMessage(httpCarbonMessage));
         } else {
             populateFeedWithFreshPayload(httpCarbonMessage, paramFeed, inRequestEntity, index, payloadType);
         }
     }
 
+    /**
+     * Gets the XML value of an already built payload of a request with an XML media type. A payload which is read as
+     * text or binary is parsed to XML.
+     */
+    private static BXml getXmlDataSource(BObject inRequestEntity, String contentType, Object dataSource) {
+        if (!AbstractPayloadBuilder.isXmlMediaType(contentType)) {
+            return null;
+        }
+        if (dataSource instanceof BXml xml) {
+            return xml;
+        }
+        if (dataSource instanceof BString text) {
+            return XmlUtils.parse(text.getValue());
+        }
+        if (dataSource instanceof BArray bytes && bytes.getElementType().getTag() == TypeTags.BYTE_TAG) {
+            // Decoded with the charset of the entity, as when the XML payload is read from the request
+            return EntityBodyHandler.constructXmlDataSource(inRequestEntity,
+                    new ByteArrayInputStream(bytes.getBytes()));
+        }
+        return null;
+    }
+
     private void populateFeedWithAlreadyBuiltPayload(Object[] paramFeed, BObject inRequestEntity, int index,
-                                                    Type payloadType, Object dataSource) {
+                                                    Type payloadType, Object dataSource,
+                                                    String contentType) {
         try {
+            if (XmlToRecordConverter.isBindableType(payloadType)) {
+                BXml xmlDataSource = getXmlDataSource(inRequestEntity, contentType, dataSource);
+                if (xmlDataSource != null) {
+                    paramFeed[index] = validateConstraints(
+                            XmlToRecordConverter.convert(payloadType, xmlDataSource, laxDataBinding, readonly));
+                    return;
+                }
+            }
             switch (payloadType.getTag()) {
                 case TypeTags.ARRAY_TAG:
                     int actualTypeTag = TypeUtils.getReferredType(((ArrayType) payloadType).getElementType()).getTag();
@@ -168,6 +206,9 @@ public class PayloadParam implements Parameter {
                     paramFeed[index] = validateConstraints(dataSource);
             }
         } catch (BError ex) {
+            if (INTERNAL_PAYLOAD_VALIDATION_LISTENER_ERROR.getErrorName().equals(ex.getType().getName())) {
+                throw ex;
+            }
             String message = "data binding failed: " + HttpUtil.getPrintableErrorMsg(ex);
             throw HttpUtil.createHttpStatusCodeError(INTERNAL_PAYLOAD_BINDING_LISTENER_ERROR, message);
         }

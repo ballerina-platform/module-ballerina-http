@@ -42,8 +42,8 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
     // Handling the client errors
     if err is ApplicationResponseError {
         response.statusCode = err.detail().statusCode;
-        setPayload(err.detail().body, response, returnMediaType);
-        setHeaders(err.detail().headers, response);
+        boolean isPayloadSet = setPayload(err.detail().body, response, returnMediaType);
+        setHeaders(err.detail().headers, response, !isPayloadSet);
         return response;
     }
 
@@ -51,17 +51,18 @@ isolated function getErrorResponse(error err, string? returnMediaType = ()) retu
     response.statusCode = getStatusCode(err);
 
     if err !is httpscerr:StatusCodeError {
-        setPayload(err.message(), response, returnMediaType);
+        _ = setPayload(err.message(), response, returnMediaType);
         return response;
     }
 
+    boolean isPayloadSet = true;
     if err !is NoContentError {
         anydata body = err.detail()?.body ?: err.message();
-        setPayload(body, response, returnMediaType);
+        isPayloadSet = setPayload(body, response, returnMediaType);
     }
 
     map<string|string[]> headers = err.detail().headers ?: {};
-    setHeaders(headers, response);
+    setHeaders(headers, response, !isPayloadSet);
 
     return response;
 }
@@ -74,7 +75,7 @@ isolated function getErrorResponseForInterceptor(error err, Request request) ret
         if err.detail().body is () {
             setErrorPayload(err, request, response);
         } else {
-            setPayload(err.detail().body, response);
+            _ = setPayload(err.detail().body, response);
         }
         setHeaders(err.detail().headers, response);
         return response;
@@ -99,7 +100,7 @@ isolated function getErrorResponseForInterceptor(error err, Request request) ret
         if err.detail()?.body is () {
             setErrorPayload(err, request, response);
         } else {
-            setPayload(err.detail()?.body, response);
+            _ = setPayload(err.detail()?.body, response);
         }
     }
 
@@ -121,8 +122,13 @@ isolated function setErrorPayload(error err, Request request, Response response)
     response.setPayload(errorPayload.toJson(), mime:APPLICATION_JSON);
 }
 
-isolated function setHeaders(map<string|string[]> headers, Response response) {
+// When the payload could not be set, the response carries a plain-text fallback body, hence the `Content-Type` of the
+// error is skipped to keep the header consistent with the body.
+isolated function setHeaders(map<string|string[]> headers, Response response, boolean skipContentType = false) {
     foreach var [key, values] in headers.entries() {
+        if skipContentType && key.toLowerAscii() == "content-type" {
+            continue;
+        }
         if values is string[] {
             foreach var value in values {
                 response.addHeader(key, value);

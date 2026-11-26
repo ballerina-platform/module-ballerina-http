@@ -842,8 +842,8 @@ type, error is returned.
 |                | map[]                   |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
 |                | map\<map\>              |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
 |                | table\<map\<map\>\>     |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-| record         |                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
-|                | record[]                |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
+| record         |                         |   ❌    |   ✅   |   ✅    |            ❌            |       ❌        |
+|                | record[]                |   ❌    |   ✅   |   ✅    |            ❌            |       ❌        |
 |                | map\<record\>           |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
 |                | table\<record\>         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |
 
@@ -879,6 +879,50 @@ not accessed.
 
 User may specify the expected content type in the annotation to shape the resource as described in section [Payload 
 binding parameter](#431-payload-binding-parameter)
+
+###### 2.3.4.4.1. XML payload binding to records
+
+When the media type of the request is XML (`application/xml`, `text/xml` or `application/*+xml`) and the payload
+parameter type is a record, an array of records, or a union of such types (optionally with `()`), the listener
+binds the payload to the parameter type with the `xmldata:parseAsType` function of the `ballerina/data.xmldata`
+package. The `xml` typed payload parameters are not affected.
+
+```ballerina
+type Order record {
+    string id;
+    int qty;
+};
+
+// POST with `Content-Type: application/xml` and the body `<Order><id>A1</id><qty>2</qty></Order>`
+resource function post 'order(Order payload) returns string {
+    return payload.id;
+}
+```
+
+- A record is bound from the root element of the XML payload. The `xmldata` annotations (`@xmldata:Name`,
+  `@xmldata:Namespace`, `@xmldata:Attribute`) on the record and its fields are honoured, hence the records generated
+  by the XSD tool can be used as they are.
+- An array of records is bound from the child elements of the root element, where each child element is bound to one
+  member of the array. For example, `<orders><Order>...</Order><Order>...</Order></orders>` is bound to `Order[]`.
+- For a union of records, the member types are tried in the order of the declaration and the first successful
+  binding is used.
+- The data projection follows the `laxDataBinding` service configuration, similar to the JSON binding. When it is
+  `false` (the default), the payload is bound without the data projection, hence an element that is not defined
+  in a closed record is an error.
+- The constraint validation (`validation` service configuration) is applied to the bound value as for the JSON
+  payloads.
+- The binding errors (including the malformed XML and the missing required fields) and the constraint validation
+  errors result in a `400 Bad Request` response, similar to the JSON payloads.
+- If the payload was already read as `xml` before the data binding (for example, by an interceptor), the read `xml`
+  value is used for the binding.
+- A payload with a non-standard (vendor) media type that is not matched by the patterns above is not bound as XML.
+  The binding type is inferred by the parameter type itself, and a record type is bound as JSON. Vendor media types
+  are intentionally out of scope: bind such payloads to `xml` and convert them explicitly with `xmldata:parseAsType`.
+  This applies only to the media types that are not matched by any of the built-in patterns (e.g.
+  `application/vnd.example`). A vendor media type that is matched by the text pattern (e.g. `text/vnd.example+plain`)
+  is handled as text, hence neither a record nor an `xml` parameter is accepted for it. Bind such payloads to `string`
+  and convert them explicitly, for example, with `xmldata:parseString`.
+  Returning or sending an array of records with an XML media type is not supported and is serialized as JSON.
 
 ##### 2.3.4.5. Header parameter
 
@@ -1151,6 +1195,29 @@ response when returning `anydata` directly from a resource method.
 | DELETE            | Delete an existing resource                                   | 200 OK                  |
 | HEAD              | Retrieve headers                                              | 200 OK                  |
 | OPTIONS           | Retrieve permitted communication options                      | 200 OK                  |
+
+##### 2.3.5.5. XML response payload
+
+When the media type of the response is XML (`application/xml`, `text/xml` or `application/*+xml`) and the returned 
+value is a record (or a `map<anydata>`), the response payload is serialized to XML with the `xmldata:toXml` function 
+of the `ballerina/data.xmldata` package. The `xmldata` annotations (`@xmldata:Name`, `@xmldata:Namespace`, 
+`@xmldata:Attribute`) are honoured. The media type is specified with the `@http:Payload` annotation on the return type, 
+or with the `mediaType` field of a status code response record.
+
+```ballerina
+resource function get 'order() returns @http:Payload {mediaType: "application/xml"} Order {
+    return {id: "A1", qty: 2};
+}
+```
+
+The other `anydata` types are not affected by the XML media type. The HATEOAS links are not added to the payload of an
+XML response, they are only added to the `Link` header.
+
+Before this support, a record or a `map<anydata>` payload with an XML media type was serialized as JSON. This also
+applies to the body of an error relayed from a backend (an `http:ApplicationResponseError`) which is returned with an
+XML media type. If the payload cannot be represented as XML (for example, a map with a key that is not a valid XML
+name), the listener logs the failure and responds with a `500` status code and a text body describing the failure.
+
 
 #### 2.3.6. OpenAPI specification resources
 
@@ -1626,6 +1693,15 @@ Based on the payload types respective header value is added as the `Content-type
 
 The header map and the mediaType param are optional for entity body remote methods.
 
+When the `mediaType` of the entity body methods is XML (`application/xml`, `text/xml` or `application/*+xml`) and the
+payload is a record (or a `map<anydata>`), the payload is serialized to XML with the `xmldata:toXml` function of the
+`ballerina/data.xmldata` package, honouring the `xmldata` annotations. The other `anydata` payloads are not affected by
+the XML media type.
+
+```ballerina
+http:Response res = check httpClient->post("/orders", <Order>{id: "A1", qty: 2}, mediaType = "application/xml");
+```
+
 ```ballerina
 # The post() function can be used to send HTTP POST requests to HTTP endpoints.
 remote isolated function post(string path, RequestMessage message, map<string|string[]>? headers = (),
@@ -1939,8 +2015,8 @@ type itself. If the type is not compatible with the media type, error is returne
 |                | map[]                         |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
 |                | map\<map\>                    |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
 |                | table\<map\<map\>\>           |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-| record         |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
-|                | record[]                      |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
+| record         |                               |   ❌    |   ✅   |   ✅    |            ❌            |       ❌        |       ❌        |
+|                | record[]                      |   ❌    |   ✅   |   ✅    |            ❌            |       ❌        |       ❌        |
 |                | map\<record\>                 |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
 |                | table\<record\>               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
 | stream         |                               |   ❌    |   ❌   |   ✅    |            ❌            |       ❌        |       ❌        |
@@ -1999,6 +2075,20 @@ json|xml payload = check httpClient->get("/data");
 
 If the type is union with `()`(i.e `string?`), then in the absence of the payload, `()` will be assigned as
 the value without being responded by a `BAD REQUEST` response.
+
+When the media type of the response is XML (`application/xml`, `text/xml` or `application/*+xml`) and the target type
+is a record, an array of records, or a union of such types (optionally with `()`), the response payload is bound to
+the target type with the `xmldata:parseAsType` function of the `ballerina/data.xmldata` package, with the same
+rules as the [XML payload binding of the service](#23441-xml-payload-binding-to-records). The `xml` target type is
+not affected. A binding failure results in an `http:PayloadBindingError` and the constraint validation failure
+(when the `validation` client configuration is enabled) results in an `http:PayloadValidationError`. The errors
+that occur while extracting the XML payload from the response (for example, a malformed XML in the response body) are
+not binding errors, and are returned as an `http:GenericClientError`, similar to the `Response.getXmlPayload()`.
+
+```ballerina
+Order 'order = check httpClient->/orders/'1;
+Order[] orders = check httpClient->/orders;
+```
 
 ## 3. Request routing
 Ballerina dispatching logic is implemented to uniquely identify a resource based on the request URI and Method.

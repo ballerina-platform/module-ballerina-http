@@ -63,6 +63,16 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "data.xmldata"
+version = "1.7.1"
+scope = "testOnly"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.object"}
+]
+
+[[package]]
+org = "ballerina"
 name = "file"
 version = "1.13.1"
 scope = "testOnly"
@@ -76,7 +86,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.18.2"
+version = "2.18.3"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -84,6 +94,7 @@ dependencies = [
 	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "data.jsondata"},
+	{org = "ballerina", name = "data.xmldata"},
 	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
@@ -99,6 +110,7 @@ dependencies = [
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "oauth2"},
 	{org = "ballerina", name = "observe"},
+	{org = "ballerina", name = "scan"},
 	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "url"}
 ]
@@ -110,7 +122,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "integration_tests"
-version = "2.18.2"
+version = "2.18.3"
 dependencies = [
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
@@ -315,6 +327,12 @@ dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"}
 ]
+
+[[package]]
+org = "ballerina"
+name = "scan"
+version = "1.0.0"
+scope = "testOnly"
 
 [[package]]
 org = "ballerina"
