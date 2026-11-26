@@ -73,9 +73,49 @@ public class ConnectionManager {
                                              Http2SourceHandler http2SourceHandler,
                                              SenderConfiguration senderConfig, BootstrapConfiguration bootstrapConfig,
                                              EventLoopGroup clientEventGroup) throws Exception {
-        GenericObjectPool trgHlrConnPool;
-        String trgHlrConnPoolId = httpRoute.toString() + connectionManagerId;
+        GenericObjectPool trgHlrConnPool = resolvePool(httpRoute, sourceHandler, http2SourceHandler, senderConfig,
+                                                       bootstrapConfig, clientEventGroup);
+        return getTargetChannel(sourceHandler, http2SourceHandler, trgHlrConnPool, poolId(httpRoute));
+    }
 
+    /**
+     * Borrows a target channel only if the pool can give one without making the caller wait, which is when it has an
+     * idle connection or room for a new one. The pool can still be emptied by another caller in between, in which case
+     * the borrow waits like any other.
+     *
+     * @param httpRoute          Represents the endpoint address
+     * @param sourceHandler      Represents the HTTP/1.x source handler
+     * @param http2SourceHandler Represents the HTTP/2 source handler
+     * @param senderConfig       Represents the client configurations
+     * @param bootstrapConfig    Represents the bootstrap info related to client connection creation
+     * @param clientEventGroup   Represents the eventloop group that the client channel should be bound to
+     * @return the target channel, or {@code null} if the pool would make the caller wait
+     * @throws Exception to notify any errors occur during retrieving the target channel
+     */
+    public TargetChannel borrowTargetChannelWithoutWaiting(HttpRoute httpRoute, SourceHandler sourceHandler,
+                                                           Http2SourceHandler http2SourceHandler,
+                                                           SenderConfiguration senderConfig,
+                                                           BootstrapConfiguration bootstrapConfig,
+                                                           EventLoopGroup clientEventGroup) throws Exception {
+        GenericObjectPool trgHlrConnPool = resolvePool(httpRoute, sourceHandler, http2SourceHandler, senderConfig,
+                                                       bootstrapConfig, clientEventGroup);
+        boolean hasRoom = trgHlrConnPool.getMaxActive() < 0
+                || trgHlrConnPool.getNumActive() < trgHlrConnPool.getMaxActive();
+        if (!hasRoom && trgHlrConnPool.getNumIdle() == 0) {
+            return null;
+        }
+        return getTargetChannel(sourceHandler, http2SourceHandler, trgHlrConnPool, poolId(httpRoute));
+    }
+
+    private String poolId(HttpRoute httpRoute) {
+        return httpRoute.toString() + connectionManagerId;
+    }
+
+    private GenericObjectPool resolvePool(HttpRoute httpRoute, SourceHandler sourceHandler,
+                                          Http2SourceHandler http2SourceHandler, SenderConfiguration senderConfig,
+                                          BootstrapConfiguration bootstrapConfig, EventLoopGroup clientEventGroup) {
+        GenericObjectPool trgHlrConnPool;
+        String trgHlrConnPoolId = poolId(httpRoute);
         if (sourceHandler != null) {
             ChannelHandlerContext inboundChannelContext = sourceHandler.getInboundChannelContext();
 
@@ -97,7 +137,7 @@ public class ConnectionManager {
             trgHlrConnPool = getTrgHlrPoolFromGlobalPool(httpRoute, senderConfig, bootstrapConfig, clientEventGroup);
         }
 
-        return getTargetChannel(sourceHandler, http2SourceHandler, trgHlrConnPool, trgHlrConnPoolId);
+        return trgHlrConnPool;
     }
 
     private GenericObjectPool getTrgHlrPoolFromGlobalPool(HttpRoute httpRoute, SenderConfiguration senderConfig,

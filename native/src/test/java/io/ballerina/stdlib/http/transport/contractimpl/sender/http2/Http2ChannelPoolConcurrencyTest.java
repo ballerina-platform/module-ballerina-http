@@ -124,10 +124,11 @@ public class Http2ChannelPoolConcurrencyTest {
         assertNull(fetch(connectionManager), "The first request should open the connection");
         HttpCarbonMessage request = new HttpCarbonMessage(new DefaultHttpRequest(HttpVersion.HTTP_1_1,
                                                                                  HttpMethod.GET, "/"));
+        // Measured from the creation of the deadline, as that is where its budget starts
+        long start = System.nanoTime();
         request.setProperty(Constants.CALL_DEADLINE, CallDeadline.startingNow(TimeUnit.MILLISECONDS.toNanos(300)));
         CallExchange exchange = CallExchange.begin(request, new DefaultHttpResponseFuture());
 
-        long start = System.nanoTime();
         try {
             connectionManager.fetchChannel(ROUTE, new NewConnectionAttempt(), exchange);
             fail("The wait for the connection should have ended with the total timeout of the call");

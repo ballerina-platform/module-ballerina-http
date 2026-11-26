@@ -43,6 +43,7 @@ import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
 import io.ballerina.stdlib.http.transport.contract.CallDeadline;
+import io.ballerina.stdlib.http.transport.contract.CallExchange;
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.contract.HttpClientConnectorListener;
@@ -421,7 +422,14 @@ public abstract class AbstractHTTPAction {
             }
         } catch (IOException | EncoderException serializerException) {
             // We don't have to do anything here as the client connector will notify the error though the listener
-            logger.warn("couldn't serialize the message", serializerException);
+            CallExchange exchange = CallExchange.of(outboundRequestMsg);
+            if (exchange != null && exchange.isAborted()) {
+                // The call was ended by its timeout or by the caller, which is an expected end of the body
+                logger.debug("The request body was cut short, as the call was aborted: {}",
+                             serializerException.getMessage());
+            } else {
+                logger.warn("couldn't serialize the message", serializerException);
+            }
         } catch (RuntimeException exception) {
             if (exception.getMessage() != null &&
                     exception.getMessage().contains(Constants.INBOUND_RESPONSE_ALREADY_RECEIVED)) {

@@ -70,8 +70,10 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -86,7 +88,11 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpClientConnector.class);
     private static final AtomicInteger POOL_BORROW_THREAD_COUNT = new AtomicInteger();
-    private static final ExecutorService POOL_BORROW_EXECUTOR = Executors.newCachedThreadPool(runnable -> {
+    // Each thread is a call waiting for a connection of an exhausted pool. A call that finds all of them taken fails as
+    // if its wait for the pool had run out, instead of piling up threads.
+    private static final int MAX_POOL_BORROW_THREADS = 256;
+    private static final ExecutorService POOL_BORROW_EXECUTOR = new ThreadPoolExecutor(0, MAX_POOL_BORROW_THREADS,
+            60L, TimeUnit.SECONDS, new SynchronousQueue<>(), runnable -> {
         Thread thread = new Thread(runnable,
                                    "ballerina-http-pool-borrow-" + POOL_BORROW_THREAD_COUNT.incrementAndGet());
         thread.setDaemon(true);
@@ -440,21 +446,27 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
                                                             Http2SourceHandler http2SourceHandler,
                                                             NewConnectionAttempt newConnectionAttempt,
                                                             CallExchange callExchange) throws Exception {
+        // A pool that has an idle connection or room for a new one does not block, so the caller borrows on its own
+        // thread. Only a borrow that would have to wait is handed to another thread.
+        try {
+            TargetChannel available = connectionManager.borrowTargetChannelWithoutWaiting(route, srcHandler,
+                    http2SourceHandler, senderConfiguration, bootstrapConfig, clientEventGroup);
+            if (available != null) {
+                return available;
+            }
+        } catch (Exception e) {
+            failWaitingRequests(route, newConnectionAttempt, e);
+            return null;
+        }
         PoolBorrow borrow = new PoolBorrow();
-        Future<?> task = POOL_BORROW_EXECUTOR.submit(() -> {
-            TargetChannel borrowed = null;
-            Exception failure = null;
-            try {
-                borrowed = connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler,
-                        senderConfiguration, bootstrapConfig, clientEventGroup);
-            } catch (Exception e) {
-                failure = e;
-            }
-            if (!borrow.deliver(borrowed, failure)) {
-                // The caller gave up on it
-                discardBorrowed(borrowed);
-            }
-        });
+        Future<?> task;
+        try {
+            task = submitBorrow(route, srcHandler, http2SourceHandler, borrow);
+        } catch (RejectedExecutionException e) {
+            failWaitingRequests(route, newConnectionAttempt,
+                                new NoSuchElementException(Constants.MAXIMUM_WAIT_TIME_EXCEED, e));
+            return null;
+        }
         boolean delivered;
         try {
             delivered = borrow.await(callExchange.remainingNanos());
@@ -482,6 +494,24 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
             failWaitingRequests(route, newConnectionAttempt, borrow.getFailure());
         }
         return borrow.getChannel();
+    }
+
+    private Future<?> submitBorrow(HttpRoute route, SourceHandler srcHandler, Http2SourceHandler http2SourceHandler,
+                                   PoolBorrow borrow) {
+        return POOL_BORROW_EXECUTOR.submit(() -> {
+            TargetChannel borrowed = null;
+            Exception failure = null;
+            try {
+                borrowed = connectionManager.borrowTargetChannel(route, srcHandler, http2SourceHandler,
+                        senderConfiguration, bootstrapConfig, clientEventGroup);
+            } catch (Exception e) {
+                failure = e;
+            }
+            if (!borrow.deliver(borrowed, failure)) {
+                // The caller gave up on it
+                discardBorrowed(borrowed);
+            }
+        });
     }
 
     private void discardBorrowed(TargetChannel borrowed) {

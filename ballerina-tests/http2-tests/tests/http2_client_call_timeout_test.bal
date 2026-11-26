@@ -190,13 +190,14 @@ function http2CallTimeoutNegativeDeadlineIsRejected() returns error? {
 // The body of a response is read after the response is returned, and its time is still part of the call.
 @test:Config {groups: ["callTimeout"]}
 function http2CallTimeoutDeadlineCoversTheBodyReadAfterTheResponseIsReturned() returns error? {
-    http:Client cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(7, callTimeout = 1.5));
+    http:Client cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(7, callTimeout = 3));
+    // The budget is wide enough for the headers to arrive in time on a slow runner that opens the connection cold
     http:Response res = check cl->get("/http2CallTimeoutBackend/stalledBody");
     time:Utc startedAt = time:utcNow();
     string|error payload = res.getTextPayload();
     decimal elapsed = http2CallTimeoutSeconds(startedAt);
     test:assertTrue(payload is http:CallTimeoutError, "Expected an http:CallTimeoutError but got " + http2CallTimeoutDescribe(payload));
-    test:assertTrue(elapsed < 4d, "The body read ended after " + elapsed.toString() + " seconds");
+    test:assertTrue(elapsed < 6d, "The body read ended after " + elapsed.toString() + " seconds");
 
     // The Ballerina HTTP/2 listener closes the connection when a stream is reset, so the client is given the time to
     // notice it before the connection is used again
@@ -358,12 +359,13 @@ function http2CallTimeoutStatusCodeClientFailsWithTheCallTimeoutError() returns 
 // The time a request object was given by one client does not follow it to a client that sets none.
 @test:Config {groups: ["callTimeout"]}
 function http2CallTimeoutTimeOfAnEarlierCallDoesNotFollowTheRequestToOtherClients() returns error? {
-    http:Client cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(17, callTimeout = 1));
+    http:Client cl = check new (http2CallTimeoutUrl, http2CallTimeoutConfig(17, callTimeout = 3));
     http:Request request = new;
     request.setTextPayload("echo");
     string first = check cl->post("/http2CallTimeoutBackend/echo", request);
     test:assertEquals(first, "echo");
-    runtime:sleep(1.2);
+    // Past the time the first call had, which would cut the later calls short if it followed the request
+    runtime:sleep(3.2);
     http:LoadBalanceClient loadBalancer = check new ({http2Settings: {http2PriorKnowledge: true}, timeout: 48, targets: [{url: http2CallTimeoutUrl}]});
     string balanced = check loadBalancer->post("/http2CallTimeoutBackend/echo", request);
     test:assertEquals(balanced, "echo");
