@@ -115,6 +115,50 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
         }
     }
 
+    @Override
+    public boolean handlesRequestMethod(HttpCarbonMessage carbonMessage) {
+        return this.resource != null && findResourceForMethod(this.resource, carbonMessage.getHttpMethod()) != null;
+    }
+
+    @Override
+    public Runnable saveState(HttpCarbonMessage carbonMessage) {
+        String allow = carbonMessage.getHeader(HttpHeaderNames.ALLOW.toString());
+        Object preflightResources = carbonMessage.getProperty(HttpConstants.PREFLIGHT_RESOURCES);
+        return () -> {
+            if (allow == null) {
+                carbonMessage.removeHeader(HttpHeaderNames.ALLOW.toString());
+            } else {
+                carbonMessage.setHeader(HttpHeaderNames.ALLOW.toString(), allow);
+            }
+            if (preflightResources == null) {
+                carbonMessage.removeProperty(HttpConstants.PREFLIGHT_RESOURCES);
+            } else {
+                carbonMessage.setProperty(HttpConstants.PREFLIGHT_RESOURCES, preflightResources);
+            }
+        };
+    }
+
+    @Override
+    public boolean servesPreflightMethod(HttpCarbonMessage carbonMessage) {
+        String requestedMethod = carbonMessage.getHeader(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD.toString());
+        if (requestedMethod == null || this.resource == null) {
+            return true;
+        }
+        return findResourceForMethod(this.resource, requestedMethod) != null;
+    }
+
+    /**
+     * Finds the resource that handles the method: one with a matching accessor, else a default-verb one.
+     */
+    private Resource findResourceForMethod(List<Resource> resources, String httpMethod) {
+        for (Resource resourceInfo : resources) {
+            if (DispatcherUtil.isMatchingMethodExist(resourceInfo, httpMethod)) {
+                return resourceInfo;
+            }
+        }
+        return tryMatchingToDefaultVerb(resources);
+    }
+
     private boolean isOptionsRequest(HttpCarbonMessage inboundMessage) {
         //Return true to break the resource searching loop, only if the ALLOW header is set in message for
         //OPTIONS request.
@@ -122,18 +166,9 @@ public class ResourceDataElement implements DataElement<Resource, HttpCarbonMess
     }
 
     private Resource validateHTTPMethod(List<Resource> resources, HttpCarbonMessage carbonMessage) {
-        Resource httpResource = null;
         boolean isOptionsRequest = false;
         String httpMethod = carbonMessage.getHttpMethod();
-        for (Resource resourceInfo : resources) {
-            if (DispatcherUtil.isMatchingMethodExist(resourceInfo, httpMethod)) {
-                httpResource = resourceInfo;
-                break;
-            }
-        }
-        if (httpResource == null) {
-            httpResource = tryMatchingToDefaultVerb(resources);
-        }
+        Resource httpResource = findResourceForMethod(resources, httpMethod);
         if (httpResource == null) {
             isOptionsRequest = setAllowHeadersIfOPTIONS(resources, httpMethod, carbonMessage);
         }

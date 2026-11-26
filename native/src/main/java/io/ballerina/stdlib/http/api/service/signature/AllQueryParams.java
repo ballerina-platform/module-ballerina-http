@@ -30,6 +30,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.ballerina.stdlib.http.api.HttpErrorType.INTERNAL_QUERY_PARAM_BINDING_ERROR;
 import static io.ballerina.stdlib.http.api.service.signature.ParamUtils.castParam;
@@ -60,7 +61,8 @@ public class AllQueryParams implements Parameter {
     public void populateFeed(HttpCarbonMessage httpCarbonMessage, ParamHandler paramHandler, Object[] paramFeed,
                              boolean treatNilableAsOptional) {
         BMap<BString, Object> urlQueryParams = paramHandler
-                .getQueryParams(httpCarbonMessage.getProperty(HttpConstants.RAW_QUERY_STR));
+                .getQueryParams(httpCarbonMessage.getProperty(HttpConstants.RAW_QUERY_STR),
+                        allQueryParams.stream().map(QueryParam::getToken).collect(Collectors.toSet()));
         for (QueryParam queryParam : allQueryParams) {
             String token = queryParam.getToken();
             int index = queryParam.getIndex();

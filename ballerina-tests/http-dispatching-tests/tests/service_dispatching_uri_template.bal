@@ -341,6 +341,41 @@ function testEmptyStringResourcepath() {
     }
 }
 
+service /optionsRest on utTestEP {
+    resource function get files() returns string {
+        return "files";
+    }
+
+    resource function default files/[string... p](http:Request req) returns string {
+        return req.hasHeader("Allow") ? "has Allow" : "no Allow";
+    }
+}
+
+service /unboundQuery on utTestEP {
+    resource function get q(string? x) returns string {
+        return x ?: "none";
+    }
+}
+
+@test:Config {}
+function testOptionsReachingRestResourceHasNoAllowHeader() returns error? {
+    http:Response response = check utClient1->options("/optionsRest/files");
+    test:assertEquals(check response.getTextPayload(), "no Allow");
+}
+
+@test:Config {}
+function testMalformedUnboundQueryParamIsIgnored() returns error? {
+    foreach string query in ["x=1&utm=%E9", "x=1&a%zz=1", "x=1&utm=%zz", "x=1&%E9"] {
+        http:Response response = check utClient1->get("/unboundQuery/q?" + query);
+        test:assertEquals(response.statusCode, 200, query);
+        test:assertEquals(check response.getTextPayload(), "1", query);
+    }
+    foreach string query in ["x=%E9", "x=%zz"] {
+        http:Response response = check utClient1->get("/unboundQuery/q?" + query);
+        test:assertEquals(response.statusCode, 400, query);
+    }
+}
+
 //Test dispatching with OPTIONS method
 @test:Config {}
 function testOPTIONSMethods() {

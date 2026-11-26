@@ -35,12 +35,14 @@ import io.ballerina.stdlib.http.api.HttpConstants;
 import io.ballerina.stdlib.http.api.HttpErrorType;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.api.nativeimpl.ModuleUtils;
+import io.ballerina.stdlib.http.uri.MalformedPercentEncodingException;
 import io.ballerina.stdlib.http.uri.URIUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_FIELD_RESPOND_TYPE;
 import static io.ballerina.stdlib.http.api.HttpConstants.ANN_NAME_CACHE;
@@ -285,7 +287,8 @@ public class ParamHandler {
             String queryParamName = getQueryParamName(paramName, annotations);
             paramName = queryParamName.isBlank() ? paramName : queryParamName;
         }
-        paramName = HttpUtil.unescapeAndEncodeValue(paramName);
+        // The query string names are percent-decoded, so the declared name is matched unencoded.
+        paramName = HttpUtil.unescapeValue(paramName);
         QueryParam queryParam = new QueryParam(originalType, paramName, index, parameter.isDefault,
                 constraintValidation);
         this.queryParams.add(queryParam);
@@ -309,19 +312,22 @@ public class ParamHandler {
     }
 
     /**
-     * Gets the map of query params for given raw query string.
+     * Gets the map of query params for given raw query string. Only the values of the given params have to be
+     * well-formed, so that a malformed one the resource does not bind cannot fail the request.
      *
      * @return a map of query params
      */
-    public BMap<BString, Object> getQueryParams(Object rawQueryString) {
+    public BMap<BString, Object> getQueryParams(Object rawQueryString, Set<String> boundParams) {
         BMap<BString, Object> queryParams = ValueCreator.createMapValue(MAP_TYPE);
 
         if (rawQueryString != null) {
             try {
-                URIUtil.populateQueryParamMap((String) rawQueryString, queryParams);
+                URIUtil.populateQueryParamMap((String) rawQueryString, queryParams, boundParams::contains);
+            } catch (MalformedPercentEncodingException e) {
+                throw HttpUtil.createHttpStatusCodeError(HttpErrorType.INTERNAL_QUERY_PARAM_BINDING_ERROR,
+                        "malformed percent-encoding in the query string");
             } catch (UnsupportedEncodingException e) {
-                throw HttpUtil.createHttpError("error while retrieving query param from message: " + e.getMessage(),
-                        HttpErrorType.GENERIC_LISTENER_ERROR);
+                throw new IllegalStateException(e);
             }
         }
         return queryParams;

@@ -124,12 +124,12 @@ public class URITemplateParserTest {
         assertEquals(args.getMap().get("itemId").get(1), "9", "itemId was not bound at its own expression index");
     }
 
-    @Test(description = "A parameter value is URL decoded when it is bound")
+    @Test(description = "A parameter value is bound raw and decoded once when it is handed to the resource")
     public void testPathParameterIsDecoded() throws Exception {
         parse("/orders/{orderId}", "byId");
         HttpResourceArguments args = new HttpResourceArguments();
         assertEquals(match("/orders/a%20b", args), "byId", "Encoded parameter did not resolve");
-        assertEquals(args.getMap().get("orderId").get(0), "a b", "Parameter value was not URL decoded");
+        assertEquals(args.getMap().get("orderId").get(0), "a%20b", "Parameter value must stay encoded");
     }
 
     @Test(description = "A literal and an expression in the same segment parse, but the matcher compares the "
