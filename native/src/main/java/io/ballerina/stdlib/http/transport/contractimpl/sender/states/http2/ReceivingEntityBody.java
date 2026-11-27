@@ -41,7 +41,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2StateUtil.releaseContent;
-import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundResponse;
 
 /**
  * State between start and end of inbound response entity body read.
@@ -122,25 +122,25 @@ public class ReceivingEntityBody implements SenderState {
 
     @Override
     public void handleConnectionClose(OutboundMsgHolder outboundMsgHolder) {
-        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
+        handleIncompleteInboundResponse(outboundMsgHolder.getResponse(),
                                        REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
     }
 
     @Override
     public void handleServerGoAway(OutboundMsgHolder outboundMsgHolder) {
-        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
+        handleIncompleteInboundResponse(outboundMsgHolder.getResponse(),
                 REMOTE_SERVER_SENT_GOAWAY_WHILE_READING_INBOUND_RESPONSE_BODY);
     }
 
     @Override
     public void handleRstStream(OutboundMsgHolder outboundMsgHolder) {
-        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
+        handleIncompleteInboundResponse(outboundMsgHolder.getResponse(),
                 REMOTE_SERVER_SENT_RST_STREAM_WHILE_READING_INBOUND_RESPONSE_BODY);
     }
 
     @Override
     public void handleStreamClosedLocally(OutboundMsgHolder outboundMsgHolder) {
-        handleIncompleteInboundMessage(outboundMsgHolder.getResponse(),
+        handleIncompleteInboundResponse(outboundMsgHolder.getResponse(),
                 STREAM_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY);
     }
 

@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.ballerina.stdlib.http.transport.contract.Constants.CONTENT_DECODING_FAILED;
-import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundResponse;
 
 /**
  * A {@link DelegatingDecompressorFrameListener} that reports content decoding failures back to the caller.
@@ -91,7 +91,7 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
             // Headers never made it through, so no response exists to terminate.
             outboundMsgHolder.getResponseFuture().notifyHttpListener(new Exception(errorMessage, cause));
         } else {
-            handleIncompleteInboundMessage(outboundMsgHolder.getResponse(), errorMessage);
+            handleIncompleteInboundResponse(outboundMsgHolder.getResponse(), errorMessage);
         }
         LOG.debug("Content decoding failed on stream id: {}", streamId, cause);
     }
@@ -109,7 +109,7 @@ public class Http2ClientDecompressorFrameListener extends DelegatingDecompressor
         if (pushResponse == null) {
             promiseHolder.getResponseFuture().notifyPushResponse(streamId, new Exception(errorMessage, cause));
         } else {
-            handleIncompleteInboundMessage(pushResponse, errorMessage);
+            handleIncompleteInboundResponse(pushResponse, errorMessage);
         }
         LOG.debug("Content decoding failed on push stream id: {}", streamId, cause);
     }

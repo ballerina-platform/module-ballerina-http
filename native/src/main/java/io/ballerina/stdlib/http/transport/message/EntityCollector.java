@@ -84,4 +84,11 @@ public interface EntityCollector {
      * This is need to release content before GC.
      */
     void waitAndReleaseAllEntities();
+
+    /**
+     * Release every content that is currently queued, without waiting for more to arrive. Used when the message
+     * has failed part-way, since the buffers queued so far are pooled and would otherwise never be returned if the
+     * message is dropped before a consumer reads them.
+     */
+    void releaseQueuedEntities();
 }

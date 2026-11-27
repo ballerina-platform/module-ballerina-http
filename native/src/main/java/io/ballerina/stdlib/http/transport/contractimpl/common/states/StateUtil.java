@@ -114,6 +114,21 @@ public class StateUtil {
         LOG.warn(errorMessage);
     }
 
+    /**
+     * Reports an inbound response that failed part-way and releases the body chunks already queued for it. The
+     * chunks are pooled buffers, and nothing else returns them when the application never reads (or only partly
+     * reads) the failed response, which would otherwise drain the direct memory over time.
+     *
+     * @param inboundResponseMsg the response that failed
+     * @param errorMessage       the failure reason
+     */
+    public static void handleIncompleteInboundResponse(HttpCarbonMessage inboundResponseMsg, String errorMessage) {
+        if (inboundResponseMsg != null) {
+            inboundResponseMsg.releaseQueuedEntities();
+        }
+        handleIncompleteInboundMessage(inboundResponseMsg, errorMessage);
+    }
+
     public static void respondToIncompleteRequest(Channel channel, HttpOutboundRespListener outboundResponseListener,
                                                   ListenerReqRespStateManager listenerReqRespStateManager,
                                                   HttpCarbonMessage outboundResponseMsg, HttpContent httpContent,

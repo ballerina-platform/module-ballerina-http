@@ -486,6 +486,15 @@ public class HttpCarbonMessage {
         setContentReleased(true);
     }
 
+    /**
+     * Releases the content queued so far without waiting for the rest, for a message whose body failed midway.
+     * Unlike {@link #waitAndReleaseAllEntities()} this does not mark the content as released, so a consumer that
+     * reads the message afterwards still sees the original failure instead of a generic "already released" error.
+     */
+    public void releaseQueuedEntities() {
+        blockingEntityCollector.releaseQueuedEntities();
+    }
+
     public EntityCollector getBlockingEntityCollector() {
         return blockingEntityCollector;
     }
