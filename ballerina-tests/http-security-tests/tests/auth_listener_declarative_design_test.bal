@@ -108,6 +108,61 @@ isolated function testBasicAuthFileUserStoreServiceAuthnFailure() {
     assertUnauthorized(sendNoTokenRequest("/basicAuthFile"));
 }
 
+// Basic auth (file user store) secured service - Generated OpenAPI and Swagger UI resources
+// The OAS resources come from `openApiDefinition`, since these tests do not depend on `ballerina/openapi` for `embed`
+
+@http:ServiceConfig {
+    auth: [
+        {
+            fileUserStoreConfig: {},
+            scopes: ["write", "update"]
+        }
+    ],
+    openApiDefinition: base16 `7b7d`
+}
+service /basicAuthOas on authListener {
+    resource function get .() returns string {
+        return "Hello World!";
+    }
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceOasResourceAuthSuccess() {
+    assertSuccess(sendBasicTokenRequest("/basicAuthOas/openapi-doc-dygixywsw", "alice", "xxx"));
+    assertSuccess(sendBasicTokenRequest("/basicAuthOas/swagger-ui-dygixywsw", "alice", "xxx"));
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceOasResourceAuthzFailure() {
+    assertForbidden(sendBasicTokenRequest("/basicAuthOas/openapi-doc-dygixywsw", "bob", "yyy"));
+    assertForbidden(sendBasicTokenRequest("/basicAuthOas/swagger-ui-dygixywsw", "bob", "yyy"));
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceOasResourceAuthnFailure() {
+    assertUnauthorized(sendBasicTokenRequest("/basicAuthOas/openapi-doc-dygixywsw", "peter", "123"));
+    assertUnauthorized(sendBasicTokenRequest("/basicAuthOas/swagger-ui-dygixywsw", "peter", "123"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuthOas/openapi-doc-dygixywsw"));
+    assertUnauthorized(sendNoTokenRequest("/basicAuthOas/swagger-ui-dygixywsw"));
+}
+
+@test:Config {}
+isolated function testBasicAuthFileUserStoreServiceOasLinkHeaderIsPublic() returns error? {
+    http:Client clientEP = check new ("https://localhost:" + securedListenerPort.toString(),
+        secureSocket = {
+        cert: {
+            path: TRUSTSTORE_PATH,
+            password: "ballerina"
+        }
+    }
+    );
+    http:Response response = check clientEP->options("/basicAuthOas");
+    test:assertEquals(response.statusCode, 204);
+    string link = check response.getHeader("link");
+    test:assertTrue(link.includes("/basicAuthOas/openapi-doc-dygixywsw"));
+    test:assertTrue(link.includes("/basicAuthOas/swagger-ui-dygixywsw"));
+}
+
 // Basic auth (LDAP user store) secured service - Unsecured resource
 
 @http:ServiceConfig {

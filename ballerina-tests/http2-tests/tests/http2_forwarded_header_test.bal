@@ -37,7 +37,7 @@ service /forwardedBackend on generalHTTP2Listener {
 }
 
 @test:Config {}
-public function testForwardHeader() returns error? {
+function testForwardHeader() returns error? {
     http:Client clientEP = check new ("http://localhost:9000", httpVersion = http:HTTP_1_1);
     http:Response|error resp = clientEP->get("/initiatingService/initiatingResource");
     if resp is http:Response {

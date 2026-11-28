@@ -47,7 +47,7 @@ http:ClientConfiguration conf01 = {
     timeout: 2
 };
 
-final http:Client healthyClientEP = checkpanic new("http://localhost:8087", conf01);
+final http:Client healthyClientEP = check new("http://localhost:8087", conf01);
 
 service /cb on circuitBreakerEP01 {
 
@@ -207,58 +207,66 @@ service /healthy on new http:Listener(8087, httpVersion = http:HTTP_1_1) {
 
 
 //Test for circuit breaker forceOpen functionality
-final http:Client testForceOpenClient = checkpanic new("http://localhost:9307", httpVersion = http:HTTP_1_1);
+final http:Client testForceOpenClient = check new("http://localhost:9307", httpVersion = http:HTTP_1_1);
 
-@test:Config{ 
+// These tests share `forceOpen % 3` and the breaker of `healthyClientEP`, so their rows must not interleave.
+@test:Config {
     groups: ["circuitBreakerForceOpen"],
+    serialExecution: true,
     dataProvider:forceOpenResponseDataProvider 
 }
 function testForceOpen(DataFeed dataFeed) returns error? {
     check invokeApiAndVerifyResponse(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
-@test:Config{ 
+@test:Config {
     groups: ["circuitBreakerForceOpen"],
+    serialExecution: true,
     dataProvider:forceOpenResponseDataProvider 
 }
 function testForceOpenWithHttpGet(DataFeed dataFeed) returns error? {
     check invokeApiAndVerifyResponseWithHttpGet(testForceOpenClient, "/cb/forceopen", dataFeed, common:TEXT_PLAIN);
 }
 
-@test:Config{ 
+@test:Config {
     groups: ["circuitBreakerForceOpen"],
+    serialExecution: true,
     dataProvider:forceOpenResponseDataProviderForHeadRequest 
 }
 function testForceOpenWithHttpHead(DataFeed dataFeed) returns error? {
     check invokeApiAndVerifyResponseWithHttpHead(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
-@test:Config{ 
+@test:Config {
     groups: ["circuitBreakerForceOpen"],
+    serialExecution: true,
     dataProvider:forceOpenResponseDataProviderForOptionsRequest 
 }
 function testForceOpenWithHttpOptions(DataFeed dataFeed) returns error? {
     check invokeApiAndVerifyResponseWithHttpOptions(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
-@test:Config{ 
+@test:Config {
     groups: ["circuitBreakerForceOpen"],
+    serialExecution: true,
     dataProvider:forceOpenResponseDataProvider 
 }
 function testForceOpenWithHttpPut(DataFeed dataFeed) returns error? {
     check invokeApiAndVerifyResponseWithHttpPut(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
-@test:Config{ 
+@test:Config {
     groups: ["circuitBreakerForceOpen"],
+    serialExecution: true,
     dataProvider:forceOpenResponseDataProvider 
 }
 function testForceOpenWithHttpPatch(DataFeed dataFeed) returns error? {
     check invokeApiAndVerifyResponseWithHttpPatch(testForceOpenClient, "/cb/forceopen", dataFeed);
 }
 
-@test:Config{ 
+@test:Config {
     groups: ["circuitBreakerForceOpen"],
+    serialExecution: true,
     dataProvider:forceOpenResponseDataProvider 
 }
 function testForceOpenWithHttpDelete(DataFeed dataFeed) returns error? {

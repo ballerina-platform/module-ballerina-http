@@ -178,7 +178,7 @@ function negativeTestAddCookieWithInvalidMaxAge() {
 
 listener http:Listener inResponseCachedPayloadListener = new (inResponseCachedPayloadTestPort, httpVersion = http:HTTP_1_1);
 listener http:Listener inResponseCachedPayloadBEListener = new (inResponseCachedPayloadTestBEPort, httpVersion = http:HTTP_1_1);
-http:Client inRespCacheTestClient = check new ("http://localhost:" + inResponseCachedPayloadTestPort.toString(), httpVersion = http:HTTP_1_1);
+final http:Client inRespCacheTestClient = check new ("http://localhost:" + inResponseCachedPayloadTestPort.toString(), httpVersion = http:HTTP_1_1);
 
 service / on inResponseCachedPayloadListener {
     resource function get checkJson() returns json|error {

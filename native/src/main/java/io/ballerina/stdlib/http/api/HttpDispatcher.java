@@ -240,7 +240,8 @@ public class HttpDispatcher {
         }
 
         // Find the Resource
-        return (HttpResource) ResourceDispatcher.findResource(service, inboundMessage);
+        return (HttpResource) ResourceDispatcher.findResource(service, inboundMessage,
+                servicesRegistry.getRuntime());
     }
 
     public static InterceptorResource findInterceptorResource(HTTPInterceptorServicesRegistry servicesRegistry,
@@ -260,7 +261,8 @@ public class HttpDispatcher {
         }
 
         // Find the Resource
-        return (InterceptorResource) ResourceDispatcher.findResource(service, inboundMessage);
+        return (InterceptorResource) ResourceDispatcher.findResource(service, inboundMessage,
+                servicesRegistry.getRuntime());
     }
 
     public static Object[] getRemoteSignatureParameters(InterceptorService service, BObject response, BObject caller,
@@ -320,14 +322,14 @@ public class HttpDispatcher {
     }
 
     public static Object[] getSignatureParameters(Resource resource, HttpCarbonMessage httpCarbonMessage,
-                                                  BMap<BString, Object> endpointConfig, Runtime runtime) {
+                                                  Runtime runtime) {
         BObject inRequest = null;
         // Getting the same caller, request context and entity object to pass through interceptor services
         BObject requestCtx = getRequestCtx(httpCarbonMessage, runtime);
         populatePropertiesForRequestPath(resource, httpCarbonMessage, requestCtx);
         BObject entityObj = (BObject) httpCarbonMessage.getProperty(HttpConstants.ENTITY_OBJ);
         BError error = (BError) httpCarbonMessage.getProperty(HttpConstants.INTERCEPTOR_SERVICE_ERROR);
-        BObject httpCaller = getCaller(resource, httpCarbonMessage, endpointConfig);
+        BObject httpCaller = getCaller(resource, httpCarbonMessage);
         ParamHandler paramHandler = resource.getParamHandler();
         Type[] parameterTypes = getParameterTypes(resource.getBalResource());
         int sigParamCount = parameterTypes.length;
@@ -418,8 +420,7 @@ public class HttpDispatcher {
         return inRequest;
     }
 
-    static BObject getCaller(Resource resource, HttpCarbonMessage httpCarbonMessage,
-                             BMap<BString, Object> endpointConfig) {
+    static BObject getCaller(Resource resource, HttpCarbonMessage httpCarbonMessage) {
         String resourceAccessor = resource.getBalResource().getAccessor().toUpperCase(Locale.getDefault());
         final BObject httpCaller = Objects.isNull(httpCarbonMessage.getProperty(HttpConstants.CALLER)) ?
                 ValueCreatorUtils.createCallerObject(httpCarbonMessage, resourceAccessor) :
@@ -429,8 +430,8 @@ public class HttpDispatcher {
                 HttpUtil.isDefaultResource(((BString) currentResourceAccessor).getValue())) {
             httpCaller.set(HttpConstants.RESOURCE_ACCESSOR, StringUtils.fromString(resourceAccessor));
         }
-        HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource, endpointConfig);
-        HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage, endpointConfig);
+        HttpUtil.enrichHttpCallerWithConnectionInfo(httpCaller, httpCarbonMessage, resource);
+        HttpUtil.enrichHttpCallerWithNativeData(httpCaller, httpCarbonMessage);
         httpCarbonMessage.setProperty(HttpConstants.CALLER, httpCaller);
         return httpCaller;
     }

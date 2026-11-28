@@ -40,7 +40,7 @@ public class BackPressureHandler extends ChannelInboundHandlerAdapter {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("HTTP/1.1 channel writable in thread {} ", Thread.currentThread().getName());
             }
-            backPressureObservable.notifyWritable();
+            backPressureObservable.notifyWritableIfUnWritable();
         }
     }
 

@@ -115,7 +115,7 @@ public class HttpClientChannelInitializer extends ChannelInitializer<SocketChann
             http2 = true;
         }
         connection = new DefaultHttp2Connection(false);
-        clientFrameListener = new ClientFrameListener();
+        clientFrameListener = new ClientFrameListener(connection, senderConfiguration.getHttp2InitialWindowSize());
         Http2FrameListener frameListener =
                 new Http2ClientDecompressorFrameListener(connection, clientFrameListener);
 

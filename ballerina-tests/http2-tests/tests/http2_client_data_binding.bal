@@ -22,9 +22,9 @@ import ballerina/url;
 import ballerina/lang.'string as strings;
 import ballerina/http_test_common as common;
 
-int http2ClientDatabindingTestPort1 = common:getHttp2Port(clientDatabindingTestPort1);
-int http2ClientDatabindingTestPort2 = common:getHttp2Port(clientDatabindingTestPort2);
-int http2ClientDatabindingTestPort3 = common:getHttp2Port(clientDatabindingTestPort3);
+final int http2ClientDatabindingTestPort1 = common:getHttp2Port(clientDatabindingTestPort1);
+final int http2ClientDatabindingTestPort2 = common:getHttp2Port(clientDatabindingTestPort2);
+final int http2ClientDatabindingTestPort3 = common:getHttp2Port(clientDatabindingTestPort3);
 
 listener http:Listener http2ClientDBProxyListener = new (http2ClientDatabindingTestPort1);
 listener http:Listener http2ClientDBBackendListener = new (http2ClientDatabindingTestPort2);
@@ -551,7 +551,7 @@ service /backend on http2ClientDBBackendListener {
 }
 
 @test:Config {}
-public function testXmlMimeTypeVariations() returns error? {
+function testXmlMimeTypeVariations() returns error? {
     xml response = check http2ClientDBBackendClient->get("/backend/getXmlMimeType1");
     test:assertEquals(response, xml `<name>Ballerina</name>`);
 
@@ -564,7 +564,7 @@ public function testXmlMimeTypeVariations() returns error? {
 }
 
 @test:Config {}
-public function testJsonErrorMimeTypeVariations() returns error? {
+function testJsonErrorMimeTypeVariations() returns error? {
     json response = check http2ClientDBBackendClient->get("/backend/getJsonErrorMimeType1");
     test:assertEquals(response, {name: "Inferred by type"});
 
@@ -579,7 +579,7 @@ public function testJsonErrorMimeTypeVariations() returns error? {
 }
 
 @test:Config {}
-public function testJsontMimeTypeVariations() returns error? {
+function testJsontMimeTypeVariations() returns error? {
     json response = check http2ClientDBBackendClient->get("/backend/getJsonMimeType1");
     test:assertEquals(response, {name: "Ballerina"});
 
@@ -597,7 +597,7 @@ public function testJsontMimeTypeVariations() returns error? {
 }
 
 @test:Config {}
-public function testUncommonetMimeTypeVariations() returns error? {
+function testUncommonetMimeTypeVariations() returns error? {
     // all these cases does not goto to a particular builder, but binding type is inferred by the return type
     json jsonPayload = check http2ClientDBBackendClient->get("/backend/getUncommonMimeType1");
     test:assertEquals(jsonPayload, {name: "Ballerina"});

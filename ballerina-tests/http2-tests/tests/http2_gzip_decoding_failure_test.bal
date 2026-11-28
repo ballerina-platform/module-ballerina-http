@@ -63,32 +63,32 @@ function gzipBodyAccessors() returns map<[string]> => {
 };
 
 // A body that cannot be decoded must be reported as an error by every way of reading it.
-@test:Config {groups: [GZIP_DECODE_GROUP], dataProvider: gzipBodyAccessors}
+@test:Config {groups: [GZIP_DECODE_GROUP], dataProvider: gzipBodyAccessors, serialExecution: true}
 function testMalformedGzipBodyOverHttp2(string accessor) {
     assertReadFailsPromptly(gzipDecodeH2Client, GZIP_MALFORMED_PATH, accessor);
 }
 
 // HTTP/1.1 already reported the failure, so this keeps both protocols behaving the same.
-@test:Config {groups: [GZIP_DECODE_GROUP], dataProvider: gzipBodyAccessors}
+@test:Config {groups: [GZIP_DECODE_GROUP], dataProvider: gzipBodyAccessors, serialExecution: true}
 function testMalformedGzipBodyOverHttp1(string accessor) {
     assertReadFailsPromptly(gzipDecodeH1Client, GZIP_MALFORMED_PATH, accessor);
 }
 
-@test:Config {groups: [GZIP_DECODE_GROUP], dataProvider: gzipBodyAccessors}
+@test:Config {groups: [GZIP_DECODE_GROUP], dataProvider: gzipBodyAccessors, serialExecution: true}
 function testValidGzipBodyOverHttp2(string accessor) returns error? {
     byte[] content = check readBody(gzipDecodeH2Client, GZIP_VALID_PATH, accessor);
     test:assertEquals(string:fromBytes(content), GZIP_VALID_CONTENT);
 }
 
 // The failure only resets the affected stream, so the same connection must keep serving requests.
-@test:Config {groups: [GZIP_DECODE_GROUP]}
+@test:Config {groups: [GZIP_DECODE_GROUP], serialExecution: true}
 function testHttp2ClientRecoversAfterMalformedGzipBody() returns error? {
     assertReadFailsPromptly(gzipDecodeH2Client, GZIP_MALFORMED_PATH, "binaryPayload");
     string content = check gzipDecodeH2Client->get(GZIP_VALID_PATH);
     test:assertEquals(content, GZIP_VALID_CONTENT);
 }
 
-@test:Config {groups: [GZIP_DECODE_GROUP]}
+@test:Config {groups: [GZIP_DECODE_GROUP], serialExecution: true}
 function testMalformedGzipPushedResponseOverHttp2() returns error? {
     http:HttpFuture httpFuture = check gzipDecodeH2Client->submit("GET", GZIP_PUSH_PATH, new http:Request());
     boolean hasPromise = gzipDecodeH2Client->hasPromise(httpFuture);
@@ -174,10 +174,10 @@ function readByteStream(http:Response response) returns byte[]|error {
     }
 }
 
-function startGzipResponseServer(int port, boolean http2) returns error? = @java:Method {
+isolated function startGzipResponseServer(int port, boolean http2) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternGzipResponseTestUtil"
 } external;
 
-function stopGzipResponseServer(int port) returns error? = @java:Method {
+isolated function stopGzipResponseServer(int port) returns error? = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternGzipResponseTestUtil"
 } external;

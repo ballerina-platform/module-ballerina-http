@@ -88,7 +88,7 @@ service /echoDummyService15 on echoDummy15 {
     }
 }
 
-http:ClientConfiguration mutualSslClientConf1 = {
+function mutualSslClientConf1() returns http:ClientConfiguration => {
     httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
@@ -110,8 +110,8 @@ http:ClientConfiguration mutualSslClientConf1 = {
 };
 
 @test:Config {}
-public function testMutualSsl1() returns error? {
-    http:Client httpClient = check new ("https://localhost:9116", mutualSslClientConf1);
+function testMutualSsl1() returns error? {
+    http:Client httpClient = check new ("https://localhost:9116", mutualSslClientConf1());
     http:Response|error resp = httpClient->get("/helloWorld15/");
     if resp is http:Response {
         var payload = resp.getTextPayload();
@@ -125,7 +125,7 @@ public function testMutualSsl1() returns error? {
     }
 }
 
-http:ClientConfiguration mutualSslClientConf2 = {
+function mutualSslClientConf2() returns http:ClientConfiguration => {
     httpVersion: http:HTTP_1_1,
     secureSocket: {
         key: {
@@ -143,8 +143,8 @@ http:ClientConfiguration mutualSslClientConf2 = {
 };
 
 @test:Config {}
-public function testMutualSsl2() returns error? {
-    http:Client httpClient = check new ("https://localhost:9116", mutualSslClientConf2);
+function testMutualSsl2() returns error? {
+    http:Client httpClient = check new ("https://localhost:9116", mutualSslClientConf2());
     http:Response|error resp = httpClient->get("/helloWorld15/");
     string expectedErrMsg = "SSL connection failed:unable to find valid certification path to requested target localhost/127.0.0.1:9116";
     if resp is error {
@@ -154,7 +154,7 @@ public function testMutualSsl2() returns error? {
     }
 }
 
-http:ClientConfiguration mutualSslClientConf3 = {
+function mutualSslClientConf3() returns http:ClientConfiguration => {
     httpVersion: http:HTTP_1_1,
     secureSocket: {
         enable: false,
@@ -173,8 +173,8 @@ http:ClientConfiguration mutualSslClientConf3 = {
 };
 
 @test:Config {}
-public function testMutualSsl3() returns error? {
-    http:Client httpClient = check new ("https://localhost:9116", mutualSslClientConf3);
+function testMutualSsl3() returns error? {
+    http:Client httpClient = check new ("https://localhost:9116", mutualSslClientConf3());
     http:Response|error resp = httpClient->get("/helloWorld15/");
     if resp is http:Response {
         var payload = resp.getTextPayload();

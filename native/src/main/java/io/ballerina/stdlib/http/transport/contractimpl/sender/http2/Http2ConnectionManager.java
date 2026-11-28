@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.http.transport.contractimpl.sender.http2;
 
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.common.states.Http2MessageStateContext;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.PoolConfiguration;
@@ -59,12 +60,14 @@ public class Http2ConnectionManager {
      *
      * @param httpRoute          http route
      * @param http2ClientChannel newly created http/2 client channel
+     * @param attempt            the attempt that opened the channel, which ends it if it is the route's opener
      */
-    public void addHttp2ClientChannel(HttpRoute httpRoute, Http2ClientChannel http2ClientChannel) {
+    public void addHttp2ClientChannel(HttpRoute httpRoute, Http2ClientChannel http2ClientChannel,
+                                      NewConnectionAttempt attempt) {
         String key = generateKey(httpRoute);
         final Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool =
                 getOrCreatePerRoutePool(this.http2ChannelPool, key);
-        perRouteConnectionPool.addChannel(http2ClientChannel);
+        perRouteConnectionPool.addChannel(http2ClientChannel, attempt);
 
         // Configure a listener to remove connection from pool when it is closed
         http2ClientChannel.getChannel().closeFuture().
@@ -81,19 +84,35 @@ public class Http2ConnectionManager {
     }
 
     /**
-     * Release the count down latch. If the connection upgrade is rejected, the H2Pool count down latch will not be
-     * release as the channel is not added. In such instances, forcefully reduces the count down to allow subsequent
-     * requests to proceed.
+     * Releases the requests waiting for a new connection on the route when that connection was made but did not
+     * negotiate HTTP/2, so each of them opens its own.
      *
-     * @param httpRoute  the route key
+     * @param httpRoute the route key
+     * @param attempt   the attempt that ended; requests are released only if they are waiting for it
      */
-    public void releasePerRoutePoolLatch(HttpRoute httpRoute) {
-        String key = generateKey(httpRoute);
-        Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = this.http2ChannelPool.fetchPerRoutePool(key);
+    public void releaseWaitingRequests(HttpRoute httpRoute, NewConnectionAttempt attempt) {
+        Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = fetchPerRoutePool(httpRoute);
         if (perRouteConnectionPool != null) {
-            perRouteConnectionPool.releaseCountdown();
+            perRouteConnectionPool.releaseWaitingRequests(attempt);
         }
     }
+
+    /**
+     * Fails the requests waiting for a new connection on the route with the failure of that connection attempt. The
+     * next request opens a new connection.
+     *
+     * @param httpRoute the route key
+     * @param attempt   the attempt that failed; requests fail only if they are waiting for it
+     * @param failure   the error the waiting requests fail with
+     */
+    public void failWaitingRequests(HttpRoute httpRoute, NewConnectionAttempt attempt,
+                                    ClientConnectorException failure) {
+        Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = fetchPerRoutePool(httpRoute);
+        if (perRouteConnectionPool != null) {
+            perRouteConnectionPool.failWaitingRequests(attempt, failure);
+        }
+    }
+
 
     /**
      * Get or create the per route pool.
@@ -123,8 +142,9 @@ public class Http2ConnectionManager {
         try {
             Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = pool.getPerRouteConnectionPools().get(key);
             if (perRouteConnectionPool == null) {
-                perRouteConnectionPool = new Http2ChannelPool.PerRouteConnectionPool(this.poolConfiguration
-                        .getHttp2MaxActiveStreamsPerConnection());
+                perRouteConnectionPool = new Http2ChannelPool.PerRouteConnectionPool(
+                        this.poolConfiguration.getHttp2MaxActiveStreamsPerConnection(),
+                        this.poolConfiguration.getMaxWaitTime());
                 pool.getPerRouteConnectionPools().put(key, perRouteConnectionPool);
             }
             return perRouteConnectionPool;
@@ -134,27 +154,36 @@ public class Http2ConnectionManager {
     }
 
     /**
-     * Borrow an HTTP/2 client channel.
+     * Borrow an HTTP/2 client channel. If none is returned and the caller is to open the route's new connection, the
+     * attempt is marked as the opener, and its outcome must be reported through
+     * {@link #releaseWaitingRequests(HttpRoute, NewConnectionAttempt)} or
+     * {@link #failWaitingRequests(HttpRoute, NewConnectionAttempt, ClientConnectorException)}.
      *
      * @param httpRoute the http route
+     * @param attempt   the caller's attempt to get a connection
      * @return Http2ClientChannel
+     * @throws ClientConnectorException the failure of the connection attempt the caller waited for
      */
-    public Http2ClientChannel fetchChannel(HttpRoute httpRoute) {
+    public Http2ClientChannel fetchChannel(HttpRoute httpRoute, NewConnectionAttempt attempt)
+            throws ClientConnectorException {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool;
         perRouteConnectionPool = getOrCreatePerRoutePool(this.http2ChannelPool, generateKey(httpRoute));
-        return perRouteConnectionPool.fetchTargetChannel();
+        return perRouteConnectionPool.fetchTargetChannel(attempt);
     }
 
     /**
-     * Return the http/2 client channel to per route pool.
+     * Release a closed stream of the http/2 client channel, returning the channel to the per route pool if it was
+     * exhausted.
      *
      * @param httpRoute          the http route
      * @param http2ClientChannel represents the http/2 client channel
      */
-    void returnClientChannel(HttpRoute httpRoute, Http2ClientChannel http2ClientChannel) {
+    void releaseStream(HttpRoute httpRoute, Http2ClientChannel http2ClientChannel) {
         Http2ChannelPool.PerRouteConnectionPool perRouteConnectionPool = fetchPerRoutePool(httpRoute);
         if (perRouteConnectionPool != null) {
-            perRouteConnectionPool.addChannel(http2ClientChannel);
+            perRouteConnectionPool.releaseStream(http2ClientChannel);
+        } else {
+            http2ClientChannel.decrementActiveStreamCount();
         }
     }
 

@@ -15,6 +15,7 @@
 // under the License.
 
 import ballerina/http;
+import ballerina/jballerina.java;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
@@ -76,7 +77,7 @@ service /http2Service on http2Listener {
     }
 }
 
-http:ClientConfiguration http2MutualSslClientConf1 = {
+function http2MutualSslClientConf1() returns http:ClientConfiguration => {
     secureSocket: {
         key: {
             path: common:KEYSTORE_PATH,
@@ -96,8 +97,8 @@ http:ClientConfiguration http2MutualSslClientConf1 = {
 };
 
 @test:Config {}
-public function testHttp2MutualSsl1() returns error? {
-    http:Client httpClient = check new ("https://localhost:9204", http2MutualSslClientConf1);
+function testHttp2MutualSsl1() returns error? {
+    http:Client httpClient = check new ("https://localhost:9204", http2MutualSslClientConf1());
     http:Response|error resp = httpClient->get("/http2Service/");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "Passed");
@@ -106,7 +107,7 @@ public function testHttp2MutualSsl1() returns error? {
     }
 }
 
-http:ClientConfiguration http2MutualSslClientConf2 = {
+function http2MutualSslClientConf2() returns http:ClientConfiguration => {
     secureSocket: {
         key: {
             path: common:KEYSTORE_PATH,
@@ -121,7 +122,7 @@ http:ClientConfiguration http2MutualSslClientConf2 = {
     http2Settings: {http2PriorKnowledge: true}
 };
 
-http:ClientConfiguration http2MutualSslClientConf3 = {
+function http2MutualSslClientConf3() returns http:ClientConfiguration => {
     secureSocket: {
         enable: false,
         key: {
@@ -138,8 +139,8 @@ http:ClientConfiguration http2MutualSslClientConf3 = {
 };
 
 @test:Config {}
-public function testHttp2MutualSsl3() returns error? {
-    http:Client httpClient = check new ("https://localhost:9204", http2MutualSslClientConf3);
+function testHttp2MutualSsl3() returns error? {
+    http:Client httpClient = check new ("https://localhost:9204", http2MutualSslClientConf3());
     http:Response|error resp = httpClient->get("/http2Service/");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "Passed");
@@ -148,23 +149,30 @@ public function testHttp2MutualSsl3() returns error? {
     }
 }
 
-http:ClientConfiguration http2MutualSslClientConf4 = {
+function http2MutualSslClientConf4() returns http:ClientConfiguration => {
     secureSocket: {
         enable: false
     }
 };
 
 @test:Config {}
-public function testHttp2MutualSsl4() returns error? {
+function testHttp2MutualSsl4() returns error? {
     // Without keys - negative test
-    http:Client httpClient = check new ("https://localhost:9204", http2MutualSslClientConf4);
+    http:Client httpClient = check new ("https://localhost:9204", http2MutualSslClientConf4());
     http:Response|error resp = httpClient->get("/http2Service/");
     string expectedErrMsg = "SSL connection failed:io.netty.handler.ssl.ReferenceCountedOpenSslEngine$OpenSslHandshakeException"
             + ": error:10000410:SSL routines:OPENSSL_internal:SSLV3_ALERT_HANDSHAKE_FAILURE localhost/127.0.0.1:9204";
     if resp is error {
-        test:assertEquals(resp.message(), expectedErrMsg);
+        // On Windows the server's reset can reach the client before the TLS alert, which surfaces as a generic error.
+        if !isWindows() || resp.message() != "Something wrong with the connection" {
+            test:assertEquals(resp.message(), expectedErrMsg);
+        }
     } else {
         test:assertFail(msg = "Expected mutual SSL error not found");
     }
     return;
 }
+
+isolated function isWindows() returns boolean = @java:Method {
+    'class: "io.ballerina.stdlib.http.testutils.Platform"
+} external;

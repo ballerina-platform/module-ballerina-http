@@ -44,7 +44,7 @@ isolated function handleResponse(http:Response|error result) returns string {
 }
 
 @test:Config {}
-public function testServerDown() returns error? {
+function testServerDown() returns error? {
     http:Client clientEP = check new ("http://localhost:9100");
     http:Response|error resp = clientEP->get("/general/serverDown");
     if resp is http:Response {

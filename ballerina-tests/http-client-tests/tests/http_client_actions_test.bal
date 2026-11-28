@@ -422,7 +422,7 @@ service /httpClientActionTestService on httpClientActionListenerEP2 {
     }
 
     resource function get testServiceUnavailable() returns error? {
-        http:Client ep = checkpanic new("http://localhost:8080");
+        http:Client ep = check new("http://localhost:8080");
         return ep->get("/bar");
     }
 }
@@ -634,7 +634,7 @@ function testClientInitWithMalformedURL() {
 }
 
 @test:Config {}
-public function testProxyClientError() {
+function testProxyClientError() {
     http:Client|error clientEP = new ("http://localhost:9218",
         httpVersion = http:HTTP_1_1, proxy = {host: "ballerina", port: 9219});
     if (clientEP is error) {
@@ -645,7 +645,7 @@ public function testProxyClientError() {
 }
 
 @test:Config {}
-public function testProxyClientErrorWithDeprecatedConfig() {
+function testProxyClientErrorWithDeprecatedConfig() {
     http:Client|error clientEP = new ("http://localhost:9218",
             {httpVersion: "1.1", http1Settings: {proxy: {host: "ballerina", port: 9219}}});
     if (clientEP is error) {

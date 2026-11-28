@@ -77,10 +77,30 @@ dependencies {
     testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
 }
 
+// testng.xml lists the test classes. Running it as a TestNG suite would keep every class in one JVM, so its classes
+// and listeners are read here instead, and Gradle spreads the classes over parallel forks that each claim their own
+// ports. Anything else in testng.xml would be silently ignored, so the build rejects it.
+def testngXml = file('src/test/resources/testng.xml').text.replaceAll(/(?s)<!--.*?-->/, '').replaceAll(/<\?xml.*?\?>/, '')
+def unsupportedTestngElements = (testngXml =~ /<(\w+)/).collect { it[1] }.unique() -
+        ['suite', 'listeners', 'listener', 'test', 'classes', 'class']
+def unsupportedTestngAttributes = (testngXml =~ /([\w-]+)="/).collect { it[1] }.unique() - ['name', 'parallel', 'class-name']
+if (unsupportedTestngElements || unsupportedTestngAttributes) {
+    throw new GradleException("native/src/test/resources/testng.xml uses ${unsupportedTestngElements + unsupportedTestngAttributes}, " +
+            "which the native test task does not apply: it only reads the <class> and <listener> entries.")
+}
+def nativeTestClasses = (testngXml =~ /<class\s+name="([^"]+)"/).collect { it[1] }
+def nativeTestListeners = (testngXml =~ /<listener\s+class-name="([^"]+)"/).collect { it[1] }
+
 test {
     useTestNG() {
-        suites 'src/test/resources/testng.xml'
+        listeners.addAll(nativeTestListeners)
     }
+    filter {
+        nativeTestClasses.each { includeTestsMatching it }
+    }
+    maxParallelForks = project.hasProperty('nativeTestForks') ? project.findProperty('nativeTestForks').toString().toInteger() : 3
+    // Every test class shuts a connector factory down, and Netty's 2 s quiet period would add minutes to the suite.
+    systemProperty 'ballerina.http.transport.shutdownQuietPeriodMillis', '0'
     testLogging.showStandardStreams = true
     testLogging {
         events "PASSED", "FAILED", "SKIPPED"

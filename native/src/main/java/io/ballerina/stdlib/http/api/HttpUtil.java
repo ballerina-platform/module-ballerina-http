@@ -392,6 +392,25 @@ public class HttpUtil {
         }
     }
 
+    /**
+     * Ends the body written to the given message output stream as failed, so the peer sees it cut short instead of
+     * complete.
+     *
+     * @param messageOutputStream the output stream of the message body
+     * @param cause               why the body could not be completed
+     * @return true if this ended the body, false if it had already ended or failed
+     */
+    public static boolean abortMessageOutputStream(OutputStream messageOutputStream, Throwable cause) {
+        if (messageOutputStream instanceof HttpMessageDataStreamer.ByteBufferOutputStream bodyOutputStream) {
+            return bodyOutputStream.abort(cause);
+        }
+        // Closing ends the body as complete, which hides the failure from the peer
+        log.warn("Cannot abort a message output stream of type {}, so it is closed",
+                 messageOutputStream == null ? null : messageOutputStream.getClass().getName());
+        closeMessageOutputStream(messageOutputStream);
+        return false;
+    }
+
     public static void prepareOutboundResponse(BObject connectionObj, HttpCarbonMessage inboundRequestMsg,
                                                HttpCarbonMessage outboundResponseMsg,
                                                BObject outboundResponseObj) {
@@ -795,12 +814,9 @@ public class HttpUtil {
      *
      * @param caller     Represents the HTTP caller
      * @param inboundMsg Represents carbon message
-     * @param config     Represents service endpoint configuration
      */
-    public static void enrichHttpCallerWithNativeData(BObject caller, HttpCarbonMessage inboundMsg,
-                                                      BMap config) {
+    public static void enrichHttpCallerWithNativeData(BObject caller, HttpCarbonMessage inboundMsg) {
         caller.addNativeData(HttpConstants.TRANSPORT_MESSAGE, inboundMsg);
-        caller.set(HttpConstants.HTTP_CONNECTOR_CONFIG_FIELD, config);
     }
 
     /**
@@ -808,12 +824,10 @@ public class HttpUtil {
      * @param httpCaller   Represents the HTTP caller
      * @param inboundMsg   Represents the carbon message
      * @param resource Represents the Http Resource
-     * @param config       Represents the service endpoint configuration
      */
     public static void enrichHttpCallerWithConnectionInfo(BObject httpCaller, HttpCarbonMessage inboundMsg,
-                                                          Resource resource, BMap config) {
+                                                          Resource resource) {
         Object remoteSocketAddress = inboundMsg.getProperty(HttpConstants.REMOTE_ADDRESS);
-        httpCaller.set(HttpConstants.SERVICE_ENDPOINT_CONFIG_FIELD, config);
         httpCaller.addNativeData(HttpConstants.HTTP_SERVICE, resource.getParentService());
         httpCaller.addNativeData(HttpConstants.REMOTE_SOCKET_ADDRESS, remoteSocketAddress);
     }

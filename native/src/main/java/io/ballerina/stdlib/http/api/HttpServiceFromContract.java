@@ -51,6 +51,7 @@ public class HttpServiceFromContract extends HttpService {
         httpService.populateIntrospectionPayload();
         BMap serviceConfig = getHttpServiceConfigAnnotation(serviceContractType);
         httpService.populateServiceConfig(serviceConfig);
+        httpService.setServiceAuthEnabled(HttpService.getHttpServiceConfigAnnotation(service));
         return httpService;
     }
 

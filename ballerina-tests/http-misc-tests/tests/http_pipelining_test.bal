@@ -111,7 +111,7 @@ function testPipelinedResponseOrder() {
 
 //Test pipelining with timeout. If the first request's response didn't arrive before the server timeout, client
 //shouldn't receive the responses for the subsequent requests
-@test:Config {}
+@test:Config {serialExecution: true}
 function testPipeliningWithTimeout() {
     test:assertTrue(externTestPipeliningWithTimeout(pipeliningTestPort2));
 }
@@ -122,14 +122,14 @@ function testPipeliningLimit() {
     test:assertTrue(externTestPipeliningLimit(pipeliningTestPort3));
 }
 
-function externTestPipelinedResponseOrder(int servicePort) returns boolean = @java:Method {
+isolated function externTestPipelinedResponseOrder(int servicePort) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternPipeliningTestUtil"
 } external;
 
-function externTestPipeliningWithTimeout(int servicePort) returns boolean = @java:Method {
+isolated function externTestPipeliningWithTimeout(int servicePort) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternPipeliningTestUtil"
 } external;
 
-function externTestPipeliningLimit(int servicePort) returns boolean = @java:Method {
+isolated function externTestPipeliningLimit(int servicePort) returns boolean = @java:Method {
     'class: "io.ballerina.stdlib.http.testutils.ExternPipeliningTestUtil"
 } external;

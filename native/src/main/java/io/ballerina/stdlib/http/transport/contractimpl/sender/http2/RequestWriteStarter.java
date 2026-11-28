@@ -78,11 +78,7 @@ public class RequestWriteStarter {
     }
 
     private void checkStreamUnwritability() {
-        if (!outboundMsgHolder.isStreamWritable()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
-            }
-            outboundMsgHolder.getBackPressureObservable().notifyUnWritable();
-        }
+        outboundMsgHolder.getBackPressureObservable()
+                .notifyUnWritableIfStreamUnwritable(outboundMsgHolder::isStreamWritable);
     }
 }

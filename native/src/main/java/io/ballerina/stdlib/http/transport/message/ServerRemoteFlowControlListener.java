@@ -53,14 +53,13 @@ public class ServerRemoteFlowControlListener implements Http2RemoteFlowControlle
                 LOG.debug("In thread {}. Stream {} is writable. State {} ", Thread.currentThread().getName(),
                           stream.id(), stream.state());
             }
-            responseWriter.setStreamWritable(true);
-            responseWriter.getBackPressureObservable().notifyWritable();
+            responseWriter.getBackPressureObservable().streamWritabilityChanged(responseWriter, true);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("In thread {}. Stream {} is not writable. State {}. ", Thread.currentThread().getName(),
                           stream.id(), stream.state());
             }
-            responseWriter.setStreamWritable(false);
+            responseWriter.getBackPressureObservable().streamWritabilityChanged(responseWriter, false);
         }
     }
 
@@ -71,6 +70,7 @@ public class ServerRemoteFlowControlListener implements Http2RemoteFlowControlle
     public void removeResponseWriter(Http2OutboundRespListener.ResponseWriter responseWriter) {
         if (responseWriter != null) {
             responseWriters.remove(responseWriter.getStreamId(), responseWriter);
+            responseWriter.getBackPressureObservable().streamFinished(responseWriter);
         }
     }
 }

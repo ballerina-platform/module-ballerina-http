@@ -46,13 +46,10 @@ client isolated class RetryClient {
     # Provides the HTTP remote functions for interacting with an HTTP endpoint. This is created by wrapping the HTTP
     # client to provide retrying over HTTP requests.
     #
-    # + url - Target service url
-    # + config - HTTP ClientConfiguration to be used for HTTP client invocation
     # + retryInferredConfig - Derived set of configurations associated with retry
     # + httpClient - HTTP client for outbound HTTP requests
     # + return - The `client` or an `http:ClientError` if the initialization failed
-    isolated function init(string url, ClientConfiguration config, RetryInferredConfig retryInferredConfig,
-                                        HttpClient httpClient) returns ClientError? {
+    isolated function init(RetryInferredConfig retryInferredConfig, HttpClient httpClient) returns ClientError? {
         self.retryInferredConfig = retryInferredConfig.cloneReadOnly();
         self.httpClient = httpClient;
         return;
@@ -320,7 +317,7 @@ isolated function performRetryAction(string path, Request request, HttpOperation
             int responseStatusCode = backendResponse.statusCode;
             if (statusCodes.indexOf(responseStatusCode) is int) && currentRetryCount < (retryCount) {
                 [interval, currentRetryCount] =
-                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                calculateEffectiveIntervalAndRetryCount(currentRetryCount, interval,
                                 backOffFactor, maxWaitInterval);
             } else {
                 return backendResponse;
@@ -331,7 +328,7 @@ isolated function performRetryAction(string path, Request request, HttpOperation
                 int responseStatusCode = response.statusCode;
                 if (statusCodes.indexOf(responseStatusCode) is int) && currentRetryCount < (retryCount) {
                     [interval, currentRetryCount] =
-                                    calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                    calculateEffectiveIntervalAndRetryCount(currentRetryCount, interval,
                                     backOffFactor, maxWaitInterval);
                 } else {
                     // We return the HttpFuture object as this is called by submit method.
@@ -339,13 +336,13 @@ isolated function performRetryAction(string path, Request request, HttpOperation
                 }
             } else {
                 [interval, currentRetryCount] =
-                                calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                                calculateEffectiveIntervalAndRetryCount(currentRetryCount, interval,
                                 backOffFactor, maxWaitInterval);
                 httpConnectorErr = response;
             }
         } else if backendResponse is ClientError {
             [interval, currentRetryCount] =
-                            calculateEffectiveIntervalAndRetryCount(retryClient, currentRetryCount, interval,
+                            calculateEffectiveIntervalAndRetryCount(currentRetryCount, interval,
                             backOffFactor, maxWaitInterval);
             httpConnectorErr = backendResponse;
         } else {
@@ -356,8 +353,8 @@ isolated function performRetryAction(string path, Request request, HttpOperation
     return httpConnectorErr;
 }
 
-isolated function calculateEffectiveIntervalAndRetryCount(RetryClient retryClient, int currentRetryCount,
-        decimal currentDelay, float backOffFactor, decimal maxWaitInterval) returns [decimal, int] {
+isolated function calculateEffectiveIntervalAndRetryCount(int currentRetryCount, decimal currentDelay,
+        float backOffFactor, decimal maxWaitInterval) returns [decimal, int] {
     decimal interval = currentDelay;
     if currentRetryCount != 0 {
         interval = getWaitTime(backOffFactor, maxWaitInterval, interval);

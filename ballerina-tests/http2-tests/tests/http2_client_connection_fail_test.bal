@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerina/test;
 
-http:Client callNonExistingTestClient = check new("http://localhost:" + generalPort.toString());
+final http:Client callNonExistingTestClient = check new("http://localhost:" + generalPort.toString());
 
 service /callNonExistingEP on generalListener {
     resource function get .() returns string|error? {
@@ -40,7 +40,7 @@ service /callNonExistingEP on generalListener {
 }
 
 @test:Config {}
-public function testCallingNonExistingEPThroughService() returns error? {
+function testCallingNonExistingEPThroughService() returns error? {
     http:Client callNonExistingTestClient = check new("http://localhost:" + generalPort.toString());
     string payload = check callNonExistingTestClient->get("/callNonExistingEP");
     test:assertEquals(payload, "Success", msg = "Found unexpected output");

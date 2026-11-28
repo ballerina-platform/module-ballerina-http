@@ -19,6 +19,7 @@ import ballerina/lang.value as val;
 import ballerina/mime;
 import ballerina/io;
 import ballerina/observe;
+import ballerina/scan;
 import ballerina/time;
 import ballerina/log;
 import ballerina/lang.'string as strings;
@@ -390,6 +391,7 @@ isolated function uuid() returns string {
 # + method - http method of the request
 # + statusCode - status code of the response
 # + url - The request URL
+@scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "observe:addTagToSpan with the default span ID and observe:addTagToMetrics never return an error"}
 isolated function addObservabilityInformation(string path, string method, int statusCode, string url) {
     string statusCodeConverted = statusCode.toString();
     _ = checkpanic observe:addTagToSpan(HTTP_URL, path);
@@ -444,6 +446,70 @@ isolated function externGetByteChannel(mime:Entity entity) returns io:ReadableBy
 isolated function externPopulateInputStream(mime:Entity entity) = @java:Method {
     'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternHttpDataSourceBuilder",
     name: "populateInputStream"
+} external;
+
+isolated function getEntityByteStream(mime:Entity entity, int arraySize) returns stream<byte[], io:Error?>|mime:Error {
+    if arraySize <= 0 {
+        return error mime:GenericMimeError(string `The array size of a byte stream must be positive, but was ${arraySize}`);
+    }
+    externPopulateInputStream(entity);
+    return entity.getByteStream(arraySize);
+}
+
+const int AVAILABLE_BYTES_ARRAY_SIZE = 8192;
+
+// Unlike getEntityByteStream, whose arrays are filled to the array size, each array holds the bytes already
+// received, so a streamed body such as an event stream is handed on as it arrives.
+isolated function getEntityAvailableByteStream(mime:Entity entity) returns stream<byte[], io:Error?>|mime:Error {
+    externPopulateInputStream(entity);
+    stream<byte[], io:Error?>|mime:Error? byteStream = externGetMimeByteStream(entity);
+    if byteStream is () {
+        return new stream<byte[], io:Error?>(new EntityByteStream(entity, AVAILABLE_BYTES_ARRAY_SIZE));
+    }
+    return byteStream;
+}
+
+class EntityByteStream {
+    private final mime:Entity entity;
+    private final int arraySize;
+    private boolean isClosed = false;
+
+    isolated function init(mime:Entity entity, int arraySize) {
+        self.entity = entity;
+        self.arraySize = arraySize;
+    }
+
+    public isolated function next() returns record {|byte[] value;|}|io:Error? {
+        byte[]|io:Error? bytes = externReadByteStreamEntry(self.entity, self.arraySize);
+        return bytes is byte[] ? {value: bytes} : bytes;
+    }
+
+    public isolated function close() returns io:Error? {
+        if !self.isClosed {
+            // Closed even if closing fails, as the channel cannot be read or closed again after a failed close
+            self.isClosed = true;
+            check externCloseByteStream(self.entity);
+        }
+    }
+}
+
+// Gives a byte stream already set on the entity, an error if the body cannot be streamed, or nil when the body
+// is read through the entity's byte channel.
+isolated function externGetMimeByteStream(mime:Entity entity) returns stream<byte[], io:Error?>|mime:Error? =
+@java:Method {
+    'class: "io.ballerina.stdlib.mime.nativeimpl.MimeEntityBody",
+    name: "getByteStream"
+} external;
+
+isolated function externReadByteStreamEntry(mime:Entity entity, int arraySize) returns byte[]|io:Error? =
+@java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "readByteStreamEntry"
+} external;
+
+isolated function externCloseByteStream(mime:Entity entity) returns io:Error? = @java:Method {
+    'class: "io.ballerina.stdlib.http.api.nativeimpl.ExternHttpDataSourceBuilder",
+    name: "closeByteStream"
 } external;
 
 // Returns utc value from a given string and pattern.

@@ -97,17 +97,19 @@ service /hello06 on new http:Listener(8092, httpVersion = http:HTTP_1_1) {
 //Test for circuit breaker trail failure functionality
 final http:Client testTrialRunFailureClient = check new("http://localhost:9312", httpVersion = http:HTTP_1_1);
 
-@test:Config{ dataProvider:trialRunFailureResponseDataProvider }
-function testCBTrialRunFailure(DataFeed dataFeed) returns error? {
-    check invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed);
+@test:Config {}
+function testCBTrialRunFailure() returns error? {
+    foreach [int, DataFeed] [step, dataFeed] in trialRunFailureResponses().enumerate() {
+        check atStep(step, trap invokeApiAndVerifyResponse(testTrialRunFailureClient, "/cb/trialrun", dataFeed));
+    }
 }
 
-function trialRunFailureResponseDataProvider() returns DataFeed[][] {
+function trialRunFailureResponses() returns DataFeed[] {
     return [
-        [{responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE}],
-        [{responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}]
+        {responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_SERVICE_UNAVAILABLE, message:SERVICE_UNAVAILABLE_MESSAGE},
+        {responseCode:SC_INTERNAL_SERVER_ERROR, message:UPSTREAM_UNAVAILABLE_MESSAGE}
     ];
 }
 

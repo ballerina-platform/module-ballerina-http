@@ -18,7 +18,7 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/http_test_common as common;
 
-int http2serviceEndpointTestPort = common:getHttp2Port(serviceEndpointTestPort);
+final int http2serviceEndpointTestPort = common:getHttp2Port(serviceEndpointTestPort);
 
 listener http:Listener http2ServiceEndpointTestEP = new (http2serviceEndpointTestPort);
 final http:Client httpServiceEndpointClient = check new ("http://localhost:" + http2serviceEndpointTestPort.toString(),

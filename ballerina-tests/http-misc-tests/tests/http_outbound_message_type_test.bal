@@ -25,7 +25,7 @@ final http:Client outRequestClient = check new ("http://localhost:" + outRequest
 type CustomerTable table<map<json>>;
 
 @test:Config {}
-public function testSendingNil() returns error? {
+function testSendingNil() returns error? {
     http:Response resp = check outRequestClient->post("/mytest/nil", ());
     test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
     test:assertEquals(check resp.getHeader(common:CONTENT_TYPE), common:TEXT_PLAIN);
@@ -33,7 +33,7 @@ public function testSendingNil() returns error? {
 }
 
 @test:Config {}
-public function testSendingInt() returns error? {
+function testSendingInt() returns error? {
     int val = 139;
     http:Response resp = check outRequestClient->post("/mytest/json", val);
     test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -42,7 +42,7 @@ public function testSendingInt() returns error? {
 }
 
 @test:Config {}
-public function testSendingFloat() returns error? {
+function testSendingFloat() returns error? {
     float val = 1.39;
     http:Response resp = check outRequestClient->post("/mytest/json", val);
     test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -51,7 +51,7 @@ public function testSendingFloat() returns error? {
 }
 
 @test:Config {}
-public function testSendingDecimal() returns error? {
+function testSendingDecimal() returns error? {
     decimal val = 1.3;
     http:Response resp = check outRequestClient->post("/mytest/json", val);
     test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -60,7 +60,7 @@ public function testSendingDecimal() returns error? {
 }
 
 @test:Config {}
-public function testSendingBoolean() returns error? {
+function testSendingBoolean() returns error? {
     boolean val = true;
     http:Response resp = check outRequestClient->post("/mytest/json", val);
     test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -69,7 +69,7 @@ public function testSendingBoolean() returns error? {
 }
 
 @test:Config {}
-public function testSendingMap() returns error? {
+function testSendingMap() returns error? {
     map<int> val = {sam: 50, jhon: 60};
     http:Response resp = check outRequestClient->post("/mytest/json", val);
     test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -78,7 +78,7 @@ public function testSendingMap() returns error? {
 }
 
 @test:Config {}
-public function testSendingMapArray() returns error? {
+function testSendingMapArray() returns error? {
     map<json> jj = {sam: {hello: "world"}, jhon: {no: 56}};
     map<json>[] val = [jj, jj];
     http:Response resp = check outRequestClient->post("/mytest/json", val);
@@ -88,7 +88,7 @@ public function testSendingMapArray() returns error? {
 }
 
 @test:Config {}
-public function testSendingTable() returns error? {
+function testSendingTable() returns error? {
     CustomerTable customerTab = table [
             {id: 13, fname: "Dan", lname: "Bing"},
             {id: 23, fname: "Hay", lname: "Kelsey"}
@@ -103,7 +103,7 @@ public function testSendingTable() returns error? {
 }
 
 @test:Config {}
-public function testSendingTableArray() returns error? {
+function testSendingTableArray() returns error? {
     CustomerTable customerTab = table [
         {id: 13, fname: "Dan", lname: "Bing"}
     ];
@@ -118,7 +118,7 @@ public function testSendingTableArray() returns error? {
 }
 
 @test:Config {}
-public function testSendingJsonCompatibleOpenRecord() returns error? {
+function testSendingJsonCompatibleOpenRecord() returns error? {
     // To make json compatible;
     // 1. Make exclusive record
     // 2. Have json rest param in open records
@@ -143,14 +143,14 @@ type OpenCustomer record {
 };
 
 @test:Config {}
-public function testSendingOpenRecord() returns error? {
+function testSendingOpenRecord() returns error? {
     OpenCustomer customer = {name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
     json payload = check outRequestClient->post("/mytest/json", customer.toJson());
     common:assertJsonPayload(payload, {"name": "ballerina", "aa": "<book>Hello World</book>", "bb": [97, 98, 99]});
 }
 
 @test:Config {}
-public function testSendingOpenRecordArray() returns error? {
+function testSendingOpenRecordArray() returns error? {
     OpenCustomer customer = {name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
     OpenCustomer[] custArr = [customer, customer];
     json payload = check outRequestClient->post("/mytest/json", custArr.toJson());
@@ -161,7 +161,7 @@ public function testSendingOpenRecordArray() returns error? {
 }
 
 @test:Config {}
-public function testSendingOpenRecordMap() returns error? {
+function testSendingOpenRecordMap() returns error? {
     OpenCustomer customer = {name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
     map<OpenCustomer> custMap = {a: customer, b: customer};
     json payload = check outRequestClient->post("/mytest/json", custMap.toJson());
@@ -173,7 +173,7 @@ public function testSendingOpenRecordMap() returns error? {
 }
 
 @test:Config {}
-public function testSendingOpenRecordTable() returns error? {
+function testSendingOpenRecordTable() returns error? {
     table<OpenCustomer> customerTab = table [
             {name: "ballerina1", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()},
             {name: "ballerina2", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()}
@@ -193,14 +193,14 @@ type ClosedCustomer record {|
 |};
 
 @test:Config {}
-public function testSendingClosedRecord() returns error? {
+function testSendingClosedRecord() returns error? {
     ClosedCustomer customer = {name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
     json payload = check outRequestClient->post("/mytest/json", customer.toJson());
     common:assertJsonPayload(payload, {name: "ballerina", "aa": "<book>Hello World</book>", "bb": [97, 98, 99]});
 }
 
 @test:Config {}
-public function testSendingClosedRecordArray() returns error? {
+function testSendingClosedRecordArray() returns error? {
     ClosedCustomer customer = {name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
     ClosedCustomer[] custArr = [customer, customer];
     json payload = check outRequestClient->post("/mytest/json", custArr.toJson());
@@ -211,7 +211,7 @@ public function testSendingClosedRecordArray() returns error? {
 }
 
 @test:Config {}
-public function testSendingClosedRecordMap() returns error? {
+function testSendingClosedRecordMap() returns error? {
     ClosedCustomer customer = {name: "ballerina", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()};
     map<ClosedCustomer> custMap = {a: customer, b: customer};
     json payload = check outRequestClient->post("/mytest/json", custMap.toJson());
@@ -223,7 +223,7 @@ public function testSendingClosedRecordMap() returns error? {
 }
 
 @test:Config {}
-public function testSendingClosedRecordTable() returns error? {
+function testSendingClosedRecordTable() returns error? {
     table<ClosedCustomer> customerTab = table [
             {name: "ballerina1", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()},
             {name: "ballerina2", aa: xml `<book>Hello World</book>`, bb: "abc".toBytes()}
@@ -237,7 +237,7 @@ public function testSendingClosedRecordTable() returns error? {
 }
 
 @test:Config {}
-public function testRequestAnydataNegative() returns error? {
+function testRequestAnydataNegative() returns error? {
     json[] x = [];
     x.push(x);
     json|error payload = outRequestClient->post("/mytest/json", x);
@@ -251,7 +251,7 @@ public function testRequestAnydataNegative() returns error? {
 }
 
 @test:Config {}
-public function testSendingAnydata() returns error? {
+function testSendingAnydata() returns error? {
     anydata val = 139;
     http:Response resp = check outRequestClient->post("/mytest/json", val);
     test:assertEquals(resp.statusCode, 201, msg = "Found unexpected output");
@@ -358,14 +358,14 @@ service /mytest on outRequestTypeTestEP {
 }
 
 @test:Config {}
-public function testGettingNil() returns error? {
+function testGettingNil() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/nil");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_LENGTH), "0");
 }
 
 @test:Config {}
-public function testGettingInt() returns error? {
+function testGettingInt() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/int");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -373,7 +373,7 @@ public function testGettingInt() returns error? {
 }
 
 @test:Config {}
-public function testGettingFloat() returns error? {
+function testGettingFloat() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/float");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -381,7 +381,7 @@ public function testGettingFloat() returns error? {
 }
 
 @test:Config {}
-public function testGettingDecimal() returns error? {
+function testGettingDecimal() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/decimal");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -389,7 +389,7 @@ public function testGettingDecimal() returns error? {
 }
 
 @test:Config {}
-public function testGettingBoolean() returns error? {
+function testGettingBoolean() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/bool");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -397,7 +397,7 @@ public function testGettingBoolean() returns error? {
 }
 
 @test:Config {}
-public function testGettingMap() returns error? {
+function testGettingMap() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/map");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -405,7 +405,7 @@ public function testGettingMap() returns error? {
 }
 
 @test:Config {}
-public function testGettingMapArray() returns error? {
+function testGettingMapArray() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/mapArr");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -413,7 +413,7 @@ public function testGettingMapArray() returns error? {
 }
 
 @test:Config {}
-public function testGettingTable() returns error? {
+function testGettingTable() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/table");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -424,7 +424,7 @@ public function testGettingTable() returns error? {
 }
 
 @test:Config {}
-public function testGettingTableArray() returns error? {
+function testGettingTableArray() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/tableArr");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -435,7 +435,7 @@ public function testGettingTableArray() returns error? {
 }
 
 @test:Config {}
-public function testGettingOpenRecord() returns error? {
+function testGettingOpenRecord() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/openRecord");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -443,7 +443,7 @@ public function testGettingOpenRecord() returns error? {
 }
 
 @test:Config {}
-public function testGettingOpenRecordArray() returns error? {
+function testGettingOpenRecordArray() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/openRecordArr");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -454,7 +454,7 @@ public function testGettingOpenRecordArray() returns error? {
 }
 
 @test:Config {}
-public function testGettingClosedRecord() returns error? {
+function testGettingClosedRecord() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/closedRecord");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -462,7 +462,7 @@ public function testGettingClosedRecord() returns error? {
 }
 
 @test:Config {}
-public function testGettingClosedRecordArray() returns error? {
+function testGettingClosedRecordArray() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/closedRecordArr");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -473,7 +473,7 @@ public function testGettingClosedRecordArray() returns error? {
 }
 
 @test:Config {}
-public function testResponseAnydataNegative() returns error? {
+function testResponseAnydataNegative() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/anydataNegative");
     test:assertEquals(resp.statusCode, 500, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);
@@ -482,7 +482,7 @@ public function testResponseAnydataNegative() returns error? {
 }
 
 @test:Config {}
-public function testResponseAnydataPositive() returns error? {
+function testResponseAnydataPositive() returns error? {
     http:Response resp = check outRequestClient->get("/mytest/int");
     test:assertEquals(resp.statusCode, 200, msg = "Found unexpected output");
     common:assertHeaderValue(check resp.getHeader(common:CONTENT_TYPE), common:APPLICATION_JSON);

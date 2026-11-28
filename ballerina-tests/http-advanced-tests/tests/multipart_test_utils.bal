@@ -19,7 +19,7 @@ import ballerina/mime;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-public function assertMultipartResponse(http:Response response, string expected) {
+function assertMultipartResponse(http:Response response, string expected) {
     var body = response.getTextPayload();
     if body is string {
         test:assertEquals(body, expected, msg = common:errorMessage);

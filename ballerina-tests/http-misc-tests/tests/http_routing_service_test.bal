@@ -111,10 +111,10 @@ service /nyseStocks on httpRoutingListenerEP {
     }
 }
 
-json requestNyseMessage = {name: "nyse"};
-json responseNyseMessage = {exchange: "nyse", name: "IBM", value: "127.50"};
-json requestNasdaqMessage = {name: "nasdaq"};
-json responseNasdaqMessage = {exchange: "nasdaq", name: "IBM", value: "127.50"};
+final json & readonly requestNyseMessage = {name: "nyse"};
+final json & readonly responseNyseMessage = {exchange: "nyse", name: "IBM", value: "127.50"};
+final json & readonly requestNasdaqMessage = {name: "nasdaq"};
+final json & readonly responseNasdaqMessage = {exchange: "nasdaq", name: "IBM", value: "127.50"};
 
 //Test Content base routing sample
 @test:Config {}

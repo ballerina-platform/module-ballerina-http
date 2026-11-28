@@ -14,9 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/io;
 import ballerina/jballerina.java;
 import ballerina/mime;
 import ballerina/observe;
+import ballerina/scan;
 import ballerina/time;
 
 # The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.
@@ -458,6 +460,7 @@ public client isolated class Client {
     #
     # + httpFuture - The `http:HttpFuture` related to a previous asynchronous invocation
     # + return - An `http:Response` message or else an `http: ClientError` if the invocation fails
+    @scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "observe:addTagToSpan with the default span ID and observe:addTagToMetrics never return an error"}
     remote isolated function getResponse(HttpFuture httpFuture) returns Response|ClientError {
         Response|ClientError response = self.httpClient->getResponse(httpFuture);
         if observabilityEnabled && response is Response {
@@ -636,7 +639,7 @@ isolated function createCircuitBreakerClient(string uri, ClientConfiguration con
             lastForcedOpenTime: circuitStartTime,
             totalBuckets: bucketArray
         };
-        return new CircuitBreakerClient(uri, configuration, circuitBreakerInferredConfig, cbHttpClient, circuitHealth);
+        return new CircuitBreakerClient(uri, circuitBreakerInferredConfig, cbHttpClient, circuitHealth);
     } else {
         return createCookieClient(uri, configuration, cookieStore);
     }
@@ -654,7 +657,7 @@ isolated function createRetryClient(string url, ClientConfiguration configuratio
         };
         var httpCookieClient = createCookieClient(url, configuration, cookieStore);
         if httpCookieClient is HttpClient {
-            return new RetryClient(url, configuration, retryInferredConfig, httpCookieClient);
+            return new RetryClient(retryInferredConfig, httpCookieClient);
         }
         return httpCookieClient;
     }
@@ -833,9 +836,13 @@ isolated function processResponse(Response|ClientError response, TargetType targ
 
 isolated function getSseEventStream(Response response) returns stream<SseEvent, error?>|ClientError {
     check validateEventStreamContentType(response);
-    // The streaming party can decide to send one byte at a time, hence the getByteStream method is called
-    // with an array size of 1.
-    BytesToEventStreamGenerator bytesToEventStreamGenerator = new (check response.getByteStream(1));
+    mime:Entity entity = check response.getEntityWithBodyAndWithoutHeaders();
+    stream<byte[], io:Error?>|mime:Error byteStream = getEntityAvailableByteStream(entity);
+    if byteStream is mime:Error {
+        return error GenericClientError("Error occurred while retrieving the byte stream from the response",
+            byteStream);
+    }
+    BytesToEventStreamGenerator bytesToEventStreamGenerator = new (byteStream);
     stream<SseEvent, error?> eventStream = new (bytesToEventStreamGenerator);
     return eventStream;
 }

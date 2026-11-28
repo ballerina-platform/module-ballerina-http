@@ -41,7 +41,7 @@ public final class ClientRemoteFlowControlListener implements Http2RemoteFlowCon
 
     @Override
     public void writabilityChanged(Http2Stream stream) {
-        OutboundMsgHolder outboundMsgHolder = http2ClientChannel.getInFlightMessage(stream.id());
+        OutboundMsgHolder outboundMsgHolder = http2ClientChannel.getMessageSendingRequest(stream.id());
         //By the time the writability changed event is triggered for closed stream, it might have already been
         //removed from the h2 client channel map hence nullability of outboundMsgHolder must be handled here.
         if (outboundMsgHolder == null) {
@@ -53,14 +53,13 @@ public final class ClientRemoteFlowControlListener implements Http2RemoteFlowCon
                 LOG.debug("In thread {}. Stream {} is writable. State {} ", Thread.currentThread().getName(),
                           stream.id(), stream.state());
             }
-            outboundMsgHolder.setStreamWritable(true);
-            outboundMsgHolder.getBackPressureObservable().notifyWritable();
+            outboundMsgHolder.getBackPressureObservable().streamWritabilityChanged(outboundMsgHolder, true);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("In thread {}. Stream {} is not writable. State {} ", Thread.currentThread().getName(),
                           stream.id(), stream.state());
             }
-            outboundMsgHolder.setStreamWritable(false);
+            outboundMsgHolder.getBackPressureObservable().streamWritabilityChanged(outboundMsgHolder, false);
         }
     }
 }

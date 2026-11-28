@@ -19,12 +19,18 @@
 package io.ballerina.stdlib.http.api.nativeimpl;
 
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.http.api.HttpUtil;
 import io.ballerina.stdlib.http.transport.message.FullHttpMessageListener;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
+import io.ballerina.stdlib.io.channels.base.Channel;
+import io.ballerina.stdlib.io.utils.IOConstants;
+import io.ballerina.stdlib.io.utils.IOUtils;
 import io.ballerina.stdlib.mime.nativeimpl.MimeDataSourceBuilder;
 import io.ballerina.stdlib.mime.nativeimpl.MimeEntityBody;
 import io.ballerina.stdlib.mime.util.EntityBodyChannel;
@@ -36,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -60,6 +67,7 @@ import static io.ballerina.stdlib.mime.util.MimeConstants.TRANSPORT_MESSAGE;
 public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(ExternHttpDataSourceBuilder.class);
+    private static final String BYTE_STREAM_READ_BUFFER = "byte_stream_read_buffer";
 
     public static Object getNonBlockingByteArray(Environment env, BObject entityObj) {
         Object transportMessage = entityObj.getNativeData(TRANSPORT_MESSAGE);
@@ -178,6 +186,75 @@ public class ExternHttpDataSourceBuilder extends MimeDataSourceBuilder {
                         new EntityBodyChannel(httpMessageDataStreamer.getInputStream())));
             }
         }
+    }
+
+    /**
+     * Reads the next part of an entity body for a byte stream. Unlike mime's byte stream, which keeps reading until
+     * it has {@code arraySize} bytes, this returns as soon as some bytes are available, so a streamed body is handed
+     * on as it arrives.
+     *
+     * @param env       the Ballerina environment
+     * @param entityObj the entity whose body is read
+     * @param arraySize the maximum number of bytes to return
+     * @return the bytes read, nil at the end of the body, or an error
+     */
+    public static Object readByteStreamEntry(Environment env, BObject entityObj, long arraySize) {
+        return env.yieldAndRun(() -> {
+            Channel byteChannel = null;
+            try {
+                byteChannel = EntityBodyHandler.getByteChannel(entityObj);
+                if (byteChannel == null) {
+                    return null;
+                }
+                byte[] buffer = getReadBuffer(entityObj, (int) arraySize);
+                int bytesRead = byteChannel.getInputStream().read(buffer, 0, buffer.length);
+                if (bytesRead == -1) {
+                    closeByteStreamEntry(entityObj, byteChannel);
+                    return null;
+                }
+                if (bytesRead < buffer.length) {
+                    return ValueCreator.createArrayValue(Arrays.copyOf(buffer, bytesRead));
+                }
+                // A full buffer is handed over as it is, so the next read allocates a new one.
+                entityObj.addNativeData(BYTE_STREAM_READ_BUFFER, null);
+                return ValueCreator.createArrayValue(buffer);
+            } catch (Exception e) {
+                // A failed body cannot be read further, and closing releases the content the stream still holds.
+                if (byteChannel != null) {
+                    closeByteStreamEntry(entityObj, byteChannel);
+                }
+                return createReadError(e);
+            }
+        });
+    }
+
+    private static BError createReadError(Exception cause) {
+        // Built like IOUtils.createError, which has no variant that keeps a cause
+        return ErrorCreator.createError(IOUtils.getIOPackage(), IOConstants.ErrorCode.GenericError.errorCode(),
+                                        StringUtils.fromString("Error occurred while reading stream: "
+                                                                       + cause.getMessage()),
+                                        ErrorCreator.createError(cause), null);
+    }
+
+    // Reused across reads, as most reads of a streamed body return fewer bytes than the array size.
+    private static byte[] getReadBuffer(BObject entityObj, int arraySize) {
+        if (entityObj.getNativeData(BYTE_STREAM_READ_BUFFER) instanceof byte[] buffer && buffer.length == arraySize) {
+            return buffer;
+        }
+        byte[] buffer = new byte[arraySize];
+        entityObj.addNativeData(BYTE_STREAM_READ_BUFFER, buffer);
+        return buffer;
+    }
+
+    public static Object closeByteStream(BObject entityObj) {
+        entityObj.addNativeData(BYTE_STREAM_READ_BUFFER, null);
+        return MimeEntityBody.closeInputByteStream(entityObj);
+    }
+
+    private static void closeByteStreamEntry(BObject entityObj, Channel byteChannel) {
+        EntityBodyHandler.closeByteChannel(byteChannel);
+        entityObj.addNativeData(ENTITY_BYTE_CHANNEL, null);
+        entityObj.addNativeData(BYTE_STREAM_READ_BUFFER, null);
     }
 
     public static void constructNonBlockingDataSource(CompletableFuture<Object> balFuture, BObject entity,

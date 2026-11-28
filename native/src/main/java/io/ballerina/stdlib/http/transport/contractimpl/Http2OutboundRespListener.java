@@ -39,6 +39,7 @@ import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.Listener;
 import io.ballerina.stdlib.http.transport.message.PassthroughBackPressureListener;
 import io.ballerina.stdlib.http.transport.message.ServerRemoteFlowControlListener;
+import io.ballerina.stdlib.http.transport.message.StreamWritability;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -240,7 +241,7 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
     /**
      * Responsible for writing HTTP/2 outbound response to the caller.
      */
-    public class ResponseWriter {
+    public class ResponseWriter implements StreamWritability {
         private int streamId;
         private AtomicBoolean streamWritable = new AtomicBoolean(true);
         private final BackPressureObservable backPressureObservable = new DefaultBackPressureObservable();
@@ -265,11 +266,13 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
             return streamId;
         }
 
+        @Override
         public void setStreamWritable(boolean streamWritable) {
             this.streamWritable.set(streamWritable);
         }
 
-        boolean isStreamWritable() {
+        @Override
+        public boolean isStreamWritable() {
             return streamWritable.get();
         }
 
@@ -305,12 +308,7 @@ public class Http2OutboundRespListener implements HttpConnectorListener {
     }
 
     private void checkStreamUnwritability(ResponseWriter writer) {
-        if (!writer.isStreamWritable()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("In thread {}. Stream is not writable.", Thread.currentThread().getName());
-            }
-            writer.getBackPressureObservable().notifyUnWritable();
-        }
+        writer.getBackPressureObservable().notifyUnWritableIfStreamUnwritable(writer::isStreamWritable);
     }
 
     public void resetStream(ChannelHandlerContext ctx, int streamId, Http2Error http2Error) throws Http2Exception {

@@ -19,6 +19,7 @@ package io.ballerina.stdlib.http.transport.contractimpl.listener.http2;
 
 import io.ballerina.stdlib.http.transport.contract.Constants;
 import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
+import io.ballerina.stdlib.http.transport.contractimpl.common.Util;
 import io.ballerina.stdlib.http.transport.contractimpl.common.http2.Http2ExceptionHandler;
 import io.ballerina.stdlib.http.transport.contractimpl.listener.HttpServerChannelInitializer;
 import io.ballerina.stdlib.http.transport.internal.HttpTransportContextHolder;
@@ -27,6 +28,8 @@ import io.ballerina.stdlib.http.transport.message.Http2HeadersFrame;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.group.ChannelGroup;
+import io.netty.handler.codec.http2.Http2CodecUtil;
+import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionDecoder;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2ConnectionHandler;
@@ -72,7 +75,9 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
         this.interfaceId = interfaceId;
         this.serverConnectorFuture = serverConnectorFuture;
         this.serverName = serverName;
-        http2FrameListener = new ServerFrameListener();
+        Integer initialWindowSize = initialSettings.initialWindowSize();
+        http2FrameListener = new ServerFrameListener(decoder.connection(),
+                initialWindowSize != null ? initialWindowSize : Http2CodecUtil.DEFAULT_WINDOW_SIZE);
         this.allChannels = allChannels;
         this.listenerChannels = listenerChannels;
     }
@@ -124,6 +129,22 @@ public class Http2SourceConnectionHandler extends Http2ConnectionHandler {
      */
     private static class ServerFrameListener extends Http2EventAdapter {
         private static final Logger LOG = LoggerFactory.getLogger(ServerFrameListener.class);
+
+        private final Http2Connection connection;
+        private final int connectionWindowSize;
+
+        ServerFrameListener(Http2Connection connection, int connectionWindowSize) {
+            this.connection = connection;
+            this.connectionWindowSize = connectionWindowSize;
+        }
+
+        @Override
+        public void onSettingsRead(ChannelHandlerContext ctx, Http2Settings settings) throws Http2Exception {
+            // The client's SETTINGS can only arrive after our preface has been sent, so the WINDOW_UPDATE may follow.
+            if (Util.expandConnectionWindow(connection, connectionWindowSize)) {
+                ctx.flush();
+            }
+        }
 
         @Override
         public void onHeadersRead(ChannelHandlerContext ctx, int streamId,

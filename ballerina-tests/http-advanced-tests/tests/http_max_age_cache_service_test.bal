@@ -85,7 +85,7 @@ service /maxAgeBackend on cachingBackendListener {
 }
 
 //Test max-age cache control
-@test:Config {}
+@test:Config {serialExecution: true}
 function testMaxAgeCacheControl() returns error? {
     http:Response|error response = cachingProxyTestClient->get("/maxAge");
     if response is http:Response {

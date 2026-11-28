@@ -31,7 +31,7 @@ service /http2Service on http2SslListener {
     }
 }
 
-http:ClientConfiguration http2SslClientConf1 = {
+function http2SslClientConf1() returns http:ClientConfiguration => {
     secureSocket: {
         cert: {
             path: common:TRUSTSTORE_PATH,
@@ -41,8 +41,8 @@ http:ClientConfiguration http2SslClientConf1 = {
 };
 
 @test:Config {}
-public function testHttp2Ssl1() returns error? {
-    http:Client clientEP = check new ("https://localhost:9206", http2SslClientConf1);
+function testHttp2Ssl1() returns error? {
+    http:Client clientEP = check new ("https://localhost:9206", http2SslClientConf1());
     http:Response|error resp = clientEP->get("/http2Service/");
     if resp is http:Response {
         common:assertTextPayload(resp.getTextPayload(), "Hello World!");

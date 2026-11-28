@@ -81,9 +81,11 @@ public class Http2ServerAbruptClosureInALPNScenarioTest {
             latch2.await(TestUtil.HTTP2_RESPONSE_TIME_OUT, TimeUnit.SECONDS);
 
             assertEquals(getErrorResponseMessage(msgListener1),
-                    "Remote host: localhost/127.0.0.1:9000 closed the connection while SSL handshake");
+                    "Remote host: localhost/127.0.0.1:" + TestUtil.HTTP_SERVER_PORT
+                            + " closed the connection while SSL handshake");
             assertEquals(getErrorResponseMessage(msgListener2),
-                    "Remote host: localhost/127.0.0.1:9000 closed the connection while SSL handshake");
+                    "Remote host: localhost/127.0.0.1:" + TestUtil.HTTP_SERVER_PORT
+                            + " closed the connection while SSL handshake");
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted exception occurred");
             fail();

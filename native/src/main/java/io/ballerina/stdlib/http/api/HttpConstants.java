@@ -262,8 +262,6 @@ public final class HttpConstants {
     public static final BString HTTP_ERROR_STATUS_CODE = StringUtils.fromString("statusCode");
 
     // ServeConnector struct indices
-    public static final BString HTTP_CONNECTOR_CONFIG_FIELD = StringUtils.fromString("config");
-    public static final BString SERVICE_ENDPOINT_CONFIG_FIELD = StringUtils.fromString("config");
     public static final BString RESOURCE_ACCESSOR = StringUtils.fromString("resourceAccessor");
     public static final String SERVICE_ENDPOINT_CONNECTION_FIELD = "caller";
 
@@ -422,6 +420,8 @@ public final class HttpConstants {
     public static final BString JWT_INFORMATION = StringUtils.fromString("JWT_INFORMATION");
     public static final String JWT_DECODER_CLASS_NAME = "JwtDecoder";
     public static final String JWT_DECODE_METHOD_NAME = "decodeJwt";
+    public static final String OAS_RESOURCE_AUTHENTICATOR_CLASS_NAME = "OasResourceAuthenticator";
+    public static final String OAS_RESOURCE_AUTHENTICATE_METHOD_NAME = "authenticate";
     public static final String LAST_INTERCEPTOR_TYPE = "LAST_INTERCEPTOR_TYPE";
     public static final String INTERCEPTABLE_SERVICE = "InterceptableService";
     public static final String CREATE_INTERCEPTORS_FUNCTION_NAME = "createInterceptors";

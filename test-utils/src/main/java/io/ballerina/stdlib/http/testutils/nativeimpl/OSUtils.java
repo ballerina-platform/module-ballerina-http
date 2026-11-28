@@ -40,34 +40,20 @@ public class OSUtils {
 
     private OSUtils() {}
 
+    private static final String ERROR_TYPE = "Error";
     private static final BString UNKNOWN_MESSAGE = StringUtils.fromString("Unknown Error");
 
     /**
-     * Returns error object with a message. Error type is generic ballerina error type. This utility to construct
-     * an error object from a message.
+     * Returns an error of the test module's `Error` type, which the `Process` functions declare.
      *
-     * @param typeId The string type ID of the particular error object.
-     * @param ex    Java throwable object to capture description of error struct. If a throwable object is null,
-     *              "Unknown Error" sets to message by default.
+     * @param ex Java throwable object to capture description of error struct. If a throwable object is null,
+     *           "Unknown Error" sets to message by default.
      * @return Ballerina error object.
      */
-    public static BError getBallerinaError(String typeId, Throwable ex) {
+    public static BError getBallerinaError(Throwable ex) {
         BString errorMsg = ex != null && ex.getMessage() != null ? StringUtils.fromString(ex.getMessage()) :
                 UNKNOWN_MESSAGE;
-        return getBallerinaError(typeId, errorMsg);
-    }
-
-    /**
-     * Returns error object with message. Error type is generic ballerina error type. This utility to construct error
-     * object from message.
-     *
-     * @param typeId  The specific error type ID.
-     * @param message Java throwable object to capture description of error struct. If throwable object is null,
-     *                "Unknown Error" is set to message by default.
-     * @return Ballerina error object.
-     */
-    public static BError getBallerinaError(String typeId, BString message) {
-        return ErrorCreator.createDistinctError(typeId, getModule(), message);
+        return ErrorCreator.createError(getModule(), ERROR_TYPE, errorMsg, null, null);
     }
 
     public static BObject getProcessObject(Process process) throws IOException {

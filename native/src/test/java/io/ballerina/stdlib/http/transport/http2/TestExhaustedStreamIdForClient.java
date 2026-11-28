@@ -28,10 +28,12 @@ import io.ballerina.stdlib.http.transport.contract.ServerConnectorFuture;
 import io.ballerina.stdlib.http.transport.contract.config.ListenerConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.SenderConfiguration;
 import io.ballerina.stdlib.http.transport.contract.config.TransportsConfiguration;
+import io.ballerina.stdlib.http.transport.contract.exceptions.ClientConnectorException;
 import io.ballerina.stdlib.http.transport.contractimpl.DefaultHttpWsConnectorFactory;
 import io.ballerina.stdlib.http.transport.contractimpl.common.HttpRoute;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.channel.pool.ConnectionManager;
 import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.Http2ClientChannel;
+import io.ballerina.stdlib.http.transport.contractimpl.sender.http2.NewConnectionAttempt;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 import io.ballerina.stdlib.http.transport.message.HttpConnectorUtil;
 import io.ballerina.stdlib.http.transport.message.HttpMessageDataStreamer;
@@ -87,7 +89,7 @@ public class TestExhaustedStreamIdForClient {
 
     @Test(description = "Once the stream ids are exhausted for a connection, the next request issued by the same " +
         "client should not fail")
-    public void testExhaustedStreamId() throws Http2Exception {
+    public void testExhaustedStreamId() throws Http2Exception, ClientConnectorException {
         String testValue = "Test Message";
 
         //NOTE: Same pool is used for all three requests
@@ -100,8 +102,8 @@ public class TestExhaustedStreamIdForClient {
         assertEquals(firstResult, testValue, "Expected response not received");
 
         Http2ClientChannel http2ClientChannel = connectionManager.getHttp2ConnectionManager()
-            .fetchChannel(new HttpRoute(Constants.HTTP_SCHEME, LOCALHOST,
-                                               HTTP_SERVER_PORT, 0));
+            .fetchChannel(new HttpRoute(Constants.HTTP_SCHEME, LOCALHOST, HTTP_SERVER_PORT, 0),
+                          new NewConnectionAttempt());
 
         //Simulate the stream id to have reached its max value for the connection.
         http2ClientChannel.getConnection().local().createStream(Integer.MAX_VALUE, false);

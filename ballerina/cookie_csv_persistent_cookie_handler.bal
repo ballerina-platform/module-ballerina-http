@@ -17,6 +17,7 @@
 import ballerina/file;
 import ballerina/io;
 import ballerina/log;
+import ballerina/scan;
 import ballerina/time;
 
 type myCookie record {
@@ -42,6 +43,7 @@ public isolated class CsvPersistentCookieHandler {
     private final string fileName;
     private table<myCookie> key(name, domain, path) cookiesTable = table [];
 
+    @scan:Suppress {rules: [scan:CHECKPANIC_USAGE], reason: "A non-CSV file name is a programming error; returning an error from init would break the public API"}
     public isolated function init(string fileName) {
         self.fileName = checkpanic validateFileExtension(fileName);
     }

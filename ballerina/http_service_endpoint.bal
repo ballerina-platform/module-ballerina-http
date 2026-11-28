@@ -147,7 +147,13 @@ public type Local record {|
 # + requestLimits - Configurations associated with inbound request size limits
 # + gracefulStopTimeout - Grace period of time in seconds for listener gracefulStop
 # + socketConfig - Provides settings related to server socket configuration
-# + http2InitialWindowSize - Configuration to change the initial window size in HTTP/2
+# + http2InitialWindowSize - Configuration to change the initial window size of each stream and of the connection in
+#                            HTTP/2. All streams on a connection share the connection window, so with many concurrent
+#                            streams the default of 65535 bytes limits how fast request bodies arrive. Raise it, for
+#                            example to 4194304, when clients send many requests over one connection. The value must
+#                            be between 0 and 2147483647, the largest window HTTP/2 allows (RFC 9113, section 6.5.2).
+#                            A value below 65535 shrinks only the stream windows, as the connection window starts at
+#                            65535 (RFC 9113, section 6.9.2)
 # + http2MaxActiveStreams - Maximum concurrent HTTP/2 streams per connection advertised to clients.
 #                          Defaults to 100
 # + minIdleTimeInStaleState - Minimum time in seconds for a connection to be kept open which has received a GOAWAY.

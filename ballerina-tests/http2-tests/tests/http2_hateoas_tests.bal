@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/test;
 import ballerina/http_test_common as common;
 
-int http2HateoasTestPort = common:getHttp2Port(hateoasTestPort);
+final int http2HateoasTestPort = common:getHttp2Port(hateoasTestPort);
 
 @http:ServiceConfig {
     mediaTypeSubtypePrefix: "vnd.restBucks"
@@ -91,7 +91,7 @@ service /restBucks on new http:Listener(http2HateoasTestPort) {
     }
 }
 
-http:Client http2JsonClientEP = check new (string `http://localhost:${http2HateoasTestPort}/restBucks`, http2Settings = {http2PriorKnowledge: true});
+final http:Client http2JsonClientEP = check new (string `http://localhost:${http2HateoasTestPort}/restBucks`, http2Settings = {http2PriorKnowledge: true});
 
 @test:Config {}
 function testHttp2HateoasLinks1() returns error? {

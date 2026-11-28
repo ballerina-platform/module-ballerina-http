@@ -3,7 +3,7 @@
 _Owners_: @shafreenAnfar @TharmiganK @ayeshLK @chamil321  
 _Reviewers_: @shafreenAnfar @bhashinee @TharmiganK @ldclakmal  
 _Created_: 2021/12/23  
-_Updated_: 2026/11/02   
+_Updated_: 2026/11/20   
 _Edition_: Swan Lake
 
 
@@ -1157,6 +1157,10 @@ response when returning `anydata` directly from a resource method.
 OAS resources are internally generated for each service and host the generated OpenAPI specification for the service in
 different formats. In order to access these resources user can send an OPTIONS request either to one of the resources or
 the service base-path. The link header in the 204 response specifies the location for the OAS resources.
+
+When the service is secured with the `auth` field of `http:ServiceConfig`, the OAS resources apply the same auth
+configurations, including the scopes. Only the service-level `auth` is applied; `auth` configured only on individual
+resources does not secure the OAS resources. The OPTIONS response carrying the link header is not secured.
 
 Sample service
 ```ballerina
@@ -2622,6 +2626,8 @@ If the JWT information of the request is required, it can be retrieved by using 
 [jwt:Header, jwt:Payload] jwtInformation = check ctx.getWithType(http:JWT_INFORMATION);
 ```
 
+The JWT information is decoded from the bearer token in the `Authorization` header of every request without validating the token. Its claims can be trusted only after the token is validated. Declarative JWT auth validates the token when the resource function is invoked, which is after the request interceptors have run, so a request interceptor that relies on these claims must validate the token itself (for example, with an `http:ListenerJwtAuthHandler`).
+
 #### 8.1.2 Response interceptor
 
 Following is an example of `ResponseInterceptor` written in Ballerina swan-lake. `ResponseInterceptor` can only have one
@@ -3064,6 +3070,18 @@ This allows for tailored logging that can focus on particular details relevant t
 |    http_user_agent     |                                 User-Agent header, identifying the client software                                 |
 |  http_x_forwarded_for  |                                      Originating IP address if using a proxy                                       |
 | http_(X-Custom-Header) | Header fields. Referring to them with `http` followed by the header name. (`x-request-id` ->; `http_x-request-id`) |
+
+Custom header attributes are logged for the request received by the service and for each upstream request the
+service makes. The values of a header that is sent more than once are joined with commas, and a header that is not
+present is logged as `-`.
+
+> **Note:**
+> - A custom header attribute must use the header's actual name after `http_`, including its hyphens. For example, use
+>   `http_x-request-id` for the `x-request-id` header, not `http_x_request_id`. Header names are not case-sensitive.
+>   Only the built-in attributes, such as `http_user_agent` and `http_x_forwarded_for`, use underscores in place of
+>   hyphens.
+> - Header values are logged as they are received. Do not configure headers that carry sensitive data, such as
+>   `http_authorization` or `http_cookie`, as custom header attributes.
 
 ##### 8.2.4.1 Access log rotation
 Access log rotation helps manage log file sizes by automatically creating backup files when certain conditions are met. This prevents log files from growing indefinitely and consuming excessive disk space.

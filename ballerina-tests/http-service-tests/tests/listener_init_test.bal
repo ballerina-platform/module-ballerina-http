@@ -19,7 +19,7 @@ import ballerina/test;
 import ballerina/http_test_common as common;
 
 @test:Config {}
-public function testEmptyKeystore() {
+function testEmptyKeystore() {
     http:Listener|http:Error testListener = new (9249,
         httpVersion = http:HTTP_1_1,
         secureSocket = {
@@ -37,7 +37,7 @@ public function testEmptyKeystore() {
 }
 
 @test:Config {}
-public function testEmptyKeystorePassword() {
+function testEmptyKeystorePassword() {
     http:Listener|http:Error testListener = new (9249,
         httpVersion = http:HTTP_1_1,
         secureSocket = {
@@ -55,7 +55,7 @@ public function testEmptyKeystorePassword() {
 }
 
 @test:Config {}
-public function testEmptyCertFile() {
+function testEmptyCertFile() {
     http:Listener|http:Error testListener = new (9249,
         httpVersion = http:HTTP_1_1,
         secureSocket = {
@@ -73,7 +73,7 @@ public function testEmptyCertFile() {
 }
 
 @test:Config {}
-public function testEmptyKeyFile() {
+function testEmptyKeyFile() {
     http:Listener|http:Error testListener = new (9249,
         httpVersion = http:HTTP_1_1,
         secureSocket = {
@@ -91,7 +91,7 @@ public function testEmptyKeyFile() {
 }
 
 @test:Config {}
-public function testEmptyTrusStoreFile() {
+function testEmptyTrusStoreFile() {
     http:Listener|http:Error testListener = new (9249,
         httpVersion = http:HTTP_1_1,
         secureSocket = {
@@ -113,7 +113,7 @@ public function testEmptyTrusStoreFile() {
 }
 
 @test:Config {}
-public function testEmptyTrusStorePassword() {
+function testEmptyTrusStorePassword() {
     http:Listener|http:Error testListener = new (9249,
         httpVersion = http:HTTP_1_1,
         secureSocket = {
@@ -138,7 +138,7 @@ public function testEmptyTrusStorePassword() {
 }
 
 @test:Config {}
-public function testEmptyTrustStore() {
+function testEmptyTrustStore() {
     http:Listener|http:Error testListener = new (9249,
         httpVersion = http:HTTP_1_1,
         host = "",
@@ -164,7 +164,7 @@ public function testEmptyTrustStore() {
 }
 
 @test:Config {}
-public function testEmptyHost() {
+function testEmptyHost() {
     http:Listener|http:Error testListener = new (0);
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected a port error");
@@ -174,7 +174,7 @@ public function testEmptyHost() {
 }
 
 @test:Config {}
-public function testIncorrectIdletimeout() {
+function testIncorrectIdletimeout() {
     http:Listener|http:Error testListener = new (9244, {timeout: -1});
     if (testListener is http:Listener) {
         test:assertFail(msg = "Found unexpected output: Expected a timeout config error");
@@ -184,7 +184,7 @@ public function testIncorrectIdletimeout() {
 }
 
 @test:Config {}
-public function testIncorrectRequestLimitHeaderSize() {
+function testIncorrectRequestLimitHeaderSize() {
     http:Listener|http:Error testListener = new (9244,
         httpVersion = http:HTTP_1_1,
         requestLimits = {

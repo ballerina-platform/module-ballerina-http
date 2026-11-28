@@ -354,7 +354,13 @@ public final class Http2StateUtil {
                                      Http2ClientChannel http2ClientChannel,
                                      OutboundMsgHolder outboundMsgHolder) throws Http2Exception {
         int streamId = getNextStreamId(connection);
-        createStream(connection, streamId);
+        try {
+            createStream(connection, streamId);
+        } catch (Http2Exception e) {
+            // The stream never opened, so no close will release the pool slot reserved for it
+            http2ClientChannel.releaseReservedStream(e);
+            throw e;
+        }
         http2ClientChannel.putInFlightMessage(streamId, outboundMsgHolder);
         http2ClientChannel.getDataEventListeners()
                 .forEach(dataEventListener -> dataEventListener.onStreamInit(ctx, streamId));

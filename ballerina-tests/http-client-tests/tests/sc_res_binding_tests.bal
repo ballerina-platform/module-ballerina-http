@@ -34,7 +34,7 @@ type AlbumUnion1 Album|MockAlbum;
 
 type AlbumUnion2 MockAlbum|Album;
 
-table<Album> key(id) albums = table [
+final readonly & table<Album> key(id) albums = table [
     {id: "1", name: "The Dark Side of the Moon", artist: "Pink Floyd", genre: "Progressive Rock"},
     {id: "2", name: "Back in Black", artist: "AC/DC", genre: "Hard Rock"},
     {id: "3", name: "The Wall", artist: "Pink Floyd", genre: "Progressive Rock"}

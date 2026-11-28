@@ -130,6 +130,7 @@ public enum HttpDiagnostic {
     HTTP_WARNING_102("HTTP_WARNING_102", "The openapi definition is overridden by the `embed: true` option", WARNING),
     HTTP_WARNING_103("HTTP_WARNING_103", "The Ballerina version is not supported for endpoints.yaml. " +
             "Try using Ballerina 2201.13.6 or above", WARNING),
+    HTTP_WARNING_104("HTTP_WARNING_104", "OpenAPI definition is not embedded for the service: %s", WARNING),
 
     HTTP_HINT_101("HTTP_HINT_101", "Payload annotation can be added", INTERNAL),
     HTTP_HINT_102("HTTP_HINT_102", "Header annotation can be added", INTERNAL),

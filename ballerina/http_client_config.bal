@@ -65,7 +65,13 @@ public type ResponseLimitConfigs record {|
 # Provides settings related to HTTP/2 protocol.
 #
 # + http2PriorKnowledge - Configuration to enable HTTP/2 prior knowledge
-# + http2InitialWindowSize - Configuration to change the initial window size
+# + http2InitialWindowSize - Configuration to change the initial window size of each stream and of the connection.
+#                            All streams on a connection share the connection window, so with many concurrent
+#                            streams the default of 65535 bytes limits how fast responses arrive. Raise it, for
+#                            example to 4194304, when many requests share a connection. The value must be between 0
+#                            and 2147483647, the largest window HTTP/2 allows (RFC 9113, section 6.5.2). A value below
+#                            65535 shrinks only the stream windows, as the connection window starts at 65535
+#                            (RFC 9113, section 6.9.2)
 public type ClientHttp2Settings record {|
     boolean http2PriorKnowledge = false;
     int http2InitialWindowSize = 65535;

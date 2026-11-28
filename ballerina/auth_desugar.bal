@@ -34,7 +34,17 @@ import ballerina/oauth2;
 # + methodName - The name of the subjected resource
 # + resourcePath - The relative path
 public isolated function authenticateResource(Service serviceRef, string methodName, string[] resourcePath) {
-    ListenerAuthConfig[]? authConfig = getListenerAuthConfig(serviceRef, methodName, resourcePath);
+    authenticateWithConfig(getListenerAuthConfig(serviceRef, methodName, resourcePath));
+}
+
+// Invoked by the runtime to apply the service auth to the generated OpenAPI and Swagger UI resources.
+isolated class OasResourceAuthenticator {
+    isolated function authenticate(Service serviceRef) {
+        authenticateWithConfig(getServiceAuthConfig(serviceRef));
+    }
+}
+
+isolated function authenticateWithConfig(ListenerAuthConfig[]? authConfig) {
     if authConfig is () {
         return;
     }
