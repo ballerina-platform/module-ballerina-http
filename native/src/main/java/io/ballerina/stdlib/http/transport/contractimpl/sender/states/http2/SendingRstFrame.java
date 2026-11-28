@@ -44,7 +44,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_GOAWAY_WHILE_SENDING_RST_STREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_SENT_RST_STREAM_WHILE_SENDING_RST_STREAM;
 import static io.ballerina.stdlib.http.transport.contract.Constants.STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
-import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundResponse;
 
 /**
  * A state to reset the stream in the middle of communication.
@@ -139,7 +139,7 @@ public class SendingRstFrame implements SenderState {
         // The reset ends the exchange, so fail whichever part of it the caller is still waiting on.
         HttpCarbonMessage response = outboundMsgHolder.getResponse();
         if (response != null) {
-            handleIncompleteInboundMessage(response, STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY);
+            handleIncompleteInboundResponse(response, STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY);
         } else {
             outboundMsgHolder.getResponseFuture().notifyHttpListener(new RequestCancelledException(
                     STREAM_RESET_WHILE_WRITING_OUTBOUND_REQUEST_BODY, HttpResponseStatus.BAD_GATEWAY.code()));

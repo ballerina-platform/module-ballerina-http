@@ -121,6 +121,22 @@ public class StateUtil {
     }
 
     /**
+     * Reports an inbound response that failed part-way and releases the body chunks already queued for it. The
+     * chunks are pooled buffers, and nothing else returns them when the application never reads (or only partly
+     * reads) the failed response, which would otherwise drain the direct memory over time. A response whose body
+     * had already arrived in full is left as it is, since its content is complete and still waiting to be read.
+     *
+     * @param inboundResponseMsg the response that failed
+     * @param errorMessage       the failure reason
+     */
+    public static void handleIncompleteInboundResponse(HttpCarbonMessage inboundResponseMsg, String errorMessage) {
+        if (inboundResponseMsg != null && !inboundResponseMsg.isLastHttpContentArrived()) {
+            inboundResponseMsg.releaseQueuedEntities();
+        }
+        handleIncompleteInboundMessage(inboundResponseMsg, errorMessage);
+    }
+
+    /**
      * Checks whether the content is the failed end of a body that stopped part-way, as handleIncompleteInboundMessage
      * marks it. Forwarding it as a normal end would hand the receiver a truncated body as if it were complete.
      *

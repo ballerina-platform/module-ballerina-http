@@ -43,7 +43,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.IDLE_TIMEOUT
 import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVER_CLOSED_WHILE_WRITING_OUTBOUND_REQUEST_BODY;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.schedule;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.ticksInNanos;
-import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundResponse;
 
 /**
  * {@code Http2ClientTimeoutHandler} handles the Read/Write Timeout of HTTP/2 streams.
@@ -281,7 +281,7 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
         }
 
         private void handleIncompleteResponse(OutboundMsgHolder msgHolder, boolean primary) {
-            handleIncompleteInboundMessage(primary ? msgHolder.getResponse() : msgHolder.getPushResponse(streamId),
+            handleIncompleteInboundResponse(primary ? msgHolder.getResponse() : msgHolder.getPushResponse(streamId),
                                            getErrorMessage(primary));
         }
 

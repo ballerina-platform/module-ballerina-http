@@ -40,7 +40,7 @@ import static io.ballerina.stdlib.http.transport.contract.Constants.REMOTE_SERVE
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.isKeepAlive;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.Util.safelyRemoveHandlers;
 import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.ILLEGAL_STATE_ERROR;
-import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundMessage;
+import static io.ballerina.stdlib.http.transport.contractimpl.common.states.StateUtil.handleIncompleteInboundResponse;
 
 /**
  * State between start and end of inbound response entity body read.
@@ -110,7 +110,7 @@ public class ReceivingEntityBody implements SenderState {
 
     @Override
     public void handleAbruptChannelClosure(TargetHandler targetHandler, HttpResponseFuture httpResponseFuture) {
-        handleIncompleteInboundMessage(targetHandler.getInboundResponseMsg(), targetHandler
+        handleIncompleteInboundResponse(targetHandler.getInboundResponseMsg(), targetHandler
                 .resolveInboundResponseFailure(REMOTE_SERVER_CLOSED_WHILE_READING_INBOUND_RESPONSE_BODY));
     }
 
@@ -119,7 +119,7 @@ public class ReceivingEntityBody implements SenderState {
                                                    HttpResponseFuture httpResponseFuture, String channelID) {
         senderReqRespStateManager.nettyTargetChannel.pipeline().remove(IDLE_STATE_HANDLER);
         senderReqRespStateManager.nettyTargetChannel.close();
-        handleIncompleteInboundMessage(targetHandler.getInboundResponseMsg(),
+        handleIncompleteInboundResponse(targetHandler.getInboundResponseMsg(),
                                        IDLE_TIMEOUT_TRIGGERED_WHILE_READING_INBOUND_RESPONSE_BODY);
     }
 

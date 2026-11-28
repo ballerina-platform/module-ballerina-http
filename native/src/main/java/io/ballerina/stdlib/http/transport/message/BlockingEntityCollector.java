@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -211,6 +212,18 @@ public class BlockingEntityCollector implements EntityCollector {
             LOG.error("Error while getting content from queue", e);
         } catch (Exception e) {
             LOG.error("Error while waiting and releasing the content", e);
+        } finally {
+            readWriteLock.unlock();
+        }
+    }
+
+    public void releaseQueuedEntities() {
+        try {
+            readWriteLock.lock();
+            HttpContent httpContent;
+            while ((httpContent = httpContentQueue.poll()) != null) {
+                ReferenceCountUtil.safeRelease(httpContent);
+            }
         } finally {
             readWriteLock.unlock();
         }
